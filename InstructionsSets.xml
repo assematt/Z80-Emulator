@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<instructions>
+  <instruction>
+    <Pattern>LD R, R</Pattern>
+    <MCycles>1</MCycles>
+    <TStates>
+      <T>4</T>
+    </TStates>
+  </instruction>
+
+  <instruction>
+    <Pattern>LD R, N</Pattern>
+    <MCycles>2</MCycles>
+    <TStates>
+      <T>4</T>
+      <T>3</T>
+    </TStates>
+  </instruction>
+
+  <instruction>
+    <Pattern>LD R, (HL)</Pattern>
+    <MCycles>2</MCycles>
+    <TStates>
+      <T>4</T>
+      <T>3</T>
+    </TStates>
+  </instruction>
+
+  <instruction>
+    <Pattern>LD R, (IX+D)</Pattern>
+    <MCycles>5</MCycles>
+    <TStates>
+      <T>4</T>
+      <T>4</T>
+      <T>3</T>
+      <T>5</T>
+      <T>3</T>
+    </TStates>
+  </instruction>
+
+  <instruction>
+    <Pattern>LD R, (IY+D)</Pattern>
+    <MCycles>5</MCycles>
+    <TStates>
+      <T>4</T>
+      <T>4</T>
+      <T>3</T>
+      <T>5</T>
+      <T>3</T>
+    </TStates>
+  </instruction>
+
+  LD r, r' – see page 69
+  LD r,n – see page 70
+  LD r, (HL) – see page 72
+  LD r, (IX+d) – see page 73
+  LD r, (IY+d) – see page 75
+  LD (HL), r – see page 77
+  LD (IX+d), r – see page 79
+  LD (IY+d), r – see page 81
+  LD (HL), n – see page 83
+  LD (IX+d), n – see page 84
+  LD (IY+d), n – see page 85
+  LD A, (BC) – see page 86
+  LD A, (DE) – see page 87
+  LD A, (nn) – see page 88
+  LD (BC), A – see page 89
+  LD (DE), A – see page 90
+  LD (nn), A – see page 91
+  LD A, I – see page 92
+  LD A, R – see page 93
+  LD I,A – see page 94
+  LD R, A – see page 95
+
+
+</instructions>

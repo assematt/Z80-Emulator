@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\TInternals">
+      <UniqueIdentifier>{6ff890cc-e721-4410-950f-6420e1f44917}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TInternals">
+      <UniqueIdentifier>{fd92e987-c103-4aab-9d70-7a0b7834179c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Z80 Implementation">
+      <UniqueIdentifier>{05d72c98-c36c-44a8-8ca9-7b19460bad7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TComponents">
+      <UniqueIdentifier>{14b0942f-9111-42e2-97df-808a86cfbc11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TModules">
+      <UniqueIdentifier>{5e6df3c6-aad9-42c5-892a-c418dd80579c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TComponents">
+      <UniqueIdentifier>{b44d6c9e-1679-4f24-aa2d-39a48cf5e4ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TModules">
+      <UniqueIdentifier>{90997ac9-c1e6-4a42-817c-6dfd0918d036}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TDebugger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TRegister.cpp">
+      <Filter>Source Files\TInternals</Filter>
+    </ClCompile>
+    <ClCompile Include="TZ80.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TEntity.cpp">
+      <Filter>Source Files\TInternals</Filter>
+    </ClCompile>
+    <ClCompile Include="TManager.cpp">
+      <Filter>Source Files\TInternals</Filter>
+    </ClCompile>
+    <ClCompile Include="TEventContainer.cpp">
+      <Filter>Source Files\TInternals</Filter>
+    </ClCompile>
+    <ClCompile Include="TClock.cpp">
+      <Filter>Source Files\TInternals</Filter>
+    </ClCompile>
+    <ClCompile Include="TFrequency.cpp">
+      <Filter>Source Files\TInternals</Filter>
+    </ClCompile>
+    <ClCompile Include="TPin.cpp">
+      <Filter>Source Files\TComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="TPinComponent.cpp">
+      <Filter>Source Files\TComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="TLogicGateComponent.cpp">
+      <Filter>Source Files\TComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="TMemoryComponent.cpp">
+      <Filter>Source Files\TComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="TRam.cpp">
+      <Filter>Source Files\TModules</Filter>
+    </ClCompile>
+    <ClCompile Include="TMultiplexerComponent.cpp">
+      <Filter>Source Files\TComponents</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TZ80.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TSourceParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TAlu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TDebugger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TRegisterContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TRegister.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TComponentArray.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TEntity.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TManager.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TValues.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TUtility.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TInstruction.h">
+      <Filter>Header Files\Z80 Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="TEventContainer.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TPinComponent.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="IComponent.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TRam.h">
+      <Filter>Header Files\TModules</Filter>
+    </ClInclude>
+    <ClInclude Include="TClock.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TFrequency.h">
+      <Filter>Header Files\TInternals</Filter>
+    </ClInclude>
+    <ClInclude Include="TPin.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="TLogicGateComponent.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="TNandChip.h">
+      <Filter>Header Files\TModules</Filter>
+    </ClInclude>
+    <ClInclude Include="TMemoryComponent.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="TLed.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="TPower.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="TMultiplexerComponent.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\PROVA2.A01">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\PROVA2.LST">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\Prova2.msa">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\PROVA2.R01">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\source.asm">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

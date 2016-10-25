@@ -25,6 +25,10 @@ namespace TInternals
 			Component->Update();
 		}
 	}
+
+	void TEntity::Init()
+	{
+	}
 	
 	void TEntity::Refresh()
 	{

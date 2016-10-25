@@ -16,7 +16,7 @@ namespace TGame
 
 		void ClearWindow();
 
-		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory& Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const TInternals::TClock& Clock);
+		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const TInternals::TClock& Clock);
 
 	private:
 

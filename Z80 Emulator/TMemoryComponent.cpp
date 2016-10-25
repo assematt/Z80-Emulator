@@ -19,6 +19,16 @@ namespace TGame
 
 		}
 
+		TU8BitValue & TMemoryComponent::operator[](const std::size_t Index)
+		{
+			return mInternalMemory[Index];
+		}
+
+		const TU8BitValue & TMemoryComponent::operator[](const std::size_t Index) const
+		{
+			return mInternalMemory[Index];
+		}
+
 		TMemory& TMemoryComponent::GetInternalMemory()
 		{
 			return mInternalMemory;

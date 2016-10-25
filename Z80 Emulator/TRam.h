@@ -22,8 +22,22 @@ namespace TGame
 		class TRam : public TInternals::TEntity
 		{
 		public:
+			TRam();
 			TRam(const TU16BitValue& MemorySize);
 
+			~TRam() = default;
+
+			void Update();
+
+			void Init();
+
+			virtual void MakeVirtual() {};
+		private:
+			// Cache some pins status for easy access to them
+			TU16BitValue				mMemorySize;
+			TComponents::TPin::TStatus* mChipEnablePin;
+			TComponents::TPin::TStatus* mWritePin;
+			TComponents::TPin::TStatus* mOutputEnable;			
 		};
 	}
 }

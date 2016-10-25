@@ -17,10 +17,11 @@ namespace TGame
 			using TPinGroupID = TU8BitValue;
 			using TPinConnections = std::vector<TPin*>;
 			
-			enum TStatus : bool
+			enum TStatus : TU8BitValue
 			{
-				LOW = false,
-				HIGH = true,
+				LOW,
+				HIGH,
+				HIGH_Z
 			};
 
 			enum class TMode : TU8BitValue

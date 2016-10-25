@@ -18,7 +18,7 @@ namespace TGame
 		system("cls");
 	}
 	
-	void TDebugger::ShowDebugWindow(const TRegisterContainer& Registers, const TMemory& Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const TInternals::TClock& Clock)
+	void TDebugger::ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const TInternals::TClock& Clock)
 	{
 		// clear console
 		ClearWindow();
@@ -39,7 +39,8 @@ namespace TGame
 		ShowAddressBus(AddressBus);
 	
 		// Show program memory
-		ShowProgramMemory(Registers.ProgramCounter(), Memory);
+		if (Memory)
+			ShowProgramMemory(Registers.ProgramCounter(), *Memory);
 
 		// Show timing
 		ShowTiming(Clock);
@@ -156,7 +157,7 @@ namespace TGame
 	{
 		std::cout << std::endl;
 
-		printf("Data bus: %02X %8c | %8c ", Value, ' ', ' ');
+		printf("Data bus: %02X %10c | %8c ", Value, ' ', ' ');
 	}
 
 	void TDebugger::ShowAddressBus(const TU16BitValue& Value)

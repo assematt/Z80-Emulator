@@ -93,6 +93,20 @@ namespace TInternals
 			// Return the value of the old first bit
 			return Bit;
 		}
+	
+		template <class IDType>
+		inline IDType GetUniqueID() noexcept
+		{
+			static IDType lastID = 0u;
+			return lastID++;
+		}
+
+		template <class IDType, class T>
+		inline IDType GetTypeID() noexcept
+		{
+			static IDType typeID = GetUniqueID<IDType>();
+			return typeID;
+		}
 	}
 }
 

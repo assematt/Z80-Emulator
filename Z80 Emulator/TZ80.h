@@ -39,14 +39,21 @@ namespace TGame
 
 	public:
 		TZ80();
+		~TZ80() = default;
 
 		void Reset();
 
 		void Init();
 
-		void LoadProgram(const std::string& Program);
+		void Update();
+
+		bool LoadProgram(const std::string& Program);
+
+		bool ConnectRam(std::shared_ptr<TModules::TRam>& Ram);
 
 		void MainLoop();
+
+		virtual void MakeVirtual() {};
 
 		/// Fetch the instruction from memory
 		template <class T>
@@ -92,18 +99,15 @@ namespace TGame
 		bool mMaskableInterrupt;
 		TInternals::TClock mClock;
 		TInterruptMode mInterruptMode;
-
-		TU16BitValue mProgramSize;
-
+		
 		TU16BitValue mAddressBus;
 		TU8BitValue mDataBus;
 
 		// EXTERNAL RAM COMPONENT
-		TModules::TRam mRam;
+		std::shared_ptr<TModules::TRam> mRam;
 
 		// Cache the RAM memory
 		std::shared_ptr<TMemory> mMemory;
-		//TMemory mMemory;
 
 		// Internal CPU ALU
 		TAlu mAlu;
@@ -116,6 +120,10 @@ namespace TGame
 	template <class T>
 	T TZ80::FetchInstruction(const TU16BitValue& Address /*= 0*/)
 	{
+		// Check if we have a connected ram, if we don't have one return nop
+		if (!mRam)
+			return static_cast<T>(TOpCodesMainInstruction::NOP);
+
 		// If we specify an address return the instruction specified by the address
 		if (Address > 0)
 		{
@@ -134,7 +142,7 @@ namespace TGame
 	}
 
 	template <class T, class S /*= T*/>
-	void TZ80::LoadRegisterFromRegister(const TRegisterType& Destination , const TRegisterType& Source)
+	void TZ80::LoadRegisterFromRegister(const TRegisterType& Destination, const TRegisterType& Source)
 	{
 		mRegisters.GetRegister<T>(Destination) = mRegisters.GetRegister<S>(Source);
 	}
@@ -146,7 +154,7 @@ namespace TGame
 	}
 
 	template <class T, class S /*= T*/>
-	void TZ80::LoadRegisterFromNumber(const TRegisterType& LeftRegister , const S& RightRegister)
+	void TZ80::LoadRegisterFromNumber(const TRegisterType& LeftRegister, const S& RightRegister)
 	{
 		mRegisters.GetRegister<T>(LeftRegister) = mRegisters.GetRegister<S>(RightRegister);
 	}

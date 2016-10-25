@@ -18,6 +18,9 @@ namespace TGame
 
 			void Update();
 
+			TU8BitValue& operator[] (const std::size_t Index);
+			const TU8BitValue& operator[] (const std::size_t Index) const;
+
 			TMemory& GetInternalMemory();
 			const TMemory& GetInternalMemory() const;
 

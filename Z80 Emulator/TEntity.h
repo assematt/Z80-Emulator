@@ -9,12 +9,16 @@
 
 namespace TInternals
 {
-	class TEntity : public TComponentArray, public TEventContainer
+	class TManager;
+
+	class TEntity : public TComponentArray<IComponent, TEntity, TComponentID>, public TEventContainer
 	{
 	public:
-		using TEntityPtr = std::unique_ptr<TEntity>;
+		using TEntityPtr = std::shared_ptr<TEntity>;
+		using TEntityID = std::size_t;
 	
 		TEntity();
+		virtual ~TEntity() = default;
 	
 		/// Helper function to make an entity
 		template <typename... TArgs>
@@ -31,6 +35,9 @@ namespace TInternals
 	
 		/// Update function
 		void Update();
+
+		/// Init function
+		virtual void Init();
 	
 		/// Update function
 		void Refresh();
@@ -40,7 +47,14 @@ namespace TInternals
 	
 		/// This function is called when the entity is destroyed
 		void OnDestroy();
+
+		/// 
+		virtual void MakeVirtual() = 0;
 	private:
 		bool mAlive;
+		TManager* mParent;
+		TEntityID mID;
+
+		friend class TComponentArray<TEntity, TManager, TEntity::TEntityID>;
 	};
 }

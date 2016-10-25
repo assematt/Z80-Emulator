@@ -8,7 +8,10 @@ namespace TGame
 		mMaskableInterrupt(true),
 		mAlu(mRegisters),
 		mClock(TInternals::Hertz(1.l)),
-		mRam(65535)
+		mRam(nullptr),
+		mMemory(nullptr),
+		mAddressBus(0),
+		mDataBus(0)
 	{
 		// Add the right Components to make a CPU
 
@@ -69,29 +72,23 @@ namespace TGame
 		}, 40);
 		InitComponents();
 
-		// Connects the Z80 Address bus to the Ram AddressBus
-		auto& LeftBus = GetComponentAsPtr<TComponents::TPinComponent>()->GetPinBus(CPUPinGroup::AddressBus, 0, 14);
-		auto& RightBus = mRam.GetComponentAsPtr<TComponents::TPinComponent>()->GetPinBus(TModules::TRamPinGroup::AddressBus);
-		TComponents::TPinComponentUtility::ConnectPins(LeftBus, RightBus);
-
-		// Cache the internal memory
-		mMemory = std::make_shared<TMemory>(mRam.GetComponentAsPtr<TComponents::TMemoryComponent>()->GetInternalMemory());
-		
-
 		// Reset the state of the CPU
 		Reset();
 	}
 	
 	void TZ80::Reset()
 	{
-		/// Reset the state of the register
+		// Reset the state of the register
 		mRegisters.Reset();
 	
-		// Reset the R/W Memory portion
-		for (auto& Memory : (*mMemory))
+		// Reset the R/W Memory portion if we have one connected
+		if (mRam)
 		{
-			Memory = 0;
-		}
+			for (auto& Memory : (*mMemory))
+			{
+				Memory = 0;
+			}
+		}		
 	}
 	
 	void TZ80::Init()
@@ -99,8 +96,17 @@ namespace TGame
 	
 	}
 	
-	void TZ80::LoadProgram(const std::string& Program)
+	void TZ80::Update()
 	{
+
+	}
+
+	bool TZ80::LoadProgram(const std::string& Program)
+	{
+		// Check if we have a connected ram to load the program into
+		if (!mRam)
+			return false;
+
 		// Read the file
 		std::string CodeLine;
 		std::ifstream InputFile(Program.c_str());
@@ -129,8 +135,28 @@ namespace TGame
 	
 			InputFile.close();
 		}
+
+		return true;
 	}
 	
+	bool TZ80::ConnectRam(std::shared_ptr<TModules::TRam>& Ram)
+	{
+		// Check the the passed argument points to something
+		if (!Ram)
+			return false;
+
+		// Creates a copy of the ram pointer
+		mRam = Ram;
+
+		// Connects the Z80 Address bus to the Ram AddressBus
+		auto& LeftBus = GetComponentAsPtr<TComponents::TPinComponent>()->GetPinBus(CPUPinGroup::AddressBus, 0, 14);
+		auto& RightBus = mRam->GetComponentAsPtr<TComponents::TPinComponent>()->GetPinBus(TModules::TRamPinGroup::AddressBus);
+		TComponents::TPinComponentUtility::ConnectPins(LeftBus, RightBus);
+
+		// Cache the internal memory
+		mMemory = std::make_shared<TMemory>(mRam->GetComponentAsPtr<TComponents::TMemoryComponent>()->GetInternalMemory());
+	}
+
 	void TZ80::MainLoop()
 	{
 		TOpCodesMainInstruction CurrentInstruction;
@@ -138,7 +164,7 @@ namespace TGame
 		do
 		{
 			// Show the debug window
-			mDebugger.ShowDebugWindow(mRegisters, (*mMemory), mDataBus, mAddressBus, mClock);
+			mDebugger.ShowDebugWindow(mRegisters, mMemory.get(), mDataBus, mAddressBus, mClock);
 	
 			// Wait for user input to move forward
 			//std::cin.ignore();

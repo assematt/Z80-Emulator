@@ -17,9 +17,9 @@ namespace TGame
 
 		void TMultiplexerComponent::Init()
 		{
-			assert(mParentEntity->HasComponent<TPinComponent>());
+			assert(mParent->HasComponent<TPinComponent>());
 
-			mPinComponent = mParentEntity->GetComponentAsPtr<TPinComponent>();
+			mPinComponent = mParent->GetComponentAsPtr<TPinComponent>();
 		}
 
 		void TMultiplexerComponent::Update()

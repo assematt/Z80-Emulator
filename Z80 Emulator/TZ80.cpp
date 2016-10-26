@@ -2,16 +2,18 @@
 
 namespace TGame
 {
+
 	TZ80::TZ80() :
 		mIsRunning(true),
 		mIsHalted(false),
 		mMaskableInterrupt(true),
 		mAlu(mRegisters),
 		mClock(TInternals::Hertz(1.l)),
+		mTStates(0),
 		mRam(nullptr),
-		mMemory(nullptr),
 		mAddressBus(0),
-		mDataBus(0)
+		mDataBus(0),
+		mCurrentInstruction(TOpCodesMainInstruction::NOP)
 	{
 		// Add the right Components to make a CPU
 
@@ -46,12 +48,12 @@ namespace TGame
 			{ TComponents::TPin::TMode::INPUT_OUTPUT, TComponents::TPin::TStatus::LOW, 13, CPUPinGroup::DataBus, 7 }, // D7
 
 			// SYSTEM CONTROL
-			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 27, CPUPinGroup::Others }, // M1
-			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 19, CPUPinGroup::Others }, // MREQ
-			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 20, CPUPinGroup::Others }, // IORQ
-			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 21, CPUPinGroup::Others }, // RD
-			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 22, CPUPinGroup::Others }, // WR
-			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 28, CPUPinGroup::Others }, // RFSH
+			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::HIGH, 27, CPUPinGroup::Others }, // M1
+			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::HIGH, 19, CPUPinGroup::Others }, // MREQ
+			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::HIGH, 20, CPUPinGroup::Others }, // IORQ
+			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::HIGH, 21, CPUPinGroup::Others }, // RD
+			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::HIGH, 22, CPUPinGroup::Others }, // WR
+			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::HIGH, 28, CPUPinGroup::Others }, // RFSH
 
 			// CPU CONTROL
 			{ TComponents::TPin::TMode::OUTPUT, TComponents::TPin::TStatus::LOW, 18, CPUPinGroup::Others }, // HALT
@@ -69,7 +71,7 @@ namespace TGame
 			{ TComponents::TPin::TMode::POWER, TComponents::TPin::TStatus::LOW, 11, CPUPinGroup::Others }, // VCC
 			{ TComponents::TPin::TMode::POWER, TComponents::TPin::TStatus::LOW, 29, CPUPinGroup::Others }, // GND
 
-		}, 40);
+		}, 40 );
 		InitComponents();
 
 		// Reset the state of the CPU
@@ -84,7 +86,7 @@ namespace TGame
 		// Reset the R/W Memory portion if we have one connected
 		if (mRam)
 		{
-			for (auto& Memory : (*mMemory))
+			for (auto& Memory : (*mRam))
 			{
 				Memory = 0;
 			}
@@ -96,9 +98,28 @@ namespace TGame
 	
 	}
 	
+	void TZ80::Refresh()
+	{
+		// Get the current instruction Opcode
+		FetchInstruction();
+	}
+
 	void TZ80::Update()
 	{
+		// Before check if the z80 is still active
+		if (!mIsRunning)
+			return;
 
+		// Show the debug window
+		mDebugger.ShowDebugWindow(mRegisters, &mRam->GetInternalMemory(), mDataBus, mAddressBus, mClock);
+		
+		// Get the current instruction Opcode
+		//TOpCodesMainInstruction CurrentInstruction = FetchInstruction<TOpCodesMainInstruction>();
+
+		// Execute the instruction
+		ExecuteInstruction(static_cast<TOpCodesMainInstruction>(mCurrentInstruction));
+
+		mClock.Wait();
 	}
 
 	bool TZ80::LoadProgram(const std::string& Program)
@@ -106,6 +127,9 @@ namespace TGame
 		// Check if we have a connected ram to load the program into
 		if (!mRam)
 			return false;
+
+		// Get a ref to the ram memory
+		//auto& Memory = mRam->GetComponentAsPtr<TComponents::TMemoryComponent>()->GetInternalMemory();
 
 		// Read the file
 		std::string CodeLine;
@@ -128,7 +152,8 @@ namespace TGame
 				{
 					for (std::size_t Index = 0, MemoryIndex = 0; Index < ByteCount * 2; Index += 2, ++MemoryIndex)
 					{
-						(*mMemory)[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
+						
+						(*mRam)[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
 					}
 				}
 			}
@@ -139,44 +164,65 @@ namespace TGame
 		return true;
 	}
 	
-	bool TZ80::ConnectRam(std::shared_ptr<TModules::TRam>& Ram)
+	bool TZ80::ConnectRam(std::shared_ptr<TModules::TRam> Ram)
 	{
 		// Check the the passed argument points to something
 		if (!Ram)
 			return false;
 
 		// Creates a copy of the ram pointer
-		mRam = Ram;
+		mRam = std::make_shared<TModules::TRam>(*Ram.get());
+
+		// Get a ref to the PinComponent of the z80 and ram
+		auto& CpuPinComponent = GetComponentAsPtr<TComponents::TPinComponent>();
+		auto& RamPinComponent = mRam->GetComponentAsPtr<TComponents::TPinComponent>();
 
 		// Connects the Z80 Address bus to the Ram AddressBus
-		auto& LeftBus = GetComponentAsPtr<TComponents::TPinComponent>()->GetPinBus(CPUPinGroup::AddressBus, 0, 14);
-		auto& RightBus = mRam->GetComponentAsPtr<TComponents::TPinComponent>()->GetPinBus(TModules::TRamPinGroup::AddressBus);
+		auto& LeftBus = CpuPinComponent->GetPinBus(CPUPinGroup::AddressBus, 0, 14);
+		auto& RightBus = RamPinComponent->GetPinBus(TModules::TRamPinGroup::AddressBus);
 		TComponents::TPinComponentUtility::ConnectPins(LeftBus, RightBus);
 
-		// Cache the internal memory
-		mMemory = std::make_shared<TMemory>(mRam->GetComponentAsPtr<TComponents::TMemoryComponent>()->GetInternalMemory());
+		// Connects the Z80 data bus to the Ram data bus
+		LeftBus = CpuPinComponent->GetPinBus(CPUPinGroup::DataBus);
+		RightBus = RamPinComponent->GetPinBus(TModules::TRamPinGroup::DataBus);
+		TComponents::TPinComponentUtility::ConnectPins(LeftBus, RightBus);
+
+		// Connect the MREQ pin to the CE of the ram
+		TComponents::TPinComponentUtility::ConnectPins(CpuPinComponent->GetPin(19), RamPinComponent->GetPin(20));
+
+		// Connect the RD pin to the OE of the ram
+		TComponents::TPinComponentUtility::ConnectPins(CpuPinComponent->GetPin(21), RamPinComponent->GetPin(22));
+	}
+	
+	TU8BitValue TZ80::FetchInstruction(const TU16BitValue& Address /*= 0*/)
+	{
+		// Check if we have a connected ram, if we don't have one return nop
+		if (!mRam)
+			return static_cast<TOpCodesMainInstruction>(TOpCodesMainInstruction::NOP);
+
+		// Get a ref to the PinComponent
+		auto& Pins = GetComponentAsPtr<TComponents::TPinComponent>();
+
+		// Activates MREQ and RD pin
+		Pins->GetPin(19) = TComponents::TPin::LOW;
+		Pins->GetPin(21) = TComponents::TPin::LOW;
+
+		// Select the instruction by putting the address in the address bus
+		PushDataToAddressBus(Address > 0 ? Address : mRegisters.ProgramCounter());
+
+		// Refresh the memory logic
+		mRam->RefreshMemory();
+
+		// Get the instruction from the bus
+		mCurrentInstruction = GetDataFromDataBus();
+		
+		// Deactivates MREQ and RD pin
+		Pins->GetPin(19) = TComponents::TPin::HIGH;
+		Pins->GetPin(21) = TComponents::TPin::HIGH;
+
+		return mCurrentInstruction;
 	}
 
-	void TZ80::MainLoop()
-	{
-		TOpCodesMainInstruction CurrentInstruction;
-	
-		do
-		{
-			// Show the debug window
-			mDebugger.ShowDebugWindow(mRegisters, mMemory.get(), mDataBus, mAddressBus, mClock);
-	
-			// Wait for user input to move forward
-			//std::cin.ignore();
-	
-			// Get the current instruction Opcode
-			CurrentInstruction = FetchInstruction<TOpCodesMainInstruction>();
-	
-			// Execute the instruction
-			ExecuteInstruction(CurrentInstruction);
-		} while (mIsRunning && mClock.Wait());
-	}
-	
 	TU16BitValue TZ80::ExecuteInstruction(const TOpCodesMainInstruction& OpCode)
 	{
 		switch (OpCode)
@@ -384,7 +430,7 @@ namespace TGame
 			}
 	
 			// Perform the loading operation
-			mRegisters.GetRegister<TInternals::T16BitRegister>(DestinationRegister) = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			mRegisters.GetRegister<TInternals::T16BitRegister>(DestinationRegister) = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 			// Increment the PC
 			ProgramCounter += 3;
@@ -438,7 +484,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Perform the loading operation
-			LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::A, TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]));
+			LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::A, TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
 	
 			// Increment the PC
 			ProgramCounter += 3;
@@ -452,7 +498,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Perform the loading operation
-			LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::A, TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]));
+			LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::A, TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
 	
 			// Increment the PC
 			ProgramCounter += 3;
@@ -465,11 +511,11 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Get the destination address
-			auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 			// Perform the loading operation
-			(*mMemory)[Address] = mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::L);
-			(*mMemory)[Address + 1] = mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::H);
+			(*mRam)[Address] = mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::L);
+			(*mRam)[Address + 1] = mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::H);
 	
 			// Increment PC
 			ProgramCounter += 3;
@@ -482,11 +528,11 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Get the destination address
-			auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 			// Perform the loading operation
-			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::L) = (*mMemory)[Address];
-			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::H) = (*mMemory)[Address + 1];
+			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::L) = (*mRam)[Address];
+			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::H) = (*mRam)[Address + 1];
 	
 			// Increment PC
 			ProgramCounter += 3;
@@ -499,7 +545,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Perform the loading operation
-			(*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)] = (*mMemory)[ProgramCounter + 1];
+			(*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)] = (*mRam)[ProgramCounter + 1];
 	
 			// Increment the PC
 			ProgramCounter += 2;
@@ -588,8 +634,8 @@ namespace TGame
 		// EX (SP),HL
 		case EX_INDIRECT_SP_HL:
 		{
-			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::H) = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP) + 1];
-			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::L) = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP)];
+			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::H) = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP) + 1];
+			mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::L) = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP)];
 			mRegisters.ProgramCounter() += 1;
 		}break;
 	
@@ -637,7 +683,7 @@ namespace TGame
 		case ADD_A_INDIRECT_HL:
 		{
 			// Perform the addition
-			mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			// Increment the PC
 			++mRegisters.ProgramCounter();
@@ -647,7 +693,7 @@ namespace TGame
 		case ADD_A_n:
 		{
 			// Perform the addition
-			mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1]);
+			mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
 	
 			// Increment the PC
 			mRegisters.ProgramCounter() += 2;
@@ -688,7 +734,7 @@ namespace TGame
 		case ADC_A_INDIRECT_HL:
 		{
 			// Perform the addition
-			mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)] + mAlu.CheckFlag(TFlags::C));
+			mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)] + mAlu.CheckFlag(TFlags::C));
 	
 			// Increment the PC
 			++mRegisters.ProgramCounter();
@@ -698,7 +744,7 @@ namespace TGame
 		case ADC_A_n:
 		{
 			// Perform the addition
-			mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1] + mAlu.CheckFlag(TFlags::C));
+			mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1] + mAlu.CheckFlag(TFlags::C));
 	
 			// Increment the PC
 			mRegisters.ProgramCounter() += 2;
@@ -738,7 +784,7 @@ namespace TGame
 		// SBC A,(HL)
 		case SBC_A_INDIRECT_HL:
 		{
-			mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)] - mAlu.CheckFlag(TFlags::C));
+			mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)] - mAlu.CheckFlag(TFlags::C));
 	
 			mRegisters.ProgramCounter() += 1;
 		}break;
@@ -746,7 +792,7 @@ namespace TGame
 		// SBC A,N
 		case SBC_A_n:
 		{
-			mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1] - mAlu.CheckFlag(TFlags::C));
+			mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1] - mAlu.CheckFlag(TFlags::C));
 	
 			mRegisters.ProgramCounter() += 2;
 		}break;
@@ -785,7 +831,7 @@ namespace TGame
 		// SUB (HL)
 		case SUB_INDIRECT_HL:
 		{
-			mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			mRegisters.ProgramCounter() += 1;
 		}break;
@@ -793,7 +839,7 @@ namespace TGame
 		// SUB N
 		case SUB_n:
 		{
-			mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1]);
+			mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
 	
 			mRegisters.ProgramCounter() += 2;
 		}break;
@@ -833,7 +879,7 @@ namespace TGame
 		case INC_INDIRECT_HL:
 		{
 			// Perform the increment
-			mAlu.AluInc<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluInc<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			// Increment the PC
 			++mRegisters.ProgramCounter();
@@ -874,7 +920,7 @@ namespace TGame
 		case DEC_INDIRECT_HL:
 		{
 			// Perform the increment
-			mAlu.AluDec<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluDec<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			// Increment the PC
 			++mRegisters.ProgramCounter();
@@ -914,7 +960,7 @@ namespace TGame
 		// AND (HL)
 		case AND_INDIRECT_HL:
 		{
-			mAlu.AluAnd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			mRegisters.ProgramCounter() += 1;
 		}break;
@@ -922,7 +968,7 @@ namespace TGame
 		// AND N
 		case AND_n:
 		{
-			mAlu.AluAnd<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1]);
+			mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
 	
 			mRegisters.ProgramCounter() += 2;
 		}break;
@@ -961,7 +1007,7 @@ namespace TGame
 		// OR (HL)
 		case OR_INDIRECT_HL:
 		{
-			mAlu.AluOr<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			mRegisters.ProgramCounter() += 1;
 		}break;
@@ -969,7 +1015,7 @@ namespace TGame
 		// OR N
 		case OR_n:
 		{
-			mAlu.AluOr<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1]);
+			mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
 	
 			mRegisters.ProgramCounter() += 2;
 		}break;
@@ -1008,7 +1054,7 @@ namespace TGame
 		// XOR (HL)
 		case XOR_INDIRECT_HL:
 		{
-			mAlu.AluXor<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			mRegisters.ProgramCounter() += 1;
 		}break;
@@ -1016,7 +1062,7 @@ namespace TGame
 		// XOR N
 		case XOR_n:
 		{
-			mAlu.AluXor<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1]);
+			mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
 	
 			mRegisters.ProgramCounter() += 2;
 		}break;
@@ -1055,7 +1101,7 @@ namespace TGame
 		// CP (HL)
 		case CP_INDIRECT_HL:
 		{
-			mAlu.AluCp<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
+			mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)]);
 	
 			mRegisters.ProgramCounter() += 1;
 		}break;
@@ -1063,7 +1109,7 @@ namespace TGame
 		// CP N
 		case CP_n:
 		{
-			mAlu.AluCp<TU8BitValue>((*mMemory)[mRegisters.ProgramCounter() + 1]);
+			mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
 	
 			mRegisters.ProgramCounter() += 2;
 		}break;
@@ -1328,7 +1374,7 @@ namespace TGame
 		case BITS:
 		{
 			// Get the instruction
-			TOpCodesBitInstructions BitInstruction = FetchInstruction<TOpCodesBitInstructions>(++mRegisters.ProgramCounter());
+			auto BitInstruction = static_cast<TOpCodesBitInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
 	
 			// Get the register to test by looking at the first 3 bit
 			TRegisterType RegisterToTest;
@@ -1383,7 +1429,7 @@ namespace TGame
 			case RLC_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Perform the operation
 				mAlu.RotateLeft(Register, false);
@@ -1441,7 +1487,7 @@ namespace TGame
 			case RL_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Perform the operation
 				mAlu.RotateLeft(Register);
@@ -1501,7 +1547,7 @@ namespace TGame
 			case SLA_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				TInternals::TUtility::RotateLeft(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
 	
@@ -1569,7 +1615,7 @@ namespace TGame
 			case SRA_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Get the 7th bit for preservation purpose
 				bool Bit = TInternals::TUtility::GetBit(Register, 7);
@@ -1637,7 +1683,7 @@ namespace TGame
 			case SRL_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto& Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto& Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				TInternals::TUtility::RotateRight(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
 	
@@ -1751,7 +1797,7 @@ namespace TGame
 				TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 	
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Z is set if specified bit is 0; otherwise, it is reset.
 				TInternals::TUtility::GetBit(Register, BitPosition) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
@@ -1851,7 +1897,7 @@ namespace TGame
 				TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 	
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Set the specified bit
 				TInternals::TUtility::SetBit(Register, BitPosition, 1);
@@ -1945,7 +1991,7 @@ namespace TGame
 				TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 	
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Reset the specified bit
 				TInternals::TUtility::SetBit(Register, BitPosition, 0);
@@ -1991,7 +2037,7 @@ namespace TGame
 			case RC_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Perform the operation
 				mAlu.RotateRight(Register, false);
@@ -2049,7 +2095,7 @@ namespace TGame
 			case R_INDIRECT_HL & 0xFF:
 			{
 				// Get a ref to the register
-				auto Register = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto Register = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Perform the operation
 				mAlu.RotateRight(Register);
@@ -2090,7 +2136,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Destination address
-			auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 			// See what flag we have to check and base the jump based on the flag condition
 			switch (static_cast<TU8BitValue>(OpCode) >> 3 & 7)
@@ -2113,7 +2159,7 @@ namespace TGame
 			// Get a reference to the PC
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
-			ProgramCounter = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			ProgramCounter = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		} break;
 	
 		// JP (HL)
@@ -2128,7 +2174,7 @@ namespace TGame
 			// Get a reference to the PC
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
-			ProgramCounter += (*mMemory)[ProgramCounter + 1] + 2;
+			ProgramCounter += (*mRam)[ProgramCounter + 1] + 2;
 		} break;
 	
 	#pragma region JR CC,DIS
@@ -2141,7 +2187,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Destination address
-			auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 			// See what flag we have to check
 			bool Flag;
@@ -2154,7 +2200,7 @@ namespace TGame
 			}
 	
 			// Displacement
-			const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1] + 2;
+			const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1] + 2;
 	
 			// Base the jump based on the flag condition
 			Flag ? ProgramCounter.GetInternalValue() += Displacement : ProgramCounter += 2;
@@ -2167,7 +2213,7 @@ namespace TGame
 			// Get a reference to the B and PC registers
 			auto& Register = mRegisters.GetRegister<TInternals::T8BitRegister>(TRegisterType::B);
 			auto& ProgramCounter = mRegisters.ProgramCounter();
-			const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1] + 2;
+			const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1] + 2;
 	
 			// Decrement the B register, if B > 0 add an offset to the PC otherwise goes to the next instruction
 			--Register > 0 ? ProgramCounter.GetInternalValue() += Displacement : ProgramCounter += 2;
@@ -2191,7 +2237,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Destination address
-			auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+			auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 			// See what flag we have to check
 			bool Flag;
@@ -2219,7 +2265,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 	
 			// Put the PC on the stack on goes to the memory location specified by the CALL instruction
-			Call(TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]));
+			Call(TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
 		} break;
 	
 	#pragma region RET CC
@@ -2307,7 +2353,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 
 			// Get the address of the port
-			auto Port = (*mMemory)[ProgramCounter + 1];
+			auto Port = (*mRam)[ProgramCounter + 1];
 
 			// Put the data from the data bus to the accumulator
 			Accumulator = GetDataFromDataBus();
@@ -2326,7 +2372,7 @@ namespace TGame
 			auto& ProgramCounter = mRegisters.ProgramCounter();
 
 			// Get the address of the port
-			auto Port = (*mMemory)[ProgramCounter + 1];
+			auto Port = (*mRam)[ProgramCounter + 1];
 
 			// Put the data from the data bus to the accumulator
 			PushDataToDataBus(Accumulator);
@@ -2340,7 +2386,7 @@ namespace TGame
 		case IX_INSTRUCTIONS:
 		{
 			// Cast the bit instruction as an 8 bit value
-			auto IXInstruction = FetchInstruction<TOpCodesIXInstructions>(++mRegisters.ProgramCounter());
+			auto IXInstruction = static_cast<TOpCodesIXInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
 	
 			switch (IXInstruction)
 			{
@@ -2364,8 +2410,8 @@ namespace TGame
 			case EX_INDIRECT_SP_IX:
 			{
 				auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				IXRegister.GetHighOrderRegister() = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP) + 1];
-				IXRegister.GetLowOrderRegister() = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP)];
+				IXRegister.GetHighOrderRegister() = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP) + 1];
+				IXRegister.GetLowOrderRegister() = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP)];
 				mRegisters.ProgramCounter() += 1;
 			} break;
 	
@@ -2373,9 +2419,9 @@ namespace TGame
 			case AND_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluAnd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2384,9 +2430,9 @@ namespace TGame
 			case OR_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluOr<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2395,9 +2441,9 @@ namespace TGame
 			case XOR_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluXor<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2406,9 +2452,9 @@ namespace TGame
 			case CP_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluCp<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2505,9 +2551,9 @@ namespace TGame
 			case ADD_A_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2516,9 +2562,9 @@ namespace TGame
 			case ADC_A_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement] + mAlu.CheckFlag(TFlags::C));
+				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement] + mAlu.CheckFlag(TFlags::C));
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2527,9 +2573,9 @@ namespace TGame
 			case SBC_A_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement] - mAlu.CheckFlag(TFlags::C));
+				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement] - mAlu.CheckFlag(TFlags::C));
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2546,9 +2592,9 @@ namespace TGame
 			case INC_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluInc<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluInc<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2565,9 +2611,9 @@ namespace TGame
 			case DEC_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluDec<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluDec<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -2577,7 +2623,7 @@ namespace TGame
 			case IX_BIT_INSTRUCTIONS:
 			{
 				// Get the instruction
-				auto IXBitInstruction = FetchInstruction<TOpCodesIXBitInstructions>(++mRegisters.ProgramCounter());
+				auto IXBitInstruction = static_cast<TOpCodesIXBitInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
 	
 				switch (IXBitInstruction)
 				{
@@ -2585,9 +2631,9 @@ namespace TGame
 				case RLC_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateLeft<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], false);
+					mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], false);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -2597,10 +2643,10 @@ namespace TGame
 				case BIT_0_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 0) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 0) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2613,10 +2659,10 @@ namespace TGame
 				case BIT_1_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 1) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 1) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2629,10 +2675,10 @@ namespace TGame
 				case BIT_2_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 2) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 2) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2645,10 +2691,10 @@ namespace TGame
 				case BIT_3_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 3) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 3) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2661,10 +2707,10 @@ namespace TGame
 				case BIT_4_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 4) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 4) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2677,10 +2723,10 @@ namespace TGame
 				case BIT_5_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 5) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 5) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2693,10 +2739,10 @@ namespace TGame
 				case BIT_6_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 6) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 6) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2709,10 +2755,10 @@ namespace TGame
 				case BIT_7_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 7) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 7) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -2727,80 +2773,80 @@ namespace TGame
 				case SET_0_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 0, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 0, 1);
 				} break;
 	
 				// SET 1, (IX + DIS)
 				case SET_1_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 1, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 1, 1);
 				} break;
 	
 				// SET 2, (IX + DIS)
 				case SET_2_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 2, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 2, 1);
 				} break;
 	
 				// SET 3, (IX + DIS)
 				case SET_3_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 3, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 3, 1);
 				} break;
 	
 				// SET 4, (IX + DIS)
 				case SET_4_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 4, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 4, 1);
 				} break;
 	
 				// SET 5, (IX + DIS)
 				case SET_5_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 5, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 5, 1);
 				} break;
 	
 				// SET 6, (IX + DIS)
 				case SET_6_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 6, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 6, 1);
 				} break;
 	
 				// SET 7, (IX + DIS)
 				case SET_7_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 7, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 7, 1);
 				} break;
 	#pragma endregion
 	
@@ -2809,80 +2855,80 @@ namespace TGame
 				case RES_0_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 0, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 0, 0);
 				} break;
 	
 				// SET 1, (IX + DIS)
 				case RES_1_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 1, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 1, 0);
 				} break;
 	
 				// SET 2, (IX + DIS)
 				case RES_2_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 2, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 2, 0);
 				} break;
 	
 				// SET 3, (IX + DIS)
 				case RES_3_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 3, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 3, 0);
 				} break;
 	
 				// SET 4, (IX + DIS)
 				case RES_4_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 4, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 4, 0);
 				} break;
 	
 				// SET 5, (IX + DIS)
 				case RES_5_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 5, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 5, 0);
 				} break;
 	
 				// SET 6, (IX + DIS)
 				case RES_6_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 6, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 6, 0);
 				} break;
 	
 				// SET 7, (IX + DIS)
 				case RES_7_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 7, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], 7, 0);
 				} break;
 	#pragma endregion
 	
@@ -2890,9 +2936,9 @@ namespace TGame
 				case RL_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateLeft<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -2901,9 +2947,9 @@ namespace TGame
 				case R_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateRight((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.RotateRight((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -2912,9 +2958,9 @@ namespace TGame
 				case RC_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateRight((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], false);
+					mAlu.RotateRight((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement], false);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -2923,9 +2969,9 @@ namespace TGame
 				case SLA_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					TInternals::TUtility::RotateLeft((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TInternals::TUtility::RotateLeft((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
 	
 					// Set flags
 					mAlu.ResetFlag(TFlags::N | TFlags::H);
@@ -2937,7 +2983,7 @@ namespace TGame
 				case SRA_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 					auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
 	
 					// Get the 7th bit for preservation purpose
@@ -2977,7 +3023,7 @@ namespace TGame
 				// Get a ref to the PC
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 	
-				mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+				mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 				ProgramCounter += 3;
 			} break;
@@ -2988,10 +3034,10 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+				const auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
-				(*mMemory)[Address + 1] = IXRegister.GetHighOrderRegister();
-				(*mMemory)[Address] = IXRegister.GetLowOrderRegister();
+				(*mRam)[Address + 1] = IXRegister.GetHighOrderRegister();
+				(*mRam)[Address] = IXRegister.GetLowOrderRegister();
 	
 				ProgramCounter += 3;
 			} break;
@@ -3002,9 +3048,9 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+				const auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
-				IXRegister = TInternals::TUtility::To16BitValue((*mMemory)[Address + 1], (*mMemory)[Address]);
+				IXRegister = TInternals::TUtility::To16BitValue((*mRam)[Address + 1], (*mRam)[Address]);
 	
 				ProgramCounter += 3;
 			} break;
@@ -3015,10 +3061,10 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
-				const auto Number = (*mMemory)[ProgramCounter + 2];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
+				const auto Number = (*mRam)[ProgramCounter + 2];
 	
-				(*mMemory)[IXRegister + Displacement] = Number;
+				(*mRam)[IXRegister + Displacement] = Number;
 	
 				ProgramCounter += 3;
 			} break;
@@ -3029,7 +3075,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
 	
@@ -3042,7 +3088,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
 	
@@ -3055,7 +3101,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
 	
@@ -3068,7 +3114,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
 	
@@ -3081,7 +3127,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
 	
@@ -3094,7 +3140,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
 	
@@ -3107,7 +3153,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
 	
@@ -3120,7 +3166,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
 	
@@ -3133,7 +3179,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
 	
@@ -3146,7 +3192,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
 	
@@ -3159,7 +3205,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
 	
@@ -3172,7 +3218,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
 	
@@ -3185,7 +3231,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
 	
@@ -3198,7 +3244,7 @@ namespace TGame
 				// Get a ref to the PC and IX and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IXRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
 	
@@ -3211,9 +3257,9 @@ namespace TGame
 			case SUB_INDIRECT_IX_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
+				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -3234,7 +3280,7 @@ namespace TGame
 		case EXTENDED_INSTRUCTIONS:
 		{
 			// Cast the bit instruction as an 8 bit value
-			auto ExtendedInstruction = FetchInstruction<TOpCodesExtendedInstruction>(++mRegisters.ProgramCounter());
+			auto ExtendedInstruction = static_cast<TOpCodesExtendedInstruction>(FetchInstruction(++mRegisters.ProgramCounter()));
 	
 			switch (ExtendedInstruction)
 			{
@@ -3242,7 +3288,7 @@ namespace TGame
 				// LDI
 			case LDI:
 			{
-				(*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				(*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 				++mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE);
 				++mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL);
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
@@ -3259,7 +3305,7 @@ namespace TGame
 			// LDIR
 			case LDIR:
 			{
-				(*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				(*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 				++mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE);
 				++mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL);
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
@@ -3274,7 +3320,7 @@ namespace TGame
 			// LDD
 			case LDD:
 			{
-				(*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				(*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE);
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL);
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
@@ -3291,7 +3337,7 @@ namespace TGame
 			// LDDR
 			case LDDR:
 			{
-				(*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				(*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::DE);
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL);
 				--mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
@@ -3313,7 +3359,7 @@ namespace TGame
 				auto& BCRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
 	
 				// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-				bool Result = mRegisters.Accumulator() == (*mMemory)[HLRegister];
+				bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
 	
 				// Increment HL and decrement BC
 				++HLRegister;
@@ -3346,7 +3392,7 @@ namespace TGame
 				auto& BCRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
 	
 				// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-				bool Result = mRegisters.Accumulator() == (*mMemory)[HLRegister];
+				bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
 	
 				// Increment HL and decrement BC
 				++HLRegister;
@@ -3379,7 +3425,7 @@ namespace TGame
 				auto& BCRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
 	
 				// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-				bool Result = mRegisters.Accumulator() == (*mMemory)[HLRegister];
+				bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
 	
 				// Decrement BC and HL
 				--HLRegister;
@@ -3412,7 +3458,7 @@ namespace TGame
 				auto& BCRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::BC);
 	
 				// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-				bool Result = mRegisters.Accumulator() == (*mMemory)[HLRegister];
+				bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
 	
 				// Decrement BC and HL
 				--HLRegister;
@@ -3552,7 +3598,7 @@ namespace TGame
 			{
 				// Get a ref to the accumulator and HL
 				auto& Accumulator = mRegisters.Accumulator();
-				auto& IndirectMemory = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto& IndirectMemory = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Swap low nibble of (HL) with high nibble of (HL)
 				{
@@ -3597,7 +3643,7 @@ namespace TGame
 			{
 				// Get a ref to the accumulator and HL
 				auto& Accumulator = mRegisters.Accumulator();
-				auto& IndirectMemory = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
+				auto& IndirectMemory = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL)];
 	
 				// Swap low nibble of (HL) with low nibble of Accumulator
 				{
@@ -3707,8 +3753,8 @@ namespace TGame
 				// Get the address destination
 				auto Address = TInternals::TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 	
-				(*mMemory)[Address] = SourceRegister.GetLowOrderRegister();
-				(*mMemory)[Address + 1] = SourceRegister.GetHighOrderRegister();
+				(*mRam)[Address] = SourceRegister.GetLowOrderRegister();
+				(*mRam)[Address + 1] = SourceRegister.GetHighOrderRegister();
 	
 				ProgramCounter += 3;
 			} break;
@@ -3726,8 +3772,8 @@ namespace TGame
 				// Get the address source
 				auto Address = TInternals::TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 	
-				DestinationRegister.GetLowOrderRegister() = (*mMemory)[Address];
-				DestinationRegister.GetHighOrderRegister() = (*mMemory)[Address + 1];
+				DestinationRegister.GetLowOrderRegister() = (*mRam)[Address];
+				DestinationRegister.GetHighOrderRegister() = (*mRam)[Address + 1];
 	
 				ProgramCounter += 3;
 			} break;
@@ -3745,8 +3791,8 @@ namespace TGame
 				// Get the address destination
 				auto Address = TInternals::TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 	
-				(*mMemory)[Address] = SourceRegister.GetLowOrderRegister();
-				(*mMemory)[Address + 1] = SourceRegister.GetHighOrderRegister();
+				(*mRam)[Address] = SourceRegister.GetLowOrderRegister();
+				(*mRam)[Address + 1] = SourceRegister.GetHighOrderRegister();
 	
 				ProgramCounter += 3;
 			} break;
@@ -3764,8 +3810,8 @@ namespace TGame
 				// Get the address source
 				auto Address = TInternals::TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 	
-				DestinationRegister.GetLowOrderRegister() = (*mMemory)[Address];
-				DestinationRegister.GetHighOrderRegister() = (*mMemory)[Address + 1];
+				DestinationRegister.GetLowOrderRegister() = (*mRam)[Address];
+				DestinationRegister.GetHighOrderRegister() = (*mRam)[Address + 1];
 	
 				ProgramCounter += 3;
 			} break;
@@ -3783,8 +3829,8 @@ namespace TGame
 				// Get the address destination
 				auto Address = TInternals::TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 	
-				(*mMemory)[Address] = SourceRegister.GetLowOrderRegister();
-				(*mMemory)[Address + 1] = SourceRegister.GetHighOrderRegister();
+				(*mRam)[Address] = SourceRegister.GetLowOrderRegister();
+				(*mRam)[Address + 1] = SourceRegister.GetHighOrderRegister();
 	
 				ProgramCounter += 3;
 			} break;
@@ -3799,8 +3845,8 @@ namespace TGame
 				// Get the address source
 				auto Address = TInternals::TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 	
-				DestinationRegister.GetLowOrderRegister() = (*mMemory)[Address];
-				DestinationRegister.GetHighOrderRegister() = (*mMemory)[Address + 1];
+				DestinationRegister.GetLowOrderRegister() = (*mRam)[Address];
+				DestinationRegister.GetHighOrderRegister() = (*mRam)[Address + 1];
 	
 				ProgramCounter += 3;
 			} break;
@@ -3814,7 +3860,7 @@ namespace TGame
 		case IY_INSTRUCTIONS:
 		{
 			// Cast the bit instruction as an 8 bit value
-			auto IYInstruction = FetchInstruction<TOpCodesIYInstructions>(++mRegisters.ProgramCounter());
+			auto IYInstruction = static_cast<TOpCodesIYInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
 	
 			switch (IYInstruction)
 			{
@@ -3838,8 +3884,8 @@ namespace TGame
 			case EX_INDIRECT_SP_IY:
 			{
 				auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				IYRegister.GetHighOrderRegister() = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP) + 1];
-				IYRegister.GetLowOrderRegister() = (*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP)];
+				IYRegister.GetHighOrderRegister() = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP) + 1];
+				IYRegister.GetLowOrderRegister() = (*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP)];
 				mRegisters.ProgramCounter() += 1;
 			} break;
 	
@@ -3847,9 +3893,9 @@ namespace TGame
 			case AND_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluAnd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -3858,9 +3904,9 @@ namespace TGame
 			case OR_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluOr<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -3869,9 +3915,9 @@ namespace TGame
 			case XOR_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluXor<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -3880,9 +3926,9 @@ namespace TGame
 			case CP_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluCp<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -3979,9 +4025,9 @@ namespace TGame
 			case ADD_A_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -3990,9 +4036,9 @@ namespace TGame
 			case ADC_A_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluAdd<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement] + mAlu.CheckFlag(TFlags::C));
+				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement] + mAlu.CheckFlag(TFlags::C));
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -4001,9 +4047,9 @@ namespace TGame
 			case SBC_A_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement] - mAlu.CheckFlag(TFlags::C));
+				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement] - mAlu.CheckFlag(TFlags::C));
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -4020,9 +4066,9 @@ namespace TGame
 			case INC_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluInc<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluInc<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -4039,9 +4085,9 @@ namespace TGame
 			case DEC_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluDec<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluDec<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -4051,7 +4097,7 @@ namespace TGame
 			case IY_BIT_INSTRUCTIONS:
 			{
 				// Get the instruction
-				auto IYBitInstruction = FetchInstruction<TOpCodesIYBitInstructions>(++mRegisters.ProgramCounter());
+				auto IYBitInstruction = static_cast<TOpCodesIYBitInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
 	
 				switch (IYBitInstruction)
 				{
@@ -4059,9 +4105,9 @@ namespace TGame
 				case RLC_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateLeft<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], false);
+					mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], false);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -4071,10 +4117,10 @@ namespace TGame
 				case BIT_0_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 0) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 0) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4087,10 +4133,10 @@ namespace TGame
 				case BIT_1_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 1) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 1) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4103,10 +4149,10 @@ namespace TGame
 				case BIT_2_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 2) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 2) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4119,10 +4165,10 @@ namespace TGame
 				case BIT_3_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 3) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 3) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4135,10 +4181,10 @@ namespace TGame
 				case BIT_4_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 4) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 4) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4151,10 +4197,10 @@ namespace TGame
 				case BIT_5_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 5) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 5) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4167,10 +4213,10 @@ namespace TGame
 				case BIT_6_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 6) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 6) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4183,10 +4229,10 @@ namespace TGame
 				case BIT_7_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TInternals::TUtility::GetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 7) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TInternals::TUtility::GetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 7) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
 	
 					// H is set.
 					mAlu.SetFlag(TFlags::H);
@@ -4201,80 +4247,80 @@ namespace TGame
 				case SET_0_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 0, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 0, 1);
 				} break;
 	
 				// SET 1, (IY + DIS)
 				case SET_1_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 1, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 1, 1);
 				} break;
 	
 				// SET 2, (IY + DIS)
 				case SET_2_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 2, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 2, 1);
 				} break;
 	
 				// SET 3, (IY + DIS)
 				case SET_3_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 3, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 3, 1);
 				} break;
 	
 				// SET 4, (IY + DIS)
 				case SET_4_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 4, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 4, 1);
 				} break;
 	
 				// SET 5, (IY + DIS)
 				case SET_5_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 5, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 5, 1);
 				} break;
 	
 				// SET 6, (IY + DIS)
 				case SET_6_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 6, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 6, 1);
 				} break;
 	
 				// SET 7, (IY + DIS)
 				case SET_7_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 7, 1);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 7, 1);
 				} break;
 	#pragma endregion
 	
@@ -4283,80 +4329,80 @@ namespace TGame
 				case RES_0_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 0, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 0, 0);
 				} break;
 	
 				// SET 1, (IY + DIS)
 				case RES_1_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 1, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 1, 0);
 				} break;
 	
 				// SET 2, (IY + DIS)
 				case RES_2_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 2, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 2, 0);
 				} break;
 	
 				// SET 3, (IY + DIS)
 				case RES_3_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 3, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 3, 0);
 				} break;
 	
 				// SET 4, (IY + DIS)
 				case RES_4_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 4, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 4, 0);
 				} break;
 	
 				// SET 5, (IY + DIS)
 				case RES_5_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 5, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 5, 0);
 				} break;
 	
 				// SET 6, (IY + DIS)
 				case RES_6_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 6, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 6, 0);
 				} break;
 	
 				// SET 7, (IY + DIS)
 				case RES_7_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
 					// Set the specified bit
-					TInternals::TUtility::SetBit((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 7, 0);
+					TInternals::TUtility::SetBit((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], 7, 0);
 				} break;
 	#pragma endregion
 	
@@ -4364,9 +4410,9 @@ namespace TGame
 				case RL_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateLeft<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -4375,9 +4421,9 @@ namespace TGame
 				case R_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateRight((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.RotateRight((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -4386,9 +4432,9 @@ namespace TGame
 				case RC_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					mAlu.RotateRight((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], false);
+					mAlu.RotateRight((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement], false);
 	
 					mRegisters.ProgramCounter() += 2;
 				} break;
@@ -4397,9 +4443,9 @@ namespace TGame
 				case SLA_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 	
-					TInternals::TUtility::RotateLeft((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TInternals::TUtility::RotateLeft((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
 	
 					// Set flags
 					mAlu.ResetFlag(TFlags::N | TFlags::H);
@@ -4411,7 +4457,7 @@ namespace TGame
 				case SRA_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter()];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
 					auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
 	
 					// Get the 7th bit for preservation purpose
@@ -4451,7 +4497,7 @@ namespace TGame
 				// Get a ref to the PC
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 	
-				mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+				mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
 				ProgramCounter += 3;
 			} break;
@@ -4462,10 +4508,10 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+				const auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
-				(*mMemory)[Address + 1] = IYRegister.GetHighOrderRegister();
-				(*mMemory)[Address] = IYRegister.GetLowOrderRegister();
+				(*mRam)[Address + 1] = IYRegister.GetHighOrderRegister();
+				(*mRam)[Address] = IYRegister.GetLowOrderRegister();
 	
 				ProgramCounter += 3;
 			} break;
@@ -4476,9 +4522,9 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const auto Address = TInternals::TUtility::To16BitValue((*mMemory)[ProgramCounter + 2], (*mMemory)[ProgramCounter + 1]);
+				const auto Address = TInternals::TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 	
-				IYRegister = TInternals::TUtility::To16BitValue((*mMemory)[Address + 1], (*mMemory)[Address]);
+				IYRegister = TInternals::TUtility::To16BitValue((*mRam)[Address + 1], (*mRam)[Address]);
 	
 				ProgramCounter += 3;
 			} break;
@@ -4489,10 +4535,10 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
-				const auto Number = (*mMemory)[ProgramCounter + 2];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
+				const auto Number = (*mRam)[ProgramCounter + 2];
 	
-				(*mMemory)[IYRegister + Displacement] = Number;
+				(*mRam)[IYRegister + Displacement] = Number;
 	
 				ProgramCounter += 3;
 			} break;
@@ -4503,7 +4549,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
 	
@@ -4516,7 +4562,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
 	
@@ -4529,7 +4575,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
 	
@@ -4542,7 +4588,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
 	
@@ -4555,7 +4601,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
 	
@@ -4568,7 +4614,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
 	
@@ -4581,7 +4627,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
 	
@@ -4594,7 +4640,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
 	
@@ -4607,7 +4653,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
 	
@@ -4620,7 +4666,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
 	
@@ -4633,7 +4679,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
 	
@@ -4646,7 +4692,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
 	
@@ -4659,7 +4705,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadMemoryFromRegister<TInternals::T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
 	
@@ -4672,7 +4718,7 @@ namespace TGame
 				// Get a ref to the PC and IY and the address of destination
 				auto& ProgramCounter = mRegisters.ProgramCounter();
 				const auto& IYRegister = mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY);
-				const TS8BitValue Displacement = (*mMemory)[ProgramCounter + 1];
+				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 	
 				LoadRegisterFromMemory<TInternals::T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
 	
@@ -4685,9 +4731,9 @@ namespace TGame
 			case SUB_INDIRECT_IY_dis:
 			{
 				// Get the displacement value
-				TS8BitValue Displacement = (*mMemory)[mRegisters.ProgramCounter() + 1];;
+				TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
 	
-				mAlu.AluSub<TU8BitValue>((*mMemory)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
+				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY) + Displacement]);
 	
 				mRegisters.ProgramCounter() += 2;
 			} break;
@@ -4729,6 +4775,13 @@ namespace TGame
 		GetComponentAsPtr<TComponents::TPinComponent>()->TU8BitValueToPins(mAddressBus, CPUPinGroup::AddressBus);
 	}
 
+	TU16BitValue TZ80::GetDataFromAddressBus()
+	{
+		mAddressBus = GetComponentAsPtr<TComponents::TPinComponent>()->PinToTU16BitValue(CPUPinGroup::AddressBus);
+
+		return mAddressBus;
+	}
+
 	void TZ80::PushMemory(const TRegisterType& Register)
 	{
 		// Get the SP reference
@@ -4738,10 +4791,10 @@ namespace TGame
 		const TInternals::T16BitRegister& RegisterReference = mRegisters.GetRegister<TInternals::T16BitRegister>(Register);
 	
 		// First decrement PC and load the high order register
-		(*mMemory)[--StackPointer] = TInternals::TUtility::GetUpper8Bit(RegisterReference);
+		(*mRam)[--StackPointer] = TInternals::TUtility::GetUpper8Bit(RegisterReference);
 	
 		// Than decrement PC again and load the low order register
-		(*mMemory)[--StackPointer] = TInternals::TUtility::GetLower8Bit(RegisterReference);
+		(*mRam)[--StackPointer] = TInternals::TUtility::GetLower8Bit(RegisterReference);
 	}
 	
 	void TZ80::PopMemory(const TRegisterType& Register)
@@ -4753,7 +4806,7 @@ namespace TGame
 		TInternals::T16BitRegister& RegisterReference = mRegisters.GetRegister<TInternals::T16BitRegister>(Register);
 	
 		// Load the content pointed bu the SP in the register specified in the argument
-		RegisterReference = TInternals::TUtility::To16BitValue((*mMemory)[StackPointer + 1], (*mMemory)[StackPointer]);
+		RegisterReference = TInternals::TUtility::To16BitValue((*mRam)[StackPointer + 1], (*mRam)[StackPointer]);
 	
 		// Increment the stack pointer by 2
 		StackPointer += 2;

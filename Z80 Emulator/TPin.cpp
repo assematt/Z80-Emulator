@@ -33,17 +33,27 @@ namespace TGame
 			return !(*this == Right);
 		}
 
+		TPin::operator TStatus()
+		{
+			return mPinStatus;
+		}
+
+		TPin::operator const TStatus() const
+		{
+			return mPinStatus;
+		}
+
 		TGame::TComponents::TPin& TPin::operator=(const TStatus& Right)
 		{
 			mPinStatus = Right;
 
-			if ((mPinMode == TMode::OUTPUT || mPinMode == TMode::INPUT_OUTPUT))
-			{
-				for (auto& Pin : mPinConnections)
-				{
-					*Pin = mPinStatus;
-				}
-			}
+// 			if ((mPinMode == TMode::OUTPUT || mPinMode == TMode::INPUT_OUTPUT))
+// 			{
+// 				for (auto& Pin : mPinConnections)
+// 				{
+// 					*Pin = mPinStatus;
+// 				}
+// 			}
 
 			return *this;
 		}

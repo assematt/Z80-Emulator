@@ -12,6 +12,7 @@ namespace TGame
 		struct TMemoryComponent : TInternals::IComponent
 		{
 		public:
+			TMemoryComponent();
 			explicit TMemoryComponent(const TU16BitValue& MemorySize);
 
 			void Init();
@@ -25,7 +26,7 @@ namespace TGame
 			const TMemory& GetInternalMemory() const;
 
 		private:
-			TMemory mInternalMemory;
+			std::shared_ptr<TMemory> mInternalMemory;
 		};
 	}
 }

@@ -23,21 +23,40 @@ namespace TGame
 		{
 		public:
 			TRam();
-			TRam(const TU16BitValue& MemorySize);
+			//TRam(const TRam& Right) = default;
+			explicit TRam(const TU16BitValue& MemorySize);
 
 			~TRam() = default;
 
+			void Init();
+
+			void Refresh();
+
+			void RefreshMemory();
+
 			void Update();
 
-			void Init();
+			/// 
+			TMemory::iterator& begin();
+			TMemory::iterator& end();
+
+			/// Subscript operator to access individual memory cell
+			TU8BitValue& operator [](const std::size_t Index);
+			const TU8BitValue& operator [](const std::size_t Index) const;
+
+			/// Helper to get the entire ram internal memory
+			TMemory& GetInternalMemory();
+			const TMemory& GetInternalMemory() const;
 
 			virtual void MakeVirtual() {};
 		private:
+			// Save the size of the ram
+			TU16BitValue		mMemorySize;
+
 			// Cache some pins status for easy access to them
-			TU16BitValue				mMemorySize;
-			TComponents::TPin::TStatus* mChipEnablePin;
-			TComponents::TPin::TStatus* mWritePin;
-			TComponents::TPin::TStatus* mOutputEnable;			
+			TComponents::TPin*	mChipEnablePin;
+			TComponents::TPin*  mWritePin;
+			TComponents::TPin*  mOutputEnable;			
 		};
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <map>
+#include <assert.h>
 #include <vector>
 #include <memory>
 #include <utility>
@@ -17,6 +17,7 @@ namespace TGame
 	{
 		using TPinBusIndex = std::size_t;
 		using TPinList = std::vector<TPin>;
+		//using TPinList = std::map<TPin::TPinNumber, TPin>;
 		using TPinBus = std::pair<TPinList::iterator, TPinList::iterator>;
 
 		// Connect a single Pin to another single pin or multiple pin
@@ -42,9 +43,13 @@ namespace TGame
 			/// Setup the pins configuration
 			void SetupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount);
 
+			/// Subscript operator to get a pin
+			TPin& operator[] (const TPin::TPinNumber PinToSelect);
+			const TPin& operator[] (const TPin::TPinNumber PinToSelect) const;
+
 			/// Get a pin
-			TPin& GetPin(TPin::TPinNumber PinToSelect);
-			const TPin& GetPin(TPin::TPinNumber PinToSelect) const;
+			TPin& GetPin(const TPin::TPinNumber PinToSelect);
+			const TPin& GetPin(const TPin::TPinNumber PinToSelect) const;
 
 			/// Get bus
 			TPinBus GetPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin = 0, const TPinBusIndex BusEnd = 0);
@@ -79,7 +84,6 @@ namespace TGame
 
 		private:
 			TPinList mPins;
-			//TPinConnection mPinConnections;
 		};	
 		
 	}	

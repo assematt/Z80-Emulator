@@ -7,7 +7,6 @@ namespace TInternals
 		mNewElement(0),
 		TComponentArray(this)
 	{
-	
 	}
 	
 // 	void TManager::AddEntity(TEntity::TEntityPtr Entity)
@@ -45,6 +44,8 @@ namespace TInternals
 	
 	void TManager::Refresh()
 	{
+		ComputeAliveEntities();
+
 		// Call the function that sort the entity container
 		SortEntityContainer();
 
@@ -56,45 +57,24 @@ namespace TInternals
 		}
 	}
 	
+	void TManager::ComputeAliveEntities()
+	{
+		mAliveElement = 0;
+
+		for (auto& Entity : mComponents)
+		{
+			if (Entity->IsAlive())
+			{
+				++mAliveElement;
+			}
+		}
+	}
+
 	void TManager::SortEntityContainer()
 	{
-		// 
-		mAliveElement = mNewElement;
-	
-		// Refresh the entity array only if there are more than one alive entity
-		if (mNewElement < 2)
-		{
-			return;
-		}
-	
-		// Get the index of the first and last element in the array
-		std::size_t FrontIndex = 0, BackIndex = mNewElement - 1;
-	
-		// Sort the array
-		while (FrontIndex < BackIndex)
-		{
-			// if the front iterator state is alive we are sure the there is no swapping to do so after incrementing the front index we can skip to the next iteration
-			if (mComponents[FrontIndex]->IsAlive())
-			{
-				++FrontIndex;
-	
-				continue;
-			}
-	
-			// If we made to this point it means that the front iterator is dead so we may have a swap if the back iterator is alive
-			if (mComponents[BackIndex]->IsAlive())
-			{
-				std::swap(mComponents[FrontIndex], mComponents[BackIndex]);
-	
-				++FrontIndex;
-			}
-	
-			// Decrement the back index
-			--BackIndex;
-	
-			// At this point we are sure that at least an entity when from being alive to dead so we decrease that alive element counter
-			--mNewElement;
-		}
+		std::sort(mComponents.begin(), mComponents.end(), [](const TEntity::TEntityPtr& Left, const TEntity::TEntityPtr& Right) {
+			return (Left->IsAlive() && !Right->IsAlive());
+		});
 	}
 	
 }

@@ -17,6 +17,16 @@ namespace TGame
 			mPins = std::move(PinList);
 		}
 
+		TPin & TPinComponent::operator[](const TPin::TPinNumber PinToSelect)
+		{
+			return mPins[PinToSelect];
+		}
+
+		const TPin & TPinComponent::operator[](const TPin::TPinNumber PinToSelect) const
+		{
+			return mPins[PinToSelect];
+		}
+
 		void TPinComponentUtility::ConnectPins(TPin& LeftPin, TPin& RightPin)
 		{
 			RightPin.mPinConnections.push_back(&LeftPin);
@@ -72,7 +82,7 @@ namespace TGame
 
 			// Move the index to the first occurance of the right GroupID starting from the end
 			for (Index = mPins.size() - 1; Index > 0 && mPins[Index].mPinGroupID != BusID; --Index);
-			ReturnValue.second = mPins.end() - Index;
+			ReturnValue.second = mPins.begin() + Index;
 
 			if (BusBegin == BusEnd)
 			{
@@ -154,7 +164,15 @@ namespace TGame
 
 		TPin & TPinComponent::GetPin(TPin::TPinNumber PinToSelect)
 		{
+			assert((PinToSelect < mPins.size()), "Pin out of bound");
+
 			// TODO: insert return statement here
+			for (auto& Pin : mPins)
+			{
+				if (Pin.mPinNumber == PinToSelect)
+					return Pin;
+			}
+
 			return mPins[PinToSelect];
 		}
 

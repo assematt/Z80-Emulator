@@ -45,19 +45,19 @@ namespace TGame
 
 		void Init();
 
+		// Use the refresh instruction as an M1 cycle
+		void Refresh();
+
 		void Update();
 
 		bool LoadProgram(const std::string& Program);
 
-		bool ConnectRam(std::shared_ptr<TModules::TRam>& Ram);
-
-		void MainLoop();
+		bool ConnectRam(std::shared_ptr<TModules::TRam> Ram);
 
 		virtual void MakeVirtual() {};
 
 		/// Fetch the instruction from memory
-		template <class T>
-		T FetchInstruction(const TU16BitValue& Address = 0);
+		TU8BitValue FetchInstruction(const TU16BitValue& Address = 0);
 
 		// Execute instruction
 		TU16BitValue ExecuteInstruction(const TOpCodesMainInstruction& OpCode);
@@ -67,11 +67,14 @@ namespace TGame
 		/// Put the data in the address bus
 		void PushDataToAddressBus(const TU16BitValue& Value);
 
-		/// Get the data from the data bus
-		TU8BitValue GetDataFromDataBus();
+		/// Get the data from the address bus
+		TU16BitValue GetDataFromAddressBus();
 
 		/// Put the data in the data bus
 		void PushDataToDataBus(const TU8BitValue& Value);
+
+		/// Get the data from the data bus
+		TU8BitValue GetDataFromDataBus();
 
 		/// Helper function for loading data into register
 		template <class T, class S = T>
@@ -97,18 +100,23 @@ namespace TGame
 		bool mIsRunning;
 		bool mIsHalted;
 		bool mMaskableInterrupt;
-		TInternals::TClock mClock;
-		TInterruptMode mInterruptMode;
 		
+		TInterruptMode mInterruptMode;
+
+		// Current instruction
+		TU8BitValue mCurrentInstruction;
+
+		// Clock and T states
+		TInternals::TClock mClock;
+		TU8BitValue mTStates;
+		
+		// Cache the value of the address and data bus
 		TU16BitValue mAddressBus;
 		TU8BitValue mDataBus;
 
-		// EXTERNAL RAM COMPONENT
+		// EXTERNAL ROM COMPONENT
 		std::shared_ptr<TModules::TRam> mRam;
-
-		// Cache the RAM memory
-		std::shared_ptr<TMemory> mMemory;
-
+		
 		// Internal CPU ALU
 		TAlu mAlu;
 		TRegisterContainer mRegisters;
@@ -116,30 +124,6 @@ namespace TGame
 		// Debugger window
 		TDebugger mDebugger;
 	};
-
-	template <class T>
-	T TZ80::FetchInstruction(const TU16BitValue& Address /*= 0*/)
-	{
-		// Check if we have a connected ram, if we don't have one return nop
-		if (!mRam)
-			return static_cast<T>(TOpCodesMainInstruction::NOP);
-
-		// If we specify an address return the instruction specified by the address
-		if (Address > 0)
-		{
-			PushDataToAddressBus(Address);
-
-			return static_cast<T>((*mMemory)[Address]);
-		}
-
-		// get a ref to PC
-		auto& ProgramCounter = mRegisters.ProgramCounter();
-
-		PushDataToAddressBus(ProgramCounter);
-
-		// Otherwise return the instruction pointed by the program counter
-		return static_cast<T>((*mMemory)[ProgramCounter]);
-	}
 
 	template <class T, class S /*= T*/>
 	void TZ80::LoadRegisterFromRegister(const TRegisterType& Destination, const TRegisterType& Source)
@@ -150,7 +134,7 @@ namespace TGame
 	template <class T>
 	void TZ80::LoadRegisterFromMemory(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
 	{
-		mRegisters.GetRegister<T>(Register) = (*mMemory)[MemoryLocation];
+		mRegisters.GetRegister<T>(Register) = (*mRam)[MemoryLocation];
 	}
 
 	template <class T, class S /*= T*/>
@@ -162,7 +146,7 @@ namespace TGame
 	template <class T>
 	void TZ80::LoadMemoryFromRegister(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
 	{
-		(*mMemory)[MemoryLocation] = mRegisters.GetRegister<T>(Register);
+		(*mRam)[MemoryLocation] = mRegisters.GetRegister<T>(Register);
 	}
 
 }

@@ -11,6 +11,9 @@ namespace TInternals
 	public:
 		using _Event = std::function<void()>;
 		using _EventPtr = std::unique_ptr<_Event>;
+
+		TEventContainer() = default;
+		TEventContainer(const TEventContainer& Right) = default;
 	
 		void PushEvent(_Event Func);
 	

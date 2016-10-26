@@ -32,7 +32,6 @@ namespace TInternals
 	
 	void TEntity::Refresh()
 	{
-	
 	}
 	
 	void TEntity::OnCreate()

@@ -11,7 +11,7 @@ namespace TInternals
 {
 	class TManager;
 
-	class TEntity : public TComponentArray<IComponent, TEntity, TComponentID>, public TEventContainer
+	class TEntity : public TComponentArray<IComponent, TEntity, TComponentID>//, public TEventContainer
 	{
 	public:
 		using TEntityPtr = std::shared_ptr<TEntity>;
@@ -34,13 +34,13 @@ namespace TInternals
 		void Kill();
 	
 		/// Update function
-		void Update();
+		virtual void Update();
 
 		/// Init function
 		virtual void Init();
 	
 		/// Update function
-		void Refresh();
+		virtual void Refresh();
 	
 		/// This function is called when the entity is created
 		void OnCreate();

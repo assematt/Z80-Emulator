@@ -41,12 +41,30 @@ namespace TGame
 			bool operator ==(TPin const& Right);
 			bool operator !=(TPin const& Right);
 
+			/// TStatus cast operator
+			operator TStatus();
+			operator const TStatus() const;
+
 			/// Masked member assignment
 			TPin& TPin::operator =(const TStatus& Right);
 
 			/// Explicit member assignment
 			TStatus GetPinStatus();
 			const TStatus GetPinStatus() const;
+
+			void OnPinChangeStatus(TPin& Pin, const TPin::TStatus& NewStatus, const TPin* OriginalPin)
+			{
+				// If we are trying to change the status of the pin who started this mess return otherwise we will start an infine loop of madness
+				if (&Pin == OriginalPin)
+					return;
+
+				Pin = NewStatus;
+
+				for (auto& NextPin : Pin.mPinConnections)
+				{
+					OnPinChangeStatus(*NextPin, NewStatus, OriginalPin);
+				}
+			}
 
 		private:
 			friend TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);

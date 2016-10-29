@@ -17,12 +17,12 @@ namespace TGame
 			mPins = std::move(PinList);
 		}
 
-		TPin & TPinComponent::operator[](const TPin::TPinNumber PinToSelect)
+		TPin& TPinComponent::operator[](const TPin::TPinNumber PinToSelect)
 		{
 			return mPins[PinToSelect];
 		}
 
-		const TPin & TPinComponent::operator[](const TPin::TPinNumber PinToSelect) const
+		const TPin& TPinComponent::operator[](const TPin::TPinNumber PinToSelect) const
 		{
 			return mPins[PinToSelect];
 		}
@@ -69,8 +69,7 @@ namespace TGame
 
 		}
 
-
-		TGame::TComponents::TPinBus TPinComponent::GetPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin /*= 0*/, const TPinBusIndex BusEnd /*= 0*/)
+		TPinBus TPinComponent::GetPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin /*= 0*/, const TPinBusIndex BusEnd /*= 0*/)
 		{
 			// store the return value
 			TPinBus ReturnValue(mPins.end(), mPins.end());
@@ -82,87 +81,27 @@ namespace TGame
 
 			// Move the index to the first occurance of the right GroupID starting from the end
 			for (Index = mPins.size() - 1; Index > 0 && mPins[Index].mPinGroupID != BusID; --Index);
-			ReturnValue.second = mPins.begin() + Index;
+			ReturnValue.second = mPins.begin() + Index + 1;
 
 			if (BusBegin == BusEnd)
 			{
 				return ReturnValue;
 			}
 
-			return TPinBus(ReturnValue.first + BusBegin, ReturnValue.first + BusEnd);
+			return TPinBus(ReturnValue.first + BusBegin, ReturnValue.first + BusEnd + 1);
 		}
 
-		TGame::TComponents::TPinList& TPinComponent::GetPinList()
+		TPinList& TPinComponent::GetPinList()
 		{
 			return mPins;
 		}
 
-		const TGame::TComponents::TPinList& TPinComponent::GetPinList() const
+		const TPinList& TPinComponent::GetPinList() const
 		{
 			return mPins;
 		}
 
-		TU8BitValue TPinComponent::PinToTU8BitValue(TPin::TPinGroupID PinGroup /*= 0*/)
-		{
-			TU8BitValue Temp = 0;
-
-			// Get the value of all the bit of the same ID
-			for (std::size_t Index = 0, Bit = 0; Index < mPins.size() && Bit < 8; ++Index)
-			{
-				if (mPins[Index].mPinGroupID == PinGroup)
-				{
-					Temp |= mPins[Index].GetPinStatus() << Bit++;
-				}
-			}
-
-			return Temp;
-		}
-
-		TU16BitValue TPinComponent::PinToTU16BitValue(TPin::TPinGroupID PinGroup /*= 0*/)
-		{
-			TU16BitValue Temp = 0;
-
-			// Get the value of all the bit of the same ID
-			for (std::size_t Index = 0, Bit = 0; Index < mPins.size() && Bit < 16; ++Index)
-			{
-				if (mPins[Index].mPinGroupID == PinGroup)
-				{
-					Temp |= mPins[Index].GetPinStatus() << Bit++;
-				}
-			}
-
-			return Temp;
-		}
-
-		void TPinComponent::TU8BitValueToPins(const TU8BitValue& Value, TPin::TPinGroupID PinGroup /*= 0*/)
-		{
-			TU8BitValue Temp = 0;
-
-			// Get the value of all the bit of the same ID
-			for (std::size_t Index = 0, Bit = 0; Index < mPins.size() && Bit < 8; ++Index)
-			{
-				if (mPins[Index].mPinGroupID == PinGroup)
-				{
-					mPins[Index] = static_cast<TComponents::TPin::TStatus>(TInternals::TUtility::GetBit(Value, Bit++));
-				}
-			}
-		}
-
-		void TPinComponent::TU16BitValueToPins(const TU16BitValue& Value, TPin::TPinGroupID PinGroup /*= 0*/)
-		{
-			TU16BitValue Temp = 0;
-
-			// Get the value of all the bit of the same ID
-			for (std::size_t Index = 0, Bit = 0; Index < mPins.size() && Bit < 16; ++Index)
-			{
-				if (mPins[Index].mPinGroupID == PinGroup)
-				{
-					mPins[Index] = static_cast<TComponents::TPin::TStatus>(TInternals::TUtility::GetBit(Value, Bit++));
-				}
-			}
-		}
-
-		TPin & TPinComponent::GetPin(TPin::TPinNumber PinToSelect)
+		TPin& TPinComponent::GetPin(TPin::TPinNumber PinToSelect)
 		{
 			assert((PinToSelect < mPins.size()), "Pin out of bound");
 
@@ -176,7 +115,7 @@ namespace TGame
 			return mPins[PinToSelect];
 		}
 
-		const TPin & TPinComponent::GetPin(TPin::TPinNumber PinToSelect) const
+		const TPin& TPinComponent::GetPin(TPin::TPinNumber PinToSelect) const
 		{
 			// TODO: insert return statement here
 			return mPins[PinToSelect];

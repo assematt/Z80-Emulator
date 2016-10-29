@@ -21,7 +21,13 @@ int main()
 	auto& Ram = EntitiesManager.GetComponentAsPtr<TModules::TRam>();
 
 	Z80->ConnectRam(Ram);
-	Z80->LoadProgram("Resources/Blink.0A1");
+	if (!Z80->LoadProgram("Resources/DJ.A01"))
+	{
+		std::cout << "Error! Could not open the file" << std::endl;
+
+		// Something went bad :(
+		return 1;
+	}
 
 	do 
 	{
@@ -32,5 +38,6 @@ int main()
 		EntitiesManager.Update();
 	} while (true);
 
-	system("PAUSE");
+	// Everything went ok
+	return 0;
 }

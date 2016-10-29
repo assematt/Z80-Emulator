@@ -13,8 +13,9 @@ namespace TGame
 		struct TPin
 		{
 			using TPinPtr = std::shared_ptr<TPin>;
+			using TPinID = std::size_t;
 			using TPinNumber = TU8BitValue;
-			using TPinGroupID = TU8BitValue;
+			using TPinGroupID = std::size_t;
 			using TPinConnections = std::vector<TPin*>;
 			
 			enum TStatus : TU8BitValue
@@ -34,7 +35,7 @@ namespace TGame
 			};
 
 			TPin();
-
+			
 			TPin(const TMode& PinMode, const TStatus& PinStatus = TStatus::LOW, const TPinNumber& PinNumber = 0, const TPinGroupID& PinGroupID = 0, const TPinNumber& PinGroupNumber = 0);
 
 			/// Comparison operator
@@ -45,27 +46,19 @@ namespace TGame
 			operator TStatus();
 			operator const TStatus() const;
 
-			/// Masked member assignment
-			TPin& TPin::operator =(const TStatus& Right);
+			/// Function to change the pin status
+			void ChangePinStatus(const TStatus& NewStatus, bool Propagate = false);
 
 			/// Explicit member assignment
 			TStatus GetPinStatus();
 			const TStatus GetPinStatus() const;
 
-			void OnPinChangeStatus(TPin& Pin, const TPin::TStatus& NewStatus, const TPin* OriginalPin)
-			{
-				// If we are trying to change the status of the pin who started this mess return otherwise we will start an infine loop of madness
-				if (&Pin == OriginalPin)
-					return;
+			/// Get Pin ID
+			const TPinID& GetPinID();
 
-				Pin = NewStatus;
-
-				for (auto& NextPin : Pin.mPinConnections)
-				{
-					OnPinChangeStatus(*NextPin, NewStatus, OriginalPin);
-				}
-			}
-
+		private:
+			static TPinID GenerateID();
+			
 		private:
 			friend TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
 			friend TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right);
@@ -76,16 +69,18 @@ namespace TGame
 			friend TPin::TStatus LogicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right);
 
 		public:
-			TMode	mPinMode;
-			TPinNumber mPinNumber;
-			TPinNumber mPinGroupNumber;
-			TPinGroupID mPinGroupID;
-			TPinConnections mPinConnections;
+			TMode			mPinMode;
+			TPinNumber		mPinNumber;
+			TPinNumber		mPinGroupNumber;
+			TPinGroupID		mPinGroupID;
+			TPinConnections	mPinConnections;
 
 		private:
 			TStatus	mPinStatus;
+			TPinID mPinID;			
 		};
 	
+
 		TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
 		TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right);
 		TPin::TStatus LogicNot(const TPin::TStatus& Pin);

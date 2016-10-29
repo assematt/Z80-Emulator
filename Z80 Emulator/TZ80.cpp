@@ -117,7 +117,8 @@ namespace TGame
 		//TOpCodesMainInstruction CurrentInstruction = FetchInstruction<TOpCodesMainInstruction>();
 
 		// Execute the instruction
-		ExecuteInstruction(static_cast<TOpCodesMainInstruction>(mCurrentInstruction));
+		auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
+		ExecuteInstruction(Instruction);
 
 		mClock.Wait();
 	}
@@ -128,38 +129,38 @@ namespace TGame
 		if (!mRam)
 			return false;
 
-		// Get a ref to the ram memory
-		//auto& Memory = mRam->GetComponentAsPtr<TComponents::TMemoryComponent>()->GetInternalMemory();
-
-		// Read the file
-		std::string CodeLine;
+		// Read the file		
 		std::ifstream InputFile(Program.c_str());
-		if (InputFile.is_open())
+
+		// Check if the file is opened
+		if (!InputFile.is_open())
+			return false;
+
+		// Scan the HEX file and reads it
+		std::string CodeLine;
+		while (getline(InputFile, CodeLine))
 		{
-			while (getline(InputFile, CodeLine))
+			// Read how much data it's in the line
+			std::size_t ByteCount = std::stoi(CodeLine.substr(1, 2).c_str(), 0, 16);
+
+			// Read where the data start
+			std::size_t StartAddress = std::stoi(CodeLine.substr(3, 4).c_str(), 0, 16);
+
+			// Record types
+			std::size_t RecordType = std::stoi(CodeLine.substr(7, 2).c_str(), 0, 16);
+
+			// If record type it's 0 the following bytes are the program source code
+			if (RecordType == 0)
 			{
-				// Read how much data it's in the line
-				std::size_t ByteCount = std::stoi(CodeLine.substr(1, 2).c_str(), 0, 16);
-	
-				// Read where the data start
-				std::size_t StartAddress = std::stoi(CodeLine.substr(3, 4).c_str(), 0, 16);
-	
-				// Record types
-				std::size_t RecordType = std::stoi(CodeLine.substr(7, 2).c_str(), 0, 16);
-	
-				// If record type it's 0 the following bytes are the program source code
-				if (RecordType == 0)
+				for (std::size_t Index = 0, MemoryIndex = 0; Index < ByteCount * 2; Index += 2, ++MemoryIndex)
 				{
-					for (std::size_t Index = 0, MemoryIndex = 0; Index < ByteCount * 2; Index += 2, ++MemoryIndex)
-					{
-						
-						(*mRam)[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
-					}
+
+					(*mRam)[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
 				}
 			}
-	
-			InputFile.close();
 		}
+
+		InputFile.close();
 
 		return true;
 	}
@@ -204,11 +205,12 @@ namespace TGame
 		auto& Pins = GetComponentAsPtr<TComponents::TPinComponent>();
 
 		// Activates MREQ and RD pin
-		Pins->GetPin(19) = TComponents::TPin::LOW;
-		Pins->GetPin(21) = TComponents::TPin::LOW;
+		Pins->GetPin(19).ChangePinStatus(TComponents::TPin::LOW, true);
+		Pins->GetPin(21).ChangePinStatus(TComponents::TPin::LOW, true);
 
 		// Select the instruction by putting the address in the address bus
-		PushDataToAddressBus(Address > 0 ? Address : mRegisters.ProgramCounter());
+		auto& PC = mRegisters.ProgramCounter();
+		PushDataToAddressBus(Address > 0 ? Address : PC);
 
 		// Refresh the memory logic
 		mRam->RefreshMemory();
@@ -217,8 +219,8 @@ namespace TGame
 		mCurrentInstruction = GetDataFromDataBus();
 		
 		// Deactivates MREQ and RD pin
-		Pins->GetPin(19) = TComponents::TPin::HIGH;
-		Pins->GetPin(21) = TComponents::TPin::HIGH;
+		Pins->GetPin(19).ChangePinStatus(TComponents::TPin::HIGH, true);
+		Pins->GetPin(21).ChangePinStatus(TComponents::TPin::HIGH, true);
 
 		return mCurrentInstruction;
 	}
@@ -4756,7 +4758,7 @@ namespace TGame
 
 	TU8BitValue TGame::TZ80::GetDataFromDataBus()
 	{
-		mDataBus = GetComponentAsPtr<TComponents::TPinComponent>()->PinToTU8BitValue(CPUPinGroup::DataBus);
+		mDataBus = GetComponentAsPtr<TComponents::TPinComponent>()->PinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
 
 		return mDataBus;
 	}
@@ -4765,19 +4767,19 @@ namespace TGame
 	{
 		mDataBus = Value;
 
-		GetComponentAsPtr<TComponents::TPinComponent>()->TU8BitValueToPins(mDataBus, CPUPinGroup::DataBus);
+		GetComponentAsPtr<TComponents::TPinComponent>()->ValueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
 	}
 	
 	void TZ80::PushDataToAddressBus(const TU16BitValue& Value)
 	{
 		mAddressBus = Value;
 
-		GetComponentAsPtr<TComponents::TPinComponent>()->TU8BitValueToPins(mAddressBus, CPUPinGroup::AddressBus);
+		GetComponentAsPtr<TComponents::TPinComponent>()->ValueToPins<TU8BitValue>(mAddressBus, CPUPinGroup::AddressBus);
 	}
 
 	TU16BitValue TZ80::GetDataFromAddressBus()
 	{
-		mAddressBus = GetComponentAsPtr<TComponents::TPinComponent>()->PinToTU16BitValue(CPUPinGroup::AddressBus);
+		mAddressBus = GetComponentAsPtr<TComponents::TPinComponent>()->PinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
 
 		return mAddressBus;
 	}

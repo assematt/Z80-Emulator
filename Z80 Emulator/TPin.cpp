@@ -10,7 +10,8 @@ namespace TGame
 			mPinStatus(TStatus::LOW),
 			mPinNumber(0),
 			mPinGroupID(0),
-			mPinGroupNumber(0)
+			mPinGroupNumber(0),
+			mPinID(GenerateID())
 		{
 		}
 
@@ -19,10 +20,11 @@ namespace TGame
 			mPinStatus(PinStatus),
 			mPinNumber(PinNumber == 0 ? ++mPinNumber : PinNumber),
 			mPinGroupID(PinGroupID),
-			mPinGroupNumber(PinGroupNumber)
+			mPinGroupNumber(PinGroupNumber),
+			mPinID(GenerateID())
 		{
 		}
-		
+
 		bool TPin::operator==(TPin const& Right)
 		{
 			return mPinStatus == Right.mPinStatus;
@@ -43,21 +45,6 @@ namespace TGame
 			return mPinStatus;
 		}
 
-		TGame::TComponents::TPin& TPin::operator=(const TStatus& Right)
-		{
-			mPinStatus = Right;
-
-// 			if ((mPinMode == TMode::OUTPUT || mPinMode == TMode::INPUT_OUTPUT))
-// 			{
-// 				for (auto& Pin : mPinConnections)
-// 				{
-// 					*Pin = mPinStatus;
-// 				}
-// 			}
-
-			return *this;
-		}
-
 		TPin::TStatus TPin::GetPinStatus()
 		{
 			return mPinStatus;
@@ -66,6 +53,33 @@ namespace TGame
 		const TPin::TStatus TPin::GetPinStatus() const
 		{
 			return mPinStatus;
+		}
+
+		const TPin::TPinID& TPin::GetPinID()
+		{
+			return mPinID;
+		}
+
+		TPin::TPinID TPin::GenerateID()
+		{
+			static TPin::TPinID PinID = 0;
+
+			return PinID++;
+		}
+
+		void TPin::ChangePinStatus(const TStatus& NewStatus, bool Propagate /*= false*/)
+		{
+			// Update the pin status
+			mPinStatus = NewStatus;
+
+			// IF the propagate value is true update all the pin connection
+			if (Propagate)
+			{
+				for (auto& Pin : mPinConnections)
+				{
+					Pin->ChangePinStatus(NewStatus, false);
+				}
+			}
 		}
 
 		TGame::TComponents::TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right)

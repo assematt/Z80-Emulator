@@ -46,7 +46,7 @@ namespace TGame
 			/// Subscript operator to get a pin
 			TPin& operator[] (const TPin::TPinNumber PinToSelect);
 			const TPin& operator[] (const TPin::TPinNumber PinToSelect) const;
-
+			
 			/// Get a pin
 			TPin& GetPin(const TPin::TPinNumber PinToSelect);
 			const TPin& GetPin(const TPin::TPinNumber PinToSelect) const;
@@ -59,12 +59,12 @@ namespace TGame
 			const TPinList& GetPinList() const;
 
 			/// Convert the value of the pins to a single 8 bit value or 16 bit value
-			TU8BitValue PinToTU8BitValue(TPin::TPinGroupID PinGroup = 0);
-			TU16BitValue PinToTU16BitValue(TPin::TPinGroupID PinGroup = 0);
+			template <class T>
+			T PinsToValue(TPin::TPinGroupID PinGroup = 0);
 
 			/// Convert the value a single 8 bit value or 16 bit value to the pins
-			void TU8BitValueToPins(const TU8BitValue& Value, TPin::TPinGroupID PinGroup = 0);
-			void TU16BitValueToPins(const TU16BitValue& Value, TPin::TPinGroupID PinGroup = 0);
+			template <class T>
+			void ValueToPins(const T& Value, TPin::TPinGroupID PinGroup = 0);
 
 			void Init();
 
@@ -84,7 +84,44 @@ namespace TGame
 
 		private:
 			TPinList mPins;
-		};	
-		
-	}	
+		};
+
+		template<class T>
+		inline T TPinComponent::PinsToValue(TPin::TPinGroupID PinGroup)
+		{
+			T ReturnValue = 0;
+
+			// Get the bus where we are writing the data
+			auto PinBus = GetPinBus(PinGroup);
+
+			// Bit value to store which bit we are trying to write
+			std::size_t Bit = 0;
+
+			// Put the bit in the bus
+			for (auto& Pin = PinBus.first; Pin != PinBus.second; ++Pin)
+			{
+				ReturnValue |= Pin->GetPinStatus() << Bit++;
+			}
+
+			return ReturnValue;
+		}
+
+		template<class T>
+		inline void TPinComponent::ValueToPins(const T& Value, TPin::TPinGroupID PinGroup)
+		{
+			// Get the bus where we are writing the data
+			auto PinBus = GetPinBus(PinGroup);
+
+			// Bit value to store which bit we are trying to write
+			std::size_t Bit = 0;
+
+			// Put the bit in the bus
+			for (auto& Pin = PinBus.first; Pin != PinBus.second; ++Pin)
+			{
+				auto SelectedBit = TInternals::TUtility::GetBit(Value, Bit++);
+				auto NewStatus = static_cast<TComponents::TPin::TStatus>(SelectedBit);
+				Pin->ChangePinStatus(NewStatus, true);
+			}
+		}
+	}
 }

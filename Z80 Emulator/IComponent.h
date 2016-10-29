@@ -6,20 +6,7 @@
 namespace TInternals
 {
 	using TComponentID = unsigned int;
-	
-// 	inline TComponentID getUniqueComponentID() noexcept
-// 	{
-// 		static TComponentID lastID = 0u;
-// 		return lastID++;
-// 	}
-// 	
-// 	template <typename T>
-// 	inline TComponentID getComponentTypeID() noexcept
-// 	{
-// 		static TComponentID typeID = getUniqueComponentID();
-// 		return typeID;
-// 	}
-	
+		
 	class TEntity;
 
 	template <class TType, class TParent, class TID>

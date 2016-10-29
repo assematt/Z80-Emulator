@@ -130,16 +130,18 @@ namespace TGame
 			auto& MemoryComponent = *GetComponentAsPtr<TComponents::TMemoryComponent>();
 
 			// Read the data on the address bus to figure it where we are writing/reading the data
-			TU16BitValue MemoryAddress = PinComponent.PinToTU16BitValue(TRamPinGroup::AddressBus);
+			//TU16BitValue MemoryAddress = PinComponent.PinToTU16BitValue(TRamPinGroup::AddressBus);
+			TU16BitValue MemoryAddress = PinComponent.PinsToValue<TU16BitValue>(TRamPinGroup::AddressBus);
 
 			// Reads the data that we want to write/read to the ram
-			TU16BitValue Data = PinComponent.PinToTU8BitValue(TRamPinGroup::DataBus);
+			//TU16BitValue Data = PinComponent.PinToTU8BitValue(TRamPinGroup::DataBus);
+			TU16BitValue Data = PinComponent.PinsToValue<TU8BitValue>(TRamPinGroup::DataBus);
 
 			// Check if we are reading data from the ram
 			if (*mWritePin == TComponents::TPin::HIGH)
 			{
 				// Writes the data into the ram
-				PinComponent.TU8BitValueToPins(MemoryComponent[MemoryAddress], TRamPinGroup::DataBus);
+				PinComponent.ValueToPins<TU8BitValue>(MemoryComponent[MemoryAddress], TRamPinGroup::DataBus);
 			}
 			// If we got here it means we are writing to the ram
 			else

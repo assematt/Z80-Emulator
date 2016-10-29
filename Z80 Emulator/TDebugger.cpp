@@ -164,7 +164,7 @@ namespace TGame
 	{
 		//std::cout << std::endl;
 
-		printf("Data bus: %04X \n", Value);
+		printf("Address bus: %04X \n", Value);
 	}
 
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <SFML/Graphics.hpp>
 
 #include "TZ80.h"
 #include "TManager.h"
@@ -36,7 +37,22 @@ int main()
 
 		// Update the entities
 		EntitiesManager.Update();
-	} while (true);
+	} while (false);
+
+	sf::RenderWindow Window(sf::VideoMode(1024, 768), "Z80 Emulator");
+
+	while (Window.isOpen())
+	{
+		sf::Event Event;
+		while (Window.pollEvent(Event))
+		{
+			if (Event.type == sf::Event::Closed)
+				Window.close();
+		}
+
+		Window.clear();
+		Window.display();
+	}
 
 	// Everything went ok
 	return 0;

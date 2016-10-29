@@ -81,6 +81,9 @@
     <ClCompile Include="TMultiplexerComponent.cpp">
       <Filter>Source Files\TComponents</Filter>
     </ClCompile>
+    <ClCompile Include="TInputOutputComponent.cpp">
+      <Filter>Source Files\TComponents</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TZ80.h">
@@ -156,6 +159,9 @@
       <Filter>Header Files\TComponents</Filter>
     </ClInclude>
     <ClInclude Include="TMultiplexerComponent.h">
+      <Filter>Header Files\TComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="TInputOutputComponent.h">
       <Filter>Header Files\TComponents</Filter>
     </ClInclude>
   </ItemGroup>

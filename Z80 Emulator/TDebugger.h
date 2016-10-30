@@ -7,7 +7,7 @@
 #include "TAlu.h"
 #include "TClock.h"
 
-namespace TGame
+namespace nne
 {
 	class TDebugger
 	{
@@ -16,17 +16,17 @@ namespace TGame
 
 		void ClearWindow();
 
-		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const TInternals::TClock& Clock);
+		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const nne::TClock& Clock);
 
 	private:
 
-		void ShowProgramMemory(const TInternals::T16BitRegister& ProgramCounter, const TMemory& Memory);
+		void ShowProgramMemory(const nne::T16BitRegister& ProgramCounter, const TMemory& Memory);
 
-		void ShowFlags(const TInternals::T8BitRegister& FlagRegister);
+		void ShowFlags(const nne::T8BitRegister& FlagRegister);
 
 		void ShowRegistersValue(const TRegisterContainer& Registers);
 
-		void ShowTiming(const TInternals::TClock& Clock);
+		void ShowTiming(const nne::TClock& Clock);
 
 		void ShowDataBus(const TU8BitValue& Value);
 

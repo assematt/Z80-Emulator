@@ -5,7 +5,7 @@
 #include "TFrequency.h"
 
 
-namespace TInternals
+namespace nne
 {
 	class TClock
 	{

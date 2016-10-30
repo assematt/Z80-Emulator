@@ -6,20 +6,20 @@
 #include "TValues.h"
 #include <assert.h>
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
-		struct TInputOutputComponent : TInternals::IComponent
+		struct TInputOutputComponent : nne::IComponent
 		{
 		public:
 
 			template <class T>
 			T& ComputeOutput();
 
-			void Init();
+			void Init() override;
 
-			void Update();
+			void Update() override;
 
 		private:
 			TU8BitValue mNumberOfInputs;

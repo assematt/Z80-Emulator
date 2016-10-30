@@ -1,6 +1,6 @@
 #include "TEntity.h"
 
-namespace TInternals
+namespace nne
 {
 	TEntity::TEntity() :
 		mAlive(true),
@@ -17,7 +17,7 @@ namespace TInternals
 	{
 		mAlive = false;
 	}
-	
+
 	void TEntity::Update()
 	{
 		for (auto& Component : mComponents)
@@ -29,7 +29,7 @@ namespace TInternals
 	void TEntity::Init()
 	{
 	}
-	
+
 	void TEntity::Refresh()
 	{
 	}

@@ -1,8 +1,8 @@
 #include "TMemoryComponent.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 		TMemoryComponent::TMemoryComponent()
 		{

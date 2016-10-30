@@ -1,8 +1,8 @@
 #include "TPinComponent.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 
 		TPinComponent::TPinComponent(const std::initializer_list<TPin>& PinList, std::size_t PinCount)

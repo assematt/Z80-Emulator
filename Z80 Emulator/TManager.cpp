@@ -1,6 +1,6 @@
 #include "TManager.h"
 
-namespace TInternals
+namespace nne
 {
 	TManager::TManager() :
 		mAliveElement(0),

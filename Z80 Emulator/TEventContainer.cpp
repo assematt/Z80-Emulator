@@ -1,7 +1,7 @@
 #include "TEventContainer.h"
 
 
-namespace TInternals
+namespace nne
 {	
 	void TEventContainer::PushEvent(_Event Func)
 	{

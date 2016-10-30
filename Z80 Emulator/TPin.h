@@ -4,9 +4,9 @@
 #include <vector>
 #include "TValues.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 		struct TPinComponent;
 

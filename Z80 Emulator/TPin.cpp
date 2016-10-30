@@ -1,8 +1,8 @@
 #include "TPin.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 
 		TPin::TPin() :
@@ -82,32 +82,32 @@ namespace TGame
 			}
 		}
 
-		TGame::TComponents::TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return static_cast<TPin::TStatus>(Left && Right);
 		}
 
-		TGame::TComponents::TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return static_cast<TPin::TStatus>(Left || Right);
 		}
 
-		TGame::TComponents::TPin::TStatus LogicNot(const TPin::TStatus& Pin)
+		nne::tcomponents::TPin::TStatus LogicNot(const TPin::TStatus& Pin)
 		{
 			return Pin == TPin::HIGH ? TPin::LOW : TPin::HIGH;
 		}
 
-		TGame::TComponents::TPin::TStatus LogicNand(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus LogicNand(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return LogicNot(LogicAnd(Left, Right));
 		}
 
-		TGame::TComponents::TPin::TStatus LogicNor(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus LogicNor(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return LogicNot(LogicOr(Left, Right));
 		}
 
-		TGame::TComponents::TPin::TStatus LogicXor(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus LogicXor(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return LogicAnd(LogicOr(Left, Right), LogicNand(Left, Right));
 			/*
@@ -122,7 +122,7 @@ namespace TGame
 			*/
 		}
 
-		TGame::TComponents::TPin::TStatus LogicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus LogicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return LogicNot(LogicXor(Left, Right));
 		}

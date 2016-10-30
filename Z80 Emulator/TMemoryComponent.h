@@ -1,23 +1,23 @@
 #pragma once
 
-
 #include "IComponent.h"
 #include "TValues.h"
+#include <memory>
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 
-		struct TMemoryComponent : TInternals::IComponent
+		struct TMemoryComponent : nne::IComponent
 		{
 		public:
 			TMemoryComponent();
 			explicit TMemoryComponent(const TU16BitValue& MemorySize);
 
-			void Init();
+			void Init() override;
 
-			void Update();
+			void Update() override;
 
 			TU8BitValue& operator[] (const std::size_t Index);
 			const TU8BitValue& operator[] (const std::size_t Index) const;

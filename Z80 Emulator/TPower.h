@@ -1,8 +1,8 @@
 #pragma once
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 		namespace TPower
 		{

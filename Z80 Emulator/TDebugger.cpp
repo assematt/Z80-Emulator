@@ -1,6 +1,6 @@
 #include "TDebugger.h"
 
-namespace TGame
+namespace nne
 {
 	TDebugger::TDebugger()
 	{
@@ -18,7 +18,7 @@ namespace TGame
 		system("cls");
 	}
 	
-	void TDebugger::ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const TInternals::TClock& Clock)
+	void TDebugger::ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const nne::TClock& Clock)
 	{
 		// clear console
 		ClearWindow();
@@ -47,7 +47,7 @@ namespace TGame
 
 	}
 	
-	void TDebugger::ShowProgramMemory(const TInternals::T16BitRegister& ProgramCounter, const TMemory& Memory)
+	void TDebugger::ShowProgramMemory(const nne::T16BitRegister& ProgramCounter, const TMemory& Memory)
 	{
 		// Add an additional black row on top
 		std::cout << std::endl << std::endl;
@@ -81,9 +81,9 @@ namespace TGame
 		}
 	}
 	
-	void TDebugger::ShowFlags(const TInternals::T8BitRegister& FlagRegister)
+	void TDebugger::ShowFlags(const nne::T8BitRegister& FlagRegister)
 	{
-		if (TInternals::TUtility::GetBit(FlagRegister, TFlags::C) == 1)
+		if (nne::TUtility::GetBit(FlagRegister, TFlags::C) == 1)
 		{
 			SetConsoleTextAttribute(mConsoleHandle, FOREGROUND_RED);
 		}
@@ -91,7 +91,7 @@ namespace TGame
 		printf("C ");
 		SetConsoleTextAttribute(mConsoleHandle, mSavedAttributes);
 	
-		if (TInternals::TUtility::GetBit(FlagRegister, TFlags::H) == 1)
+		if (nne::TUtility::GetBit(FlagRegister, TFlags::H) == 1)
 		{
 			SetConsoleTextAttribute(mConsoleHandle, FOREGROUND_RED);
 		}
@@ -99,7 +99,7 @@ namespace TGame
 		printf("H ");
 		SetConsoleTextAttribute(mConsoleHandle, mSavedAttributes);
 	
-		if (TInternals::TUtility::GetBit(FlagRegister, TFlags::N) == 1)
+		if (nne::TUtility::GetBit(FlagRegister, TFlags::N) == 1)
 		{
 			SetConsoleTextAttribute(mConsoleHandle, FOREGROUND_RED);
 		}
@@ -107,7 +107,7 @@ namespace TGame
 		printf("N ");
 		SetConsoleTextAttribute(mConsoleHandle, mSavedAttributes);
 	
-		if (TInternals::TUtility::GetBit(FlagRegister, TFlags::P_V) == 1)
+		if (nne::TUtility::GetBit(FlagRegister, TFlags::P_V) == 1)
 		{
 			SetConsoleTextAttribute(mConsoleHandle, FOREGROUND_RED);
 		}
@@ -115,7 +115,7 @@ namespace TGame
 		printf("P_V ");
 		SetConsoleTextAttribute(mConsoleHandle, mSavedAttributes);
 	
-		if (TInternals::TUtility::GetBit(FlagRegister, TFlags::S) == 1)
+		if (nne::TUtility::GetBit(FlagRegister, TFlags::S) == 1)
 		{
 			SetConsoleTextAttribute(mConsoleHandle, FOREGROUND_RED);
 		}
@@ -123,7 +123,7 @@ namespace TGame
 		printf("S ");
 		SetConsoleTextAttribute(mConsoleHandle, mSavedAttributes);
 	
-		if (TInternals::TUtility::GetBit(FlagRegister, TFlags::Z) == 1)
+		if (nne::TUtility::GetBit(FlagRegister, TFlags::Z) == 1)
 		{
 			SetConsoleTextAttribute(mConsoleHandle, FOREGROUND_RED);
 		}
@@ -137,18 +137,18 @@ namespace TGame
 		std::cout << "Registers: " << std::endl;
 
 		printf("A = %02X, B = %02X %8c | %8c PC = %04X, SP = %04X  \n",
-			Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::A).GetInternalValue(), Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::B).GetInternalValue(), ' ', ' ',
-			Registers.GetRegister<TInternals::T16BitRegister>(TRegisterType::PC).GetInternalValue(), Registers.GetRegister<TInternals::T16BitRegister>(TRegisterType::SP).GetInternalValue());
+			Registers.GetRegister<nne::T8BitRegister>(TRegisterType::A).GetInternalValue(), Registers.GetRegister<nne::T8BitRegister>(TRegisterType::B).GetInternalValue(), ' ', ' ',
+			Registers.GetRegister<nne::T16BitRegister>(TRegisterType::PC).GetInternalValue(), Registers.GetRegister<nne::T16BitRegister>(TRegisterType::SP).GetInternalValue());
 		printf("C = %02X, D = %02X %8c | %8c IX = %04X, IY = %04X  \n",
-			Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::C).GetInternalValue(), Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::D).GetInternalValue(), ' ', ' ',
-			Registers.GetRegister<TInternals::T16BitRegister>(TRegisterType::IX).GetInternalValue(), Registers.GetRegister<TInternals::T16BitRegister>(TRegisterType::IY).GetInternalValue());
-		printf("E = %02X, F = %02X %8c | %8c Flags: \n", Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::E).GetInternalValue(), Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::F).GetInternalValue(), ' ', ' ');
-		printf("H = %02X, L = %02X %8c | %8c ", Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::H).GetInternalValue(), Registers.GetRegister<TInternals::T8BitRegister>(TRegisterType::L).GetInternalValue(), ' ', ' ');
+			Registers.GetRegister<nne::T8BitRegister>(TRegisterType::C).GetInternalValue(), Registers.GetRegister<nne::T8BitRegister>(TRegisterType::D).GetInternalValue(), ' ', ' ',
+			Registers.GetRegister<nne::T16BitRegister>(TRegisterType::IX).GetInternalValue(), Registers.GetRegister<nne::T16BitRegister>(TRegisterType::IY).GetInternalValue());
+		printf("E = %02X, F = %02X %8c | %8c Flags: \n", Registers.GetRegister<nne::T8BitRegister>(TRegisterType::E).GetInternalValue(), Registers.GetRegister<nne::T8BitRegister>(TRegisterType::F).GetInternalValue(), ' ', ' ');
+		printf("H = %02X, L = %02X %8c | %8c ", Registers.GetRegister<nne::T8BitRegister>(TRegisterType::H).GetInternalValue(), Registers.GetRegister<nne::T8BitRegister>(TRegisterType::L).GetInternalValue(), ' ', ' ');
 
 
 	}
 
-	void TDebugger::ShowTiming(const TInternals::TClock& Clock)
+	void TDebugger::ShowTiming(const nne::TClock& Clock)
 	{
 		std::cout << std::endl << Clock.GetDuration().asSeconds() << std::endl;
 	}

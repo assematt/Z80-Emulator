@@ -123,32 +123,33 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">
-    <IncludePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;$(IncludePath)</IncludePath>
-    <SourcePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
     <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Static\Release;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;$(IncludePath)</IncludePath>
-    <SourcePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
     <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;$(IncludePath)</IncludePath>
-    <SourcePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
     <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">
-    <IncludePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;$(IncludePath)</IncludePath>
-    <SourcePath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
     <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Static\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -168,8 +169,8 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SFML_STATIC;PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -198,8 +199,8 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -222,8 +223,8 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SFML_STATIC;PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -260,14 +261,23 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IComponent.cpp" />
+    <ClCompile Include="IScreenView.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TDebugger.cpp" />
     <ClCompile Include="TEntity.cpp" />
     <ClCompile Include="TEventContainer.cpp" />
+    <ClCompile Include="TFont.cpp" />
     <ClCompile Include="TFrequency.cpp" />
+    <ClCompile Include="TGameApp.cpp" />
+    <ClCompile Include="TGuiManager.cpp" />
+    <ClCompile Include="TGuiWidget.cpp" />
+    <ClCompile Include="TGuiWindow.cpp" />
+    <ClCompile Include="TInfoMenu.cpp" />
     <ClCompile Include="TInputOutputComponent.cpp" />
     <ClCompile Include="TLogicGateComponent.cpp" />
+    <ClCompile Include="TMainMenu.cpp" />
     <ClCompile Include="TManager.cpp" />
     <ClCompile Include="TMemoryComponent.cpp" />
     <ClCompile Include="TMultiplexerComponent.cpp" />
@@ -275,13 +285,23 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TPinComponent.cpp" />
     <ClCompile Include="TRam.cpp" />
     <ClCompile Include="TRegister.cpp" />
+    <ClCompile Include="TTexture.cpp" />
+    <ClCompile Include="TTransformable.cpp" />
     <ClCompile Include="TZ80.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IScreenView.h" />
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
+    <ClInclude Include="TFont.h" />
+    <ClInclude Include="TGameApp.h" />
+    <ClInclude Include="TGuiManager.h" />
+    <ClInclude Include="TGuiWidget.h" />
+    <ClInclude Include="TGuiWindow.h" />
+    <ClInclude Include="TInfoMenu.h" />
     <ClInclude Include="TInputOutputComponent.h" />
     <ClInclude Include="TLed.h" />
+    <ClInclude Include="TLogicEntity.h" />
     <ClInclude Include="TLogicGateComponent.h" />
     <ClInclude Include="TClock.h" />
     <ClInclude Include="TComponentArray.h" />
@@ -290,6 +310,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TEventContainer.h" />
     <ClInclude Include="TFrequency.h" />
     <ClInclude Include="TInstruction.h" />
+    <ClInclude Include="TMainMenu.h" />
     <ClInclude Include="TManager.h" />
     <ClInclude Include="TMemoryComponent.h" />
     <ClInclude Include="TMultiplexerComponent.h" />
@@ -298,9 +319,13 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TPinComponent.h" />
     <ClInclude Include="TPower.h" />
     <ClInclude Include="TRam.h" />
+    <ClInclude Include="TRandom.h" />
     <ClInclude Include="TRegisterContainer.h" />
     <ClInclude Include="TRegister.h" />
     <ClInclude Include="TSourceParser.h" />
+    <ClInclude Include="TStaticEntity.h" />
+    <ClInclude Include="TTexture.h" />
+    <ClInclude Include="TTransformable.h" />
     <ClInclude Include="TUtility.h" />
     <ClInclude Include="TValues.h" />
     <ClInclude Include="TZ80.h" />

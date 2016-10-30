@@ -1,16 +1,16 @@
 #include "TMultiplexerComponent.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 
-		TGame::TComponents::TPin& TMultiplexerComponent::SelectInput(const TU8BitValue& SelectedInput)
+		nne::tcomponents::TPin& TMultiplexerComponent::SelectInput(const TU8BitValue& SelectedInput)
 		{
 			return mPinComponent->GetPin(SelectedInput);
 		}
 
-		const TGame::TComponents::TPin& TMultiplexerComponent::SelectInput(const TU8BitValue& SelectedInput) const
+		const nne::tcomponents::TPin& TMultiplexerComponent::SelectInput(const TU8BitValue& SelectedInput) const
 		{
 			return mPinComponent->GetPin(SelectedInput);
 		}

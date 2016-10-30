@@ -3,7 +3,7 @@
 #include <SFML/System.hpp>
 #include <ratio>
 
-namespace TInternals
+namespace nne
 {
 	
 	struct TFrequency

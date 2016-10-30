@@ -7,19 +7,19 @@
 #include "TValues.h"
 #include <assert.h>
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
-		struct TMultiplexerComponent : TInternals::IComponent
+		struct TMultiplexerComponent : nne::IComponent
 		{
 		public:
-			TComponents::TPin& SelectInput(const TU8BitValue& SelectedInput);
-			const TComponents::TPin& SelectInput(const TU8BitValue& SelectedInput) const;
+			tcomponents::TPin& SelectInput(const TU8BitValue& SelectedInput);
+			const tcomponents::TPin& SelectInput(const TU8BitValue& SelectedInput) const;
 
-			void Init();
+			void Init() override;
 
-			void Update();
+			void Update() override;
 
 		private:
 			std::shared_ptr<TPinComponent> mPinComponent;

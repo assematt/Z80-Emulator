@@ -1,6 +1,6 @@
 #include "TClock.h"
 
-namespace TInternals
+namespace nne
 {
 	TClock::TClock(const TFrequency Frequency /*= TInternals::Hertz(2.f)*/) :
 		mFrequency(Frequency)

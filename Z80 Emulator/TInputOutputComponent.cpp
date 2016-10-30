@@ -1,8 +1,8 @@
 #include "TInputOutputComponent.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 		void TInputOutputComponent::Init()
 		{

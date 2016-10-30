@@ -6,24 +6,23 @@
 #include "TEntity.h"
 #include <array>
 
-namespace TGame
+namespace nne
 {
-	namespace TModules
+	namespace tmodules
 	{
 		namespace TRamPinGroup
 		{
-			const TComponents::TPin::TPinGroupID AddressBus = 0;
-			const TComponents::TPin::TPinGroupID DataBus = 1;
-			const TComponents::TPin::TPinGroupID ChipControl = 2;
-			const TComponents::TPin::TPinGroupID Others = 3;
+			const tcomponents::TPin::TPinGroupID AddressBus = 0;
+			const tcomponents::TPin::TPinGroupID DataBus = 1;
+			const tcomponents::TPin::TPinGroupID ChipControl = 2;
+			const tcomponents::TPin::TPinGroupID Others = 3;
 		}
 
 		// 84256 RAM 
-		class TRam : public TInternals::TEntity
+		class TRam : public nne::TEntity
 		{
 		public:
 			TRam();
-			//TRam(const TRam& Right) = default;
 			explicit TRam(const TU16BitValue& MemorySize);
 
 			~TRam() = default;
@@ -32,9 +31,9 @@ namespace TGame
 
 			void Refresh();
 
-			void RefreshMemory();
-
 			void Update();
+
+			void RefreshMemory();
 
 			/// 
 			TMemory::iterator& begin();
@@ -54,9 +53,9 @@ namespace TGame
 			TU16BitValue		mMemorySize;
 
 			// Cache some pins status for easy access to them
-			TComponents::TPin*	mChipEnablePin;
-			TComponents::TPin*  mWritePin;
-			TComponents::TPin*  mOutputEnable;			
+			tcomponents::TPin*	mChipEnablePin;
+			tcomponents::TPin*  mWritePin;
+			tcomponents::TPin*  mOutputEnable;			
 		};
 	}
 }

@@ -13,156 +13,264 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\TInternals">
-      <UniqueIdentifier>{6ff890cc-e721-4410-950f-6420e1f44917}</UniqueIdentifier>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{6bcfb698-0de6-4893-8b8d-7dc453ad60a8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\TInternals">
-      <UniqueIdentifier>{fd92e987-c103-4aab-9d70-7a0b7834179c}</UniqueIdentifier>
+    <Filter Include="Header Files\include">
+      <UniqueIdentifier>{ef05b9e0-22ad-4971-88a2-976b510dcd61}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Z80 Implementation">
+    <Filter Include="Header Files\include\Z80 Implementation">
       <UniqueIdentifier>{05d72c98-c36c-44a8-8ca9-7b19460bad7e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\TComponents">
-      <UniqueIdentifier>{14b0942f-9111-42e2-97df-808a86cfbc11}</UniqueIdentifier>
+    <Filter Include="Header Files\include\component_system">
+      <UniqueIdentifier>{0ffa2521-02fc-4d3c-9b6c-16dea6a0c12b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\TModules">
+    <Filter Include="Header Files\include\internals">
+      <UniqueIdentifier>{6ff890cc-e721-4410-950f-6420e1f44917}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\modules">
       <UniqueIdentifier>{5e6df3c6-aad9-42c5-892a-c418dd80579c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\TComponents">
+    <Filter Include="Header Files\include\gui">
+      <UniqueIdentifier>{df9b0471-4aee-497c-bcaf-ea3e9ea118cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\components">
+      <UniqueIdentifier>{14b0942f-9111-42e2-97df-808a86cfbc11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\gui">
+      <UniqueIdentifier>{7d6aefaf-df84-4e64-a29c-d1ac12ab51f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\components">
       <UniqueIdentifier>{b44d6c9e-1679-4f24-aa2d-39a48cf5e4ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\TModules">
+    <Filter Include="Source Files\src\internals">
+      <UniqueIdentifier>{fd92e987-c103-4aab-9d70-7a0b7834179c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\modules">
       <UniqueIdentifier>{90997ac9-c1e6-4a42-817c-6dfd0918d036}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\component_system">
+      <UniqueIdentifier>{7367ff90-6380-4c5e-a945-f14a2b9a0aa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\gui\menus">
+      <UniqueIdentifier>{fc759a67-5245-4c20-a903-d72b18b5b0de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\gui\menus">
+      <UniqueIdentifier>{05f6e825-b514-4695-bc26-ebb39f331b49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\graphics">
+      <UniqueIdentifier>{27eb3769-0d89-4953-98ec-3e04955dcbf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\graphics\components">
+      <UniqueIdentifier>{26c60c4f-31fd-4f32-afaa-621b69e1b531}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\graphics">
+      <UniqueIdentifier>{638ed11c-d613-43b1-8374-5f954038b4e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\graphics\components">
+      <UniqueIdentifier>{5ba67813-76de-4065-9f60-64cd01438115}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TDebugger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TRegister.cpp">
-      <Filter>Source Files\TInternals</Filter>
-    </ClCompile>
-    <ClCompile Include="TZ80.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TEntity.cpp">
-      <Filter>Source Files\TInternals</Filter>
-    </ClCompile>
-    <ClCompile Include="TManager.cpp">
-      <Filter>Source Files\TInternals</Filter>
-    </ClCompile>
-    <ClCompile Include="TEventContainer.cpp">
-      <Filter>Source Files\TInternals</Filter>
+      <Filter>Source Files\src\internals</Filter>
     </ClCompile>
     <ClCompile Include="TClock.cpp">
-      <Filter>Source Files\TInternals</Filter>
+      <Filter>Source Files\src\internals</Filter>
     </ClCompile>
     <ClCompile Include="TFrequency.cpp">
-      <Filter>Source Files\TInternals</Filter>
+      <Filter>Source Files\src\internals</Filter>
     </ClCompile>
     <ClCompile Include="TPin.cpp">
-      <Filter>Source Files\TComponents</Filter>
+      <Filter>Source Files\src\components</Filter>
     </ClCompile>
     <ClCompile Include="TPinComponent.cpp">
-      <Filter>Source Files\TComponents</Filter>
+      <Filter>Source Files\src\components</Filter>
     </ClCompile>
     <ClCompile Include="TLogicGateComponent.cpp">
-      <Filter>Source Files\TComponents</Filter>
+      <Filter>Source Files\src\components</Filter>
     </ClCompile>
     <ClCompile Include="TMemoryComponent.cpp">
-      <Filter>Source Files\TComponents</Filter>
+      <Filter>Source Files\src\components</Filter>
     </ClCompile>
     <ClCompile Include="TRam.cpp">
-      <Filter>Source Files\TModules</Filter>
+      <Filter>Source Files\src\modules</Filter>
     </ClCompile>
     <ClCompile Include="TMultiplexerComponent.cpp">
-      <Filter>Source Files\TComponents</Filter>
+      <Filter>Source Files\src\components</Filter>
     </ClCompile>
     <ClCompile Include="TInputOutputComponent.cpp">
-      <Filter>Source Files\TComponents</Filter>
+      <Filter>Source Files\src\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TDebugger.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="TGameApp.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="TZ80.cpp">
+      <Filter>Source Files\src\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="TManager.cpp">
+      <Filter>Source Files\src\component_system</Filter>
+    </ClCompile>
+    <ClCompile Include="TEventContainer.cpp">
+      <Filter>Source Files\src\component_system</Filter>
+    </ClCompile>
+    <ClCompile Include="IComponent.cpp">
+      <Filter>Source Files\src\component_system</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiWidget.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="IScreenView.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiManager.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TInfoMenu.cpp">
+      <Filter>Source Files\src\gui\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="TMainMenu.cpp">
+      <Filter>Source Files\src\gui\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="TFont.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TTexture.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TTransformable.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiWindow.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TEntity.cpp">
+      <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TZ80.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TSourceParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TAlu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TDebugger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TRegisterContainer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TRegister.h">
-      <Filter>Header Files\TInternals</Filter>
-    </ClInclude>
-    <ClInclude Include="TComponentArray.h">
-      <Filter>Header Files\TInternals</Filter>
-    </ClInclude>
-    <ClInclude Include="TEntity.h">
-      <Filter>Header Files\TInternals</Filter>
-    </ClInclude>
-    <ClInclude Include="TManager.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\internals</Filter>
     </ClInclude>
     <ClInclude Include="TValues.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\internals</Filter>
     </ClInclude>
     <ClInclude Include="TUtility.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\internals</Filter>
     </ClInclude>
     <ClInclude Include="TInstruction.h">
-      <Filter>Header Files\Z80 Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="TEventContainer.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\Z80 Implementation</Filter>
     </ClInclude>
     <ClInclude Include="TPinComponent.h">
-      <Filter>Header Files\TComponents</Filter>
-    </ClInclude>
-    <ClInclude Include="IComponent.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TRam.h">
-      <Filter>Header Files\TModules</Filter>
+      <Filter>Header Files\include\modules</Filter>
     </ClInclude>
     <ClInclude Include="TClock.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\internals</Filter>
     </ClInclude>
     <ClInclude Include="TFrequency.h">
-      <Filter>Header Files\TInternals</Filter>
+      <Filter>Header Files\include\internals</Filter>
     </ClInclude>
     <ClInclude Include="TPin.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TLogicGateComponent.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TNandChip.h">
-      <Filter>Header Files\TModules</Filter>
+      <Filter>Header Files\include\modules</Filter>
     </ClInclude>
     <ClInclude Include="TMemoryComponent.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TLed.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TPower.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TMultiplexerComponent.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TInputOutputComponent.h">
-      <Filter>Header Files\TComponents</Filter>
+      <Filter>Header Files\include\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiWidget.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TAlu.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TDebugger.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TGameApp.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TRegisterContainer.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TSourceParser.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TZ80.h">
+      <Filter>Header Files\include\modules</Filter>
+    </ClInclude>
+    <ClInclude Include="IComponent.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TComponentArray.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TEventContainer.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TManager.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiManager.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="IScreenView.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TMainMenu.h">
+      <Filter>Header Files\include\gui\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="TInfoMenu.h">
+      <Filter>Header Files\include\gui\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="TFont.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TTexture.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TTransformable.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TRandom.h">
+      <Filter>Header Files\include\internals</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiWindow.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TEntity.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TStaticEntity.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TLogicEntity.h">
+      <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

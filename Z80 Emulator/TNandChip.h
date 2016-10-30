@@ -9,17 +9,17 @@
 
 #include <array>
 
-namespace TGame
+namespace nne
 {
-	namespace TModules
+	namespace tmodules
 	{
-		class TNandChip : public TInternals::TEntity
+		class TNandChip : public nne::TEntity
 		{
 		public:
 			TNandChip()
 			{
-				AddComponent<TPinComponent>();
-				AddComponent<TLogicGateComponent>();
+				AddComponent<tcomponents::TPinComponent>();
+				AddComponent<tcomponents::TLogicGateComponent>();
 				InitComponents();
 			}
 

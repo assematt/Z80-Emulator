@@ -2,7 +2,7 @@
 
 #include "TValues.h"
 
-namespace TInternals
+namespace nne
 {
 	namespace TUtility
 	{

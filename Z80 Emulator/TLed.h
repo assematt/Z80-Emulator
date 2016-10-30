@@ -2,9 +2,9 @@
 
 #include "TPower.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 		struct TLed
 		{

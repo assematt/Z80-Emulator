@@ -1,6 +1,6 @@
 #include "TFrequency.h"
 
-namespace TInternals
+namespace nne
 {
 
 	TFrequency::TFrequency(const sf::Time Period) :

@@ -4,7 +4,7 @@
 #include <array>
 #include "TEntity.h"
 
-namespace TInternals
+namespace nne
 {
 	class TManager : public TComponentArray<TEntity, TManager, TEntity::TEntityID>
 	{

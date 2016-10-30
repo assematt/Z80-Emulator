@@ -11,9 +11,9 @@
 #include "TPin.h"
 #include "TValues.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 		using TPinBusIndex = std::size_t;
 		using TPinList = std::vector<TPin>;
@@ -32,7 +32,7 @@ namespace TGame
 			void DetachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
 		}
 
-		struct TPinComponent : TInternals::IComponent
+		struct TPinComponent : nne::IComponent
 		{
 		public:
 
@@ -66,9 +66,9 @@ namespace TGame
 			template <class T>
 			void ValueToPins(const T& Value, TPin::TPinGroupID PinGroup = 0);
 
-			void Init();
+			void Init() override;
 
-			void Update();
+			void Update() override;
 
 		private:
 			
@@ -113,13 +113,13 @@ namespace TGame
 			auto PinBus = GetPinBus(PinGroup);
 
 			// Bit value to store which bit we are trying to write
-			std::size_t Bit = 0;
+			TU8BitValue Bit = 0;
 
 			// Put the bit in the bus
 			for (auto& Pin = PinBus.first; Pin != PinBus.second; ++Pin)
 			{
-				auto SelectedBit = TInternals::TUtility::GetBit(Value, Bit++);
-				auto NewStatus = static_cast<TComponents::TPin::TStatus>(SelectedBit);
+				auto SelectedBit = nne::TUtility::GetBit(Value, Bit++);
+				auto NewStatus = static_cast<tcomponents::TPin::TStatus>(SelectedBit);
 				Pin->ChangePinStatus(NewStatus, true);
 			}
 		}

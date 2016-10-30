@@ -1,11 +1,11 @@
 #include "TLogicGateComponent.h"
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
 
-		TGame::TComponents::TPin::TStatus TLogicGateComponent::PerformInstruction(const TPin::TStatus& LeftPin, const TPin::TStatus& RightPin, const TOperation& Operation)
+		nne::tcomponents::TPin::TStatus TLogicGateComponent::PerformInstruction(const TPin::TStatus& LeftPin, const TPin::TStatus& RightPin, const TOperation& Operation)
 		{
 			switch (Operation)
 			{

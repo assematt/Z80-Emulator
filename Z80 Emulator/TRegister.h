@@ -2,7 +2,7 @@
 
 #include "TUtility.h"
 
-namespace TInternals
+namespace nne
 {
 	struct T8BitRegister
 	{

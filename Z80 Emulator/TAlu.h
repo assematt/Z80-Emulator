@@ -2,7 +2,7 @@
 
 #include "TRegisterContainer.h"
 
-namespace TGame
+namespace nne
 {
 	enum TFlags : TU8BitValue
 	{
@@ -100,7 +100,7 @@ namespace TGame
 		inline void AluAdd(TU16BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& HLRegister = mRegistersReference.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL);
+			auto& HLRegister = mRegistersReference.GetRegister<nne::T16BitRegister>(TRegisterType::HL);
 	
 			// Save the old value of the accumulator
 			auto OldHLRegister = HLRegister;
@@ -185,7 +185,7 @@ namespace TGame
 		inline void AluSub(TU16BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& HLRegister = mRegistersReference.GetRegister<TInternals::T16BitRegister>(TRegisterType::HL);
+			auto& HLRegister = mRegistersReference.GetRegister<nne::T16BitRegister>(TRegisterType::HL);
 
 			// Save the old value of the accumulator
 			auto OldHLRegister = HLRegister;
@@ -497,7 +497,7 @@ namespace TGame
 		{
 			// Get the value and address of the accumulator
 			auto& Accumulator = mRegistersReference.Accumulator();
-			auto& Flag = mRegistersReference.GetRegister<TInternals::T8BitRegister>(TRegisterType::F);
+			auto& Flag = mRegistersReference.GetRegister<nne::T8BitRegister>(TRegisterType::F);
 	
 			// Save the old value of the accumulator
 			auto OldAccumulator = Accumulator;
@@ -541,13 +541,13 @@ namespace TGame
 		{
 			// Get the old value of the carry bit
 			auto OldCarryBit = CheckFlag(TFlags::C);
-			auto Old7Bit = TInternals::TUtility::RotateLeft(Value);
+			auto Old7Bit = nne::TUtility::RotateLeft(Value);
 	
 			// Put the old 7 bit value in the carry
 			Old7Bit ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
 	
 			// If Carry is true put the old value of the carry in the bit 0 otherwise put the 
-			Carry ? TInternals::TUtility::SetBit(Value, 0, OldCarryBit) : TInternals::TUtility::SetBit(Value, 0, Old7Bit);
+			Carry ? nne::TUtility::SetBit(Value, 0, OldCarryBit) : nne::TUtility::SetBit(Value, 0, Old7Bit);
 	
 			// Reset the N and H flags
 			ResetFlag(TFlags::N | TFlags::H);
@@ -559,13 +559,13 @@ namespace TGame
 		{
 			// Get the old value of the carry bit
 			auto OldCarryBit = CheckFlag(TFlags::C);
-			auto Old0Bit = TInternals::TUtility::RotateRight(Value);
+			auto Old0Bit = nne::TUtility::RotateRight(Value);
 	
 			// Put the old 0 bit value in the carry
 			Old0Bit ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
 	
 			// If Carry is true put the old value of the carry in the bit 0 otherwise put the 
-			Carry ? TInternals::TUtility::SetBit(Value, 7, OldCarryBit) : TInternals::TUtility::SetBit(Value, 7, Old0Bit);
+			Carry ? nne::TUtility::SetBit(Value, 7, OldCarryBit) : nne::TUtility::SetBit(Value, 7, Old0Bit);
 	
 			// Reset the N and H flags
 			ResetFlag(TFlags::N | TFlags::H);

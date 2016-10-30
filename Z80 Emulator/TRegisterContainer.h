@@ -4,7 +4,7 @@
 
 #include "TRegister.h"
 
-namespace TGame
+namespace nne
 {
 	enum class TRegisterType : TU8BitValue
 	{
@@ -98,7 +98,7 @@ namespace TGame
 		template <class T>
 		inline T& GetRegister(const TRegisterType& Register);
 		template <>
-		inline TInternals::T8BitRegister& GetRegister(const TRegisterType& Register)
+		inline nne::T8BitRegister& GetRegister(const TRegisterType& Register)
 		{
 			switch (Register)
 			{
@@ -126,7 +126,7 @@ namespace TGame
 			}
 		}
 		template <>
-		inline TInternals::T16BitRegister& GetRegister(const TRegisterType& Register)
+		inline nne::T16BitRegister& GetRegister(const TRegisterType& Register)
 		{
 			switch (Register)
 			{
@@ -154,7 +154,7 @@ namespace TGame
 		template <class T>
 		inline const T& GetRegister(const TRegisterType& Register) const;
 		template <>
-		inline const TInternals::T8BitRegister& GetRegister(const TRegisterType& Register) const
+		inline const nne::T8BitRegister& GetRegister(const TRegisterType& Register) const
 		{
 			switch (Register)
 			{
@@ -182,7 +182,7 @@ namespace TGame
 			}
 		}
 		template <>
-		inline const TInternals::T16BitRegister& GetRegister(const TRegisterType& Register) const
+		inline const nne::T16BitRegister& GetRegister(const TRegisterType& Register) const
 		{
 			switch (Register)
 			{
@@ -207,67 +207,67 @@ namespace TGame
 		}
 	
 		/// Helper function to get the program counter
-		TInternals::T16BitRegister& ProgramCounter()
+		nne::T16BitRegister& ProgramCounter()
 		{
 			return mPCRegister;
 		}
-		const TInternals::T16BitRegister& ProgramCounter() const
+		const nne::T16BitRegister& ProgramCounter() const
 		{
 			return mPCRegister;
 		}
 	
 		/// Helper function to get the stack pointer
-		TInternals::T16BitRegister& StackPointer()
+		nne::T16BitRegister& StackPointer()
 		{
 			return mSPRegister;
 		}
-		const TInternals::T16BitRegister& StackPointer() const
+		const nne::T16BitRegister& StackPointer() const
 		{
 			return mSPRegister;
 		}
 	
 		/// Helper function to get the accumulator
-		TInternals::T8BitRegister& Accumulator()
+		nne::T8BitRegister& Accumulator()
 		{
 			return mAFRegister.GetHighOrderRegister();
 		}
-		const TInternals::T8BitRegister& Accumulator() const
+		const nne::T8BitRegister& Accumulator() const
 		{
 			return mAFRegister.GetHighOrderRegister();
 		}
 	
 		/// Helper function to get the accumulator
-		TInternals::T8BitRegister& FLags()
+		nne::T8BitRegister& FLags()
 		{
 			return mAFRegister.GetLowOrderRegister();
 		}
-		const TInternals::T8BitRegister& FLags() const
+		const nne::T8BitRegister& FLags() const
 		{
 			return mAFRegister.GetLowOrderRegister();
 		}
 	
 	private:
 		// Interrupt register
-		TInternals::T8BitRegister mIRegister;
+		nne::T8BitRegister mIRegister;
 	
 		// Memory refresh register
-		TInternals::T8BitRegister mRRegister;
+		nne::T8BitRegister mRRegister;
 	
 		// Main Registers
-		TInternals::T16BitRegister mAFRegister;
-		TInternals::T16BitRegister mBCRegister;
-		TInternals::T16BitRegister mDERegister;
-		TInternals::T16BitRegister mHLRegister;
-		TInternals::T16BitRegister mPCRegister;
-		TInternals::T16BitRegister mSPRegister;
-		TInternals::T16BitRegister mIXRegister;
-		TInternals::T16BitRegister mIYRegister;
+		nne::T16BitRegister mAFRegister;
+		nne::T16BitRegister mBCRegister;
+		nne::T16BitRegister mDERegister;
+		nne::T16BitRegister mHLRegister;
+		nne::T16BitRegister mPCRegister;
+		nne::T16BitRegister mSPRegister;
+		nne::T16BitRegister mIXRegister;
+		nne::T16BitRegister mIYRegister;
 	
 		// Alternate Register
-		TInternals::T16BitRegister mAFAltRegister;
-		TInternals::T16BitRegister mBCAltRegister;
-		TInternals::T16BitRegister mDEAltRegister;
-		TInternals::T16BitRegister mHLAltRegister;
+		nne::T16BitRegister mAFAltRegister;
+		nne::T16BitRegister mBCAltRegister;
+		nne::T16BitRegister mDEAltRegister;
+		nne::T16BitRegister mHLAltRegister;
 
 
 	};

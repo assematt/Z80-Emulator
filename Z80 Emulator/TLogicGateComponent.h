@@ -5,11 +5,11 @@
 #include "TValues.h"
 
 
-namespace TGame
+namespace nne
 {
-	namespace TComponents
+	namespace tcomponents
 	{
-		struct TLogicGateComponent : TInternals::IComponent
+		struct TLogicGateComponent : nne::IComponent
 		{
 		public:
 
@@ -26,9 +26,9 @@ namespace TGame
 
 			TPin::TStatus PerformInstruction(const TPin::TStatus& LeftPin, const TPin::TStatus& RightPin, const TOperation& Operation);
 
-			void Init();
+			void Init() override;
 
-			void Update();
+			void Update() override;
 
 		private:
 			

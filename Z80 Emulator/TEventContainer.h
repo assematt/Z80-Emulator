@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-namespace TInternals
+namespace nne
 {
 	class TEventContainer
 	{

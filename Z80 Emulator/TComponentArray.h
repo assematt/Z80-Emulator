@@ -6,9 +6,10 @@
 #include <array>
 #include <bitset>
 #include <assert.h>
+#include <memory>
 #include <functional>
 
-namespace TInternals
+namespace nne
 {
 	template <class TType, class TParent, class TID>
 	class TComponentArray

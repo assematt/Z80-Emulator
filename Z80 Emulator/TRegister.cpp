@@ -1,6 +1,6 @@
 #include "TRegister.h"
 
-namespace TInternals
+namespace nne
 {
 #pragma region T8BitRegister
 	T8BitRegister& T8BitRegister::operator >> (const TU8BitValue& Right)

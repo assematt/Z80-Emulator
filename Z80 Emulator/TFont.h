@@ -7,32 +7,12 @@
 
 #include "IComponent.h"
 #include "TTexture.h"
+#include "TCharStruct.h"
 #include "TRandom.h"
 
 namespace nne
 {
-	struct TCharStruct
-	{
-	public:
-		TCharStruct(char Char, sf::Uint8 Kerning) :
-			mCharCode(Char),
-			mCharWidth(Kerning)
-		{
-		}
-
-		bool TCharStruct::operator ==(const int Char) const
-		{
-			return Char == mCharCode;
-		}
-
-		bool TCharStruct::operator !=(const int Char) const
-		{
-			return !(Char == mCharCode);
-		}
-
-		char mCharCode;
-		sf::Uint8 mCharWidth;
-	};
+	
 
 	struct TFont : nne::IComponent
 	{
@@ -52,11 +32,7 @@ namespace nne
 		void Init() override;
 
 		void Update() override {}
-
-// 		void Update(const sf::Time& ElapsedTime) override {};
-// 
-// 		void Refresh(const sf::Time& ElapsedTime) override {};
-
+		
 		void SetStyle(TStyle Style);
 
 		void SetFontSize(sf::Uint16 Size);

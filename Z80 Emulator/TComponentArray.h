@@ -40,11 +40,26 @@ namespace nne
 			// Put the position of the newly created shared_ptr in the mComponentsArray for easy access
 			mComponentsArray[UniqueID] = mComponents.size();
 
-			// Put the component in the component array
-			mComponents.push_back(std::move(NewComponentPtr));
-
 			// Flag the component as alive
 			mComponentsState[UniqueID] = true;
+
+			// Put the component in the component array
+			mComponents.push_back(std::move(NewComponentPtr));			
+		}
+
+		template <class T>
+		void AddComponent(std::shared_ptr<T>&& Move)
+		{
+			// Make sure we are not adding a duplicate component
+			assert(!HasComponent<T>());
+
+			// Put the position of the newly created shared_ptr in the mComponentsArray for easy access
+			mComponentsArray[Move->mID] = mComponents.size();
+
+			// Flag the component as alive
+			mComponentsState[Move->mID] = true;
+
+			mComponents.push_back(std::move(Move));
 		}
 
 		/// Function to remove a component by component type

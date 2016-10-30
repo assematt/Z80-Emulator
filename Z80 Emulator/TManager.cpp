@@ -8,42 +8,23 @@ namespace nne
 		TComponentArray(this)
 	{
 	}
-	
-// 	void TManager::AddEntity(TEntity::TEntityPtr Entity)
-// 	{
-// 		// If the array of entity is full append the new one at the end
-// 		if (mNewElement == mEntityContainer.size())
-// 		{
-// 			
-// 
-// 			mEntityContainer.push_back(std::move(Entity));
-// 		}
-// 		// Otherwise put the entity in the first available slot
-// 		else
-// 		{
-// 			mEntityContainer[mNewElement] = std::move(Entity);
-// 		}
-// 	
-// 		// Increment the number of new entity
-// 		++mNewElement;
-// 	}
-// 	
-// 	void TManager::RemoveEntity(std::size_t Index)
-// 	{
-// 		// Set the entity as dead so we can remove in the next refresh 
-// 		mEntityContainer[Index]->Kill();
-// 	}
-	
-	void TManager::Update()
+
+	TManager & TManager::GetInstance()
 	{
+		static TManager Instance;
+		return Instance;
+	}
+	
+	void TManager::Update(const sf::Time& ElapsedTime)
+{
 		for (int Counter = 0; Counter < mAliveElement; ++Counter)
 		{
 			mComponents[Counter]->Update();
 		}
 	}
 	
-	void TManager::Refresh()
-	{
+	void TManager::Refresh(const sf::Time& ElapsedTime)
+{
 		ComputeAliveEntities();
 
 		// Call the function that sort the entity container
@@ -57,6 +38,34 @@ namespace nne
 		}
 	}
 	
+	void TManager::Draw()
+	{
+		for (int Counter = 0; Counter < mAliveElement; ++Counter)
+		{			
+			TGuiWindow::GetInstance().draw(*(dynamic_cast<TGraphicEntity*>(mComponents[Counter].get())));
+		}
+	}
+
+	std::vector<TEntity::TEntityPtr>::iterator TManager::begin()
+	{
+		return mComponents.begin();
+	}
+
+	std::vector<TEntity::TEntityPtr>::iterator TManager::end()
+	{
+		return mComponents.end();
+	}
+
+	nne::TEntity::TEntityPtr& TManager::operator[](const int Index)
+	{
+		return mComponents[Index];
+	}
+
+	const nne::TEntity::TEntityPtr& TManager::operator[](const int Index) const
+	{
+		return mComponents[Index];
+	}
+
 	void TManager::ComputeAliveEntities()
 	{
 		mAliveElement = 0;

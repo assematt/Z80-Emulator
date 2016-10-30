@@ -70,6 +70,9 @@
     <Filter Include="Source Files\src\graphics\components">
       <UniqueIdentifier>{5ba67813-76de-4065-9f60-64cd01438115}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\gui\widgets">
+      <UniqueIdentifier>{decce8d8-be4a-4582-b57d-5a852bf18650}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -152,6 +155,12 @@
     </ClCompile>
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
+    </ClCompile>
+    <ClCompile Include="TGraphicEntity.cpp">
+      <Filter>Source Files\src\component_system</Filter>
+    </ClCompile>
+    <ClCompile Include="TCharStruct.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -260,9 +269,6 @@
     <ClInclude Include="TRandom.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiWindow.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
     <ClInclude Include="TEntity.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
@@ -271,6 +277,21 @@
     </ClInclude>
     <ClInclude Include="TLogicEntity.h">
       <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiWindow.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TGraphicEntity.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TFactory.h">
+      <Filter>Header Files\include\internals</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiButton.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TCharStruct.h">
+      <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,7 @@ namespace nne
 		class TRam : public nne::TEntity
 		{
 		public:
+
 			TRam();
 			explicit TRam(const TU16BitValue& MemorySize);
 

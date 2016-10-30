@@ -11,14 +11,14 @@ int main()
 // 	std::cout.sync_with_stdio(false);
 // 	cout << "Test Z80 Emulator" << endl;
 // 
-// 	TInternals::TManager EntitiesManager;
-// 	EntitiesManager.AddComponent<TZ80>();
-// 	EntitiesManager.AddComponent<TModules::TRam>();
+// 	nne::TManager EntitiesManager;
+// 	EntitiesManager.AddComponent<nne::tmodules::TZ80>();
+// 	EntitiesManager.AddComponent<nne::tmodules::TRam>();
 // 	EntitiesManager.InitComponents();
 // 
 // 	// Get the Z80 and the ram entity
-// 	auto& Z80 = EntitiesManager.GetComponentAsPtr<TZ80>();
-// 	auto& Ram = EntitiesManager.GetComponentAsPtr<TModules::TRam>();
+// 	auto& Z80 = EntitiesManager.GetComponentAsPtr<nne::tmodules::TZ80>();
+// 	auto& Ram = EntitiesManager.GetComponentAsPtr<nne::tmodules::TRam>();
 // 
 // 	Z80->ConnectRam(Ram);
 // 	if (!Z80->LoadProgram("Resources/DJ.A01"))
@@ -32,29 +32,11 @@ int main()
 // 	do 
 // 	{
 // 		// Refresh the entities
-// 		EntitiesManager.Refresh();
+// 		EntitiesManager.Refresh(sf::Time::Zero);
 // 
 // 		// Update the entities
-// 		EntitiesManager.Update();
+// 		EntitiesManager.Update(sf::Time::Zero);
 // 	} while (false);
-// 
-// 	sf::RenderWindow Window(sf::VideoMode(1024, 768), "Z80 Emulator");
-// 
-// 	while (Window.isOpen())
-// 	{
-// 		sf::Event Event;
-// 		while (Window.pollEvent(Event))
-// 		{
-// 			if (Event.type == sf::Event::Closed)
-// 				Window.close();
-// 		}
-// 
-// 		Window.clear();
-// 		Window.display();
-// 	}
-// 
-// 	// Everything went ok
-// 	return 0;
 
 	nne::TGameApp App;
 

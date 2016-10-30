@@ -4,6 +4,9 @@
 #include <memory>
 #include <string>
 
+#include "TGuiManager.h"
+#include "TFactory.h"
+
 namespace nne
 {
 	class TGameApp
@@ -35,6 +38,6 @@ namespace nne
 		std::string mAppName;
 		sf::Event	mAppEvent;
 		sf::Clock	mAppClock;
-		TGameWindowPtr mAppWindow;
+		tgui::TGuiManager mAppGui;
 	};
 }

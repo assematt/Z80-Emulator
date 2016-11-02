@@ -138,9 +138,6 @@
     <ClCompile Include="TGuiManager.cpp">
       <Filter>Source Files\src\gui</Filter>
     </ClCompile>
-    <ClCompile Include="TInfoMenu.cpp">
-      <Filter>Source Files\src\gui\menus</Filter>
-    </ClCompile>
     <ClCompile Include="TMainMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
@@ -170,6 +167,12 @@
     </ClCompile>
     <ClCompile Include="TFont.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TNewGameMenu.cpp">
+      <Filter>Source Files\src\gui\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="TCacheManager.cpp">
+      <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -263,9 +266,6 @@
     <ClInclude Include="TMainMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
-    <ClInclude Include="TInfoMenu.h">
-      <Filter>Header Files\include\gui\menus</Filter>
-    </ClInclude>
     <ClInclude Include="TTexture.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
@@ -302,14 +302,17 @@
     <ClInclude Include="TResource.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="TCache.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
     <ClInclude Include="TText.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
     <ClInclude Include="TFont.h">
       <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TNewGameMenu.h">
+      <Filter>Header Files\include\gui\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="TCacheManager.h">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

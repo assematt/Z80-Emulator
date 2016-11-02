@@ -10,7 +10,7 @@
 
 #include "IScreenView.h"
 #include "TMainMenu.h"
-#include "TInfoMenu.h"
+#include "TNewGameMenu.h"
 
 namespace nne
 {

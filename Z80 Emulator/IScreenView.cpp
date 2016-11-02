@@ -4,10 +4,6 @@ namespace nne
 {
 	namespace tgui
 	{
-		void IScreenView::AddWidget(TGuiWidget::UniquePtr& Widget)
-		{
-			mWidgetsContainer.push_back(std::move(Widget));
-		}
 
 		void IScreenView::RemoveWidget(std::size_t Index)
 		{
@@ -43,22 +39,6 @@ namespace nne
 			}
 		}
 
-		void IScreenView::SetPosition(sf::Vector2f& NewPosition, TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
-		{
-			for (auto& Widget : mWidgetsContainer)
-			{
-				Widget->GetComponentAsPtr<TTransformable>()->Move(NewPosition);
-			}
-		}
-
-		void IScreenView::SetPosition(float NewPositionX, float NewPositionY, TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
-		{
-			for (auto& Widget : mWidgetsContainer)
-			{
-				Widget->GetComponentAsPtr<TTransformable>()->Move(NewPositionX, NewPositionY);
-			}
-		}
-
 		std::vector<TGuiWidget::UniquePtr>::iterator IScreenView::begin()
 		{
 			return mWidgetsContainer.begin();
@@ -77,6 +57,35 @@ namespace nne
 		const TGuiWidget::UniquePtr& IScreenView::operator[](const int Index) const
 		{
 			return mWidgetsContainer[Index];
+		}
+
+		const sf::Vector2f IScreenView::GetReferencePointPosition(TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
+		{
+			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(TGuiWindow::GetInstance().getSize());
+
+			switch (RefPoint)
+			{
+			case nne::tgui::TReferencePoint::LEFT_TOP:
+				return { 0.f, 0.f };
+			case nne::tgui::TReferencePoint::CENTER_TOP:
+				return { WindowSize.x / 2, 0.f };
+			case nne::tgui::TReferencePoint::RIGHT_TOP:
+				return { WindowSize.x, 0.f };
+
+			case nne::tgui::TReferencePoint::LEFT_CENTER:
+				return { 0.f, WindowSize.y / 2 };
+			case nne::tgui::TReferencePoint::CENTER:
+				return { WindowSize.x / 2, WindowSize.y / 2 };
+			case nne::tgui::TReferencePoint::RIGHT_CENTER:
+				return { 0.f, WindowSize.y / 2 };
+
+			case nne::tgui::TReferencePoint::LEFT_BOTTOM:
+				return { 0.f, WindowSize.y };
+			case nne::tgui::TReferencePoint::CENTER_BOTTOM:
+				return { WindowSize.x / 2, WindowSize.y };
+			case nne::tgui::TReferencePoint::RIGHT_BOTTOM:
+				return { WindowSize.x, WindowSize.y };
+			}
 		}
 
 		bool IScreenView::CheckMouseClick(TGuiWidget::UniquePtr& Widget, const sf::Vector2i Mouse)

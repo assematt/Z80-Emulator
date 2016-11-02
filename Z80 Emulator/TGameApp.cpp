@@ -95,11 +95,11 @@ namespace nne
 		TGuiWindow::GetInstance().clear();
 
 		// Render all the entity in the the entity manager
-		//nne::TManager::GetInstance().Draw();
+		nne::TManager::GetInstance().Draw();
 
 		// Render the GUI
 		mAppGui.Draw();
-
+					
 		// Display the back buffered window
 		TGuiWindow::GetInstance().display();
 	}

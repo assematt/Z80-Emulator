@@ -48,6 +48,9 @@ namespace nne
 		/// This function is called when the entity is destroyed
 		void OnDestroy();
 
+		/// Get entity ID
+		const TEntityID& GetEntityID() const;
+
 		/// 
 		virtual void MakeVirtual() = 0;
 	private:

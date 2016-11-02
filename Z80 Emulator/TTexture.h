@@ -8,6 +8,7 @@
 #include "IComponent.h"
 #include "TTransformable.h"
 #include "TEntity.h"
+#include "TResource.h"
 
 namespace nne
 {
@@ -46,7 +47,7 @@ namespace nne
 
 	private:
 		sf::VertexArray mVertices;
-		std::unique_ptr<sf::Texture> mTexture;
+		TResource<sf::Texture> mTexture;
 		sf::Uint8 mOpacity;
 	};
 }

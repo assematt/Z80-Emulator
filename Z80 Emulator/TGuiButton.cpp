@@ -17,9 +17,9 @@ namespace nne
 			AddComponent<TText>();
 			InitComponents();
 
-			GetComponentAsPtr<TFont>()->LoadFromFile("resources/fonts/font.ttf");
-			//GetComponentAsPtr<_TFont>()->LoadFromFile("resources/images/font.png", false);
-			GetComponentAsPtr<TText>()->SetString("Ciccio");
+			//GetComponentAsPtr<TFont>()->LoadFromFile("resources/fonts/font.ttf");
+			GetComponentAsPtr<TFont>()->LoadFromFile("resources/images/font.png", false);
+			GetComponentAsPtr<TText>()->SetString(GetName());
 		}
 
 		void TGuiButton::Refresh(const sf::Time& ElapsedTime)
@@ -30,6 +30,16 @@ namespace nne
 		void TGuiButton::Update(const sf::Time& ElapsedTime)
 		{
 			TGuiWidget::Update(ElapsedTime);
+		}
+
+		void TGuiButton::SetCaption(const std::string& WidgetName)
+		{
+			GetComponentAsPtr<TText>()->SetString(WidgetName);
+		}
+
+		const std::string& TGuiButton::GetCaption() const
+		{
+			return GetComponentAsPtr<TText>()->GetString();
 		}
 
 		void TGuiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const

@@ -10,7 +10,7 @@ namespace nne
 	class TResource
 	{
 	public:
-
+		using TResourceType = T;
 		using TResourceID = std::size_t;
 		using TResourcePtr = std::shared_ptr<T>;
 
@@ -41,7 +41,6 @@ namespace nne
 		TResourcePtr mData;
 		TResourceID mDataID;
 	};
-
 
 	template <typename T>
 	inline TResource<T>::TResource()

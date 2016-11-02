@@ -43,7 +43,11 @@ namespace nne
 
 			virtual void Display() = 0;
 
-			void AddWidget(TGuiWidget::UniquePtr& Widget);
+			template <class T>
+			void AddWidget(T& Widget)
+			{
+				mWidgetsContainer.push_back(std::move(Widget));
+			}
 
 			template <typename... TArgs>
 			void AddWidget(TArgs&&... mArgs)
@@ -68,11 +72,7 @@ namespace nne
 
 			/// Draw all the widgets in the container
 			void Draw();
-
-			/// Set the position of the menu container
-			void SetPosition(sf::Vector2f& NewPosition, TReferencePoint RefPoint = TReferencePoint::CENTER);
-			void SetPosition(float NewPositionX, float NewPositionY, TReferencePoint RefPoint = TReferencePoint::CENTER);
-
+			
 			/// Helper function for c++11 foreach use
 			std::vector<TGuiWidget::UniquePtr>::iterator begin();
 			std::vector<TGuiWidget::UniquePtr>::iterator end();
@@ -80,6 +80,9 @@ namespace nne
 			/// Subscript operator to access an widget by index
 			TGuiWidget::UniquePtr& operator[] (const int Index);
 			const TGuiWidget::UniquePtr& operator[] (const int Index) const;
+
+			/// Function to access a reference point position
+			const sf::Vector2f GetReferencePointPosition(TReferencePoint RefPoint = TReferencePoint::CENTER);
 
 		protected:
 			bool CheckMouseClick(TGuiWidget::UniquePtr& Widget, const sf::Vector2i Mouse);

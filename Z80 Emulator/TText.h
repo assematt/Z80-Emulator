@@ -7,7 +7,7 @@
 
 namespace nne
 {
-	struct TText : IComponent
+	class TText : public IComponent
 	{
 	public:
 

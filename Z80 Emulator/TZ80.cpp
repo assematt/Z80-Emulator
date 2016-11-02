@@ -193,6 +193,8 @@ namespace nne
 	
 			// Connect the RD pin to the OE of the ram
 			tcomponents::TPinComponentUtility::ConnectPins(CpuPinComponent->GetPin(21), RamPinComponent->GetPin(22));
+
+			return true;
 		}
 		
 		TU8BitValue TZ80::FetchInstruction(const TU16BitValue& Address /*= 0*/)
@@ -4774,7 +4776,7 @@ namespace nne
 		{
 			mAddressBus = Value;
 	
-			GetComponentAsPtr<tcomponents::TPinComponent>()->ValueToPins<TU8BitValue>(mAddressBus, CPUPinGroup::AddressBus);
+			GetComponentAsPtr<tcomponents::TPinComponent>()->ValueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
 		}
 	
 		TU16BitValue TZ80::GetDataFromAddressBus()

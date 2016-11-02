@@ -9,13 +9,11 @@ namespace nne
 			// Create a main menu
 			TMainMenu::UniquePtr MainMenuMenu = std::make_unique<TMainMenu>();
 			MainMenuMenu->Setup();
-			MainMenuMenu->SetPosition(834.f, 373.f);
 			AddMenu(MainMenuMenu);
 
 			// Create an info menu
-			TInfoMenu::UniquePtr InfoMenu = std::make_unique<TInfoMenu>();
+			TNewGameMenu::UniquePtr InfoMenu = std::make_unique<TNewGameMenu>();
 			InfoMenu->Setup();
-			InfoMenu->SetPosition(834.f, 373.f);
 			AddMenu(InfoMenu);
 		}
 

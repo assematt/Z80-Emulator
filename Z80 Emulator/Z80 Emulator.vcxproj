@@ -264,6 +264,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="IComponent.cpp" />
     <ClCompile Include="IScreenView.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="TCacheManager.cpp" />
     <ClCompile Include="TCharStruct.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TDebugger.cpp" />
@@ -277,7 +278,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TGuiManager.cpp" />
     <ClCompile Include="TGuiWidget.cpp" />
     <ClCompile Include="TGuiWindow.cpp" />
-    <ClCompile Include="TInfoMenu.cpp" />
+    <ClCompile Include="TNewGameMenu.cpp" />
     <ClCompile Include="TInputOutputComponent.cpp" />
     <ClCompile Include="TLogicGateComponent.cpp" />
     <ClCompile Include="TMainMenu.cpp" />
@@ -297,7 +298,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="IScreenView.h" />
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
-    <ClInclude Include="TCache.h" />
+    <ClInclude Include="TCacheManager.h" />
     <ClInclude Include="TCharStruct.h" />
     <ClInclude Include="TFactory.h" />
     <ClInclude Include="TText.h" />
@@ -307,7 +308,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TGuiManager.h" />
     <ClInclude Include="TGuiWidget.h" />
     <ClInclude Include="TGuiWindow.h" />
-    <ClInclude Include="TInfoMenu.h" />
+    <ClInclude Include="TNewGameMenu.h" />
     <ClInclude Include="TInputOutputComponent.h" />
     <ClInclude Include="TLed.h" />
     <ClInclude Include="TLogicEntity.h" />

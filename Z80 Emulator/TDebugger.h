@@ -16,7 +16,7 @@ namespace nne
 
 		void ClearWindow();
 
-		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU8BitValue& AddressBus, const nne::TClock& Clock);
+		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU16BitValue& AddressBus, const nne::TClock& Clock);
 
 	private:
 

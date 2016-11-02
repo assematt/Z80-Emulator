@@ -7,7 +7,7 @@ namespace nne
 {
 	namespace tgui
 	{
-		class TInfoMenu : public nne::tgui::IScreenView
+		class TNewGameMenu : public nne::tgui::IScreenView
 		{
 		public:
 			virtual void Setup();

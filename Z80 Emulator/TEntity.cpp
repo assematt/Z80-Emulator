@@ -43,4 +43,9 @@ namespace nne
 	{
 		std::cout << "Entity destroyed" << std::endl;
 	}
+
+	const TEntity::TEntityID& TEntity::GetEntityID() const
+	{
+		return mID;
+	}
 }

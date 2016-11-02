@@ -6,13 +6,13 @@ namespace nne
 	TTexture::TTexture() :
 		mVertices(sf::Quads, 4)
 	{
-		mTexture = std::make_unique<sf::Texture>();
-		mTexture->setSmooth(true);
+		mTexture.GetResourceData() = std::make_unique<sf::Texture>();
+		mTexture.GetResourceData()->setSmooth(true);
 	}
 
 	void TTexture::SetTexture(std::unique_ptr<sf::Texture>& Texture)
 	{
-		mTexture = std::move(Texture);
+		mTexture.GetResourceData() = std::move(Texture);
 	}
 
 	void TTexture::SetOpacity(sf::Uint8 Opacity)
@@ -21,7 +21,7 @@ namespace nne
 
 		auto NumOfVertices = mVertices.getVertexCount();
 
-		for (int Index = 0; Index < NumOfVertices; ++Index)
+		for (std::size_t Index = 0; Index < NumOfVertices; ++Index)
 		{
 			mVertices[Index].color.a = mOpacity;
 		}
@@ -29,19 +29,19 @@ namespace nne
 
 	bool TTexture::LoadTextureFromFile(const std::string& Filename)
 	{
-		if (!mTexture->loadFromFile(Filename))
+		if (!mTexture.GetResourceData()->loadFromFile(Filename))
 		{
 			return false;
 		}
 
-		SetVertices(0, 0, mTexture->getSize().x, mTexture->getSize().y);
+		SetVertices(0.f, 0.f, mTexture.GetResourceData()->getSize().x, mTexture.GetResourceData()->getSize().y);
 
 		return true;
 	}
 
 	const sf::Texture& TTexture::GetTexture() const
 	{
-		return *mTexture.get();
+		return *mTexture.GetResourceData().get();
 	}
 
 	const sf::Uint8& TTexture::GetOpacity() const

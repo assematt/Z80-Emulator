@@ -124,12 +124,10 @@ namespace nne
 			auto& MemoryComponent = *GetComponentAsPtr<tcomponents::TMemoryComponent>();
 
 			// Read the data on the address bus to figure it where we are writing/reading the data
-			//TU16BitValue MemoryAddress = PinComponent.PinToTU16BitValue(TRamPinGroup::AddressBus);
 			TU16BitValue MemoryAddress = PinComponent.PinsToValue<TU16BitValue>(TRamPinGroup::AddressBus);
 
 			// Reads the data that we want to write/read to the ram
-			//TU16BitValue Data = PinComponent.PinToTU8BitValue(TRamPinGroup::DataBus);
-			TU16BitValue Data = PinComponent.PinsToValue<TU8BitValue>(TRamPinGroup::DataBus);
+			TU8BitValue Data = PinComponent.PinsToValue<TU8BitValue>(TRamPinGroup::DataBus);
 
 			// Check if we are reading data from the ram
 			if (*mWritePin == tcomponents::TPin::HIGH)

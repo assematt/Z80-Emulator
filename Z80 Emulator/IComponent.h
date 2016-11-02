@@ -17,6 +17,8 @@ namespace nne
 	public:
 		virtual void Update() = 0;
 
+		virtual void Refresh() = 0;
+
 		virtual void Init() = 0;
 
 		virtual ~IComponent();

@@ -10,7 +10,7 @@ namespace nne
 
 	bool TGameApp::Init()
 	{
-		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Fullscreen);
+		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default);
 
 		// Load background image
 		auto& BackgroundImage = TFactory::MakeDrawableEntity();
@@ -77,11 +77,15 @@ namespace nne
 
 	void TGameApp::Refresh(sf::Time ElapsedTime)
 	{
+		mAppGui.Refresh(ElapsedTime);
+
 		nne::TManager::GetInstance().Refresh(ElapsedTime);
 	}
 
 	void TGameApp::Update(sf::Time ElapsedTime)
 	{
+		mAppGui.Update(ElapsedTime);
+
 		nne::TManager::GetInstance().Update(ElapsedTime);
 	}
 
@@ -91,7 +95,7 @@ namespace nne
 		TGuiWindow::GetInstance().clear();
 
 		// Render all the entity in the the entity manager
-		nne::TManager::GetInstance().Draw();
+		//nne::TManager::GetInstance().Draw();
 
 		// Render the GUI
 		mAppGui.Draw();

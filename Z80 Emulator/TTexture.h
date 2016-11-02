@@ -20,6 +20,8 @@ namespace nne
 
 		void Update() override {}
 
+		void Refresh() override {}
+
 // 		void Update(const sf::Time& ElapsedTime) override {};
 // 
 // 		void Refresh(const sf::Time& ElapsedTime) override {};

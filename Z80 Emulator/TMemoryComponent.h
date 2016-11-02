@@ -19,6 +19,8 @@ namespace nne
 
 			void Update() override;
 
+			void Refresh() override {}
+
 			TU8BitValue& operator[] (const std::size_t Index);
 			const TU8BitValue& operator[] (const std::size_t Index) const;
 

@@ -16,67 +16,6 @@ namespace nne
 			mDataBus(0),
 			mCurrentInstruction(TOpCodesMainInstruction::NOP)
 		{
-			// Add the right Components to make a CPU
-	
-			// Setup the CPU Pins
-			AddComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
-				// ADDRESS BUS
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 31, CPUPinGroup::AddressBus, 2 }, // A2
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 32, CPUPinGroup::AddressBus, 0 }, // A0
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 33, CPUPinGroup::AddressBus, 3 }, // A3
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 34, CPUPinGroup::AddressBus, 4 }, // A4
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 35, CPUPinGroup::AddressBus, 5 }, // A5
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 36, CPUPinGroup::AddressBus, 6 }, // A6
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 37, CPUPinGroup::AddressBus, 7 }, // A7
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 38, CPUPinGroup::AddressBus, 8 }, // A8
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 39, CPUPinGroup::AddressBus, 9 }, // A9
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 40, CPUPinGroup::AddressBus, 10 }, // A10
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  1, CPUPinGroup::AddressBus, 11 }, // A11
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  2, CPUPinGroup::AddressBus, 12 }, // A12
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  3, CPUPinGroup::AddressBus, 13 }, // A13
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  4, CPUPinGroup::AddressBus, 14 }, // A14
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  5, CPUPinGroup::AddressBus, 15 }, // A15
-	
-				// DATA BUS
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 14, CPUPinGroup::DataBus, 0 }, // D0
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 15, CPUPinGroup::DataBus, 1 }, // D1
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 12, CPUPinGroup::DataBus, 2 }, // D2
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW,  8, CPUPinGroup::DataBus, 3 }, // D3
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW,  7, CPUPinGroup::DataBus, 4 }, // D4
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW,  9, CPUPinGroup::DataBus, 5 }, // D5
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 10, CPUPinGroup::DataBus, 6 }, // D6
-				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 13, CPUPinGroup::DataBus, 7 }, // D7
-	
-				// SYSTEM CONTROL
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 27, CPUPinGroup::Others }, // M1
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 19, CPUPinGroup::Others }, // MREQ
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 20, CPUPinGroup::Others }, // IORQ
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 21, CPUPinGroup::Others }, // RD
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 22, CPUPinGroup::Others }, // WR
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 28, CPUPinGroup::Others }, // RFSH
-	
-				// CPU CONTROL
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 18, CPUPinGroup::Others }, // HALT
-				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  24, CPUPinGroup::Others}, // WAIT
-				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  16, CPUPinGroup::Others}, // INT
-				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  17, CPUPinGroup::Others}, // NMI
-				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  26, CPUPinGroup::Others}, // RESET 
-																					   
-				// CPU BUS CONTROL
-				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 25, CPUPinGroup::Others }, // BUSAK
-				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  23, CPUPinGroup::Others }, // BUSRQ 
-	
-				// CPUPinGroup::Others
-				{ tcomponents::TPin::TMode::CLOCK, tcomponents::TPin::TStatus::LOW,  6, CPUPinGroup::Others }, // CLK
-				{ tcomponents::TPin::TMode::POWER, tcomponents::TPin::TStatus::LOW, 11, CPUPinGroup::Others }, // VCC
-				{ tcomponents::TPin::TMode::POWER, tcomponents::TPin::TStatus::LOW, 29, CPUPinGroup::Others }, // GND
-	
-			}, 40 );
-			InitComponents();
-	
-			// Reset the state of the CPU
-			Reset();
 		}
 		
 		void TZ80::Reset()
@@ -96,7 +35,67 @@ namespace nne
 		
 		void TZ80::Init()
 		{
-		
+			// Add the right Components to make a CPU
+
+			// Setup the CPU Pins
+			AddComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
+				// ADDRESS BUS
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 31, CPUPinGroup::AddressBus, 2 }, // A2
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 32, CPUPinGroup::AddressBus, 0 }, // A0
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 33, CPUPinGroup::AddressBus, 3 }, // A3
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 34, CPUPinGroup::AddressBus, 4 }, // A4
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 35, CPUPinGroup::AddressBus, 5 }, // A5
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 36, CPUPinGroup::AddressBus, 6 }, // A6
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 37, CPUPinGroup::AddressBus, 7 }, // A7
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 38, CPUPinGroup::AddressBus, 8 }, // A8
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 39, CPUPinGroup::AddressBus, 9 }, // A9
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 40, CPUPinGroup::AddressBus, 10 }, // A10
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  1, CPUPinGroup::AddressBus, 11 }, // A11
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  2, CPUPinGroup::AddressBus, 12 }, // A12
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  3, CPUPinGroup::AddressBus, 13 }, // A13
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  4, CPUPinGroup::AddressBus, 14 }, // A14
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW,  5, CPUPinGroup::AddressBus, 15 }, // A15
+
+																														// DATA BUS
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 14, CPUPinGroup::DataBus, 0 }, // D0
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 15, CPUPinGroup::DataBus, 1 }, // D1
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 12, CPUPinGroup::DataBus, 2 }, // D2
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW,  8, CPUPinGroup::DataBus, 3 }, // D3
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW,  7, CPUPinGroup::DataBus, 4 }, // D4
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW,  9, CPUPinGroup::DataBus, 5 }, // D5
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 10, CPUPinGroup::DataBus, 6 }, // D6
+				{ tcomponents::TPin::TMode::INPUT_OUTPUT, tcomponents::TPin::TStatus::LOW, 13, CPUPinGroup::DataBus, 7 }, // D7
+
+																														  // SYSTEM CONTROL
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 27, CPUPinGroup::Others }, // M1
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 19, CPUPinGroup::Others }, // MREQ
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 20, CPUPinGroup::Others }, // IORQ
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 21, CPUPinGroup::Others }, // RD
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 22, CPUPinGroup::Others }, // WR
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::HIGH, 28, CPUPinGroup::Others }, // RFSH
+
+																												 // CPU CONTROL
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 18, CPUPinGroup::Others }, // HALT
+				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  24, CPUPinGroup::Others }, // WAIT
+				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  16, CPUPinGroup::Others }, // INT
+				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  17, CPUPinGroup::Others }, // NMI
+				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  26, CPUPinGroup::Others }, // RESET 
+
+																												// CPU BUS CONTROL
+				{ tcomponents::TPin::TMode::OUTPUT, tcomponents::TPin::TStatus::LOW, 25, CPUPinGroup::Others }, // BUSAK
+				{ tcomponents::TPin::TMode::INPUT, tcomponents::TPin::TStatus::LOW,  23, CPUPinGroup::Others }, // BUSRQ 
+
+																												// CPUPinGroup::Others
+				{ tcomponents::TPin::TMode::CLOCK, tcomponents::TPin::TStatus::LOW,  6, CPUPinGroup::Others }, // CLK
+				{ tcomponents::TPin::TMode::POWER, tcomponents::TPin::TStatus::LOW, 11, CPUPinGroup::Others }, // VCC
+				{ tcomponents::TPin::TMode::POWER, tcomponents::TPin::TStatus::LOW, 29, CPUPinGroup::Others }, // GND
+
+			}, 40);
+			InitComponents();
+
+			// Reset the state of the CPU
+			Reset();
 		}
 		
 		void TZ80::Refresh()

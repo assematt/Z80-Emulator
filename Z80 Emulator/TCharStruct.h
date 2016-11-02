@@ -6,7 +6,7 @@ namespace nne
 {
 	struct TCharStruct
 	{
-	public:
+		TCharStruct() = default;
 		TCharStruct(char Char, sf::Uint8 Kerning);
 
 		bool TCharStruct::operator!=(const int Char) const;

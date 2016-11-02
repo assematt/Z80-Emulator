@@ -61,10 +61,10 @@ namespace nne
 			const TGuiWidget::UniquePtr& GetWidget(const std::size_t Index) const;
 
 			/// Updates every widget in the container
-			void Update(sf::Time& ElapsedTime);
+			void Update(const sf::Time& ElapsedTime);
 
 			/// Refreshes every widget in the container
-			void Refresh(sf::Time& ElapsedTime);
+			void Refresh(const sf::Time& ElapsedTime);
 
 			/// Draw all the widgets in the container
 			void Draw();

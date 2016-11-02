@@ -21,6 +21,8 @@ namespace nne
 
 			void Update() override;
 
+			void Refresh() override {}
+
 		private:
 			TU8BitValue mNumberOfInputs;
 			TU8BitValue mNumberOfOutput;

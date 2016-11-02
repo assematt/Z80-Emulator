@@ -21,6 +21,8 @@ namespace nne
 
 			void Update() override;
 
+			void Refresh() override {}
+
 		private:
 			std::shared_ptr<TPinComponent> mPinComponent;
 		};

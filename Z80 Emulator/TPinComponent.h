@@ -70,6 +70,8 @@ namespace nne
 
 			void Update() override;
 
+			void Refresh() override {}
+
 		private:
 			
 			// Connect a single Pin to another single pin or multiple pin

@@ -2,6 +2,7 @@
 
 #include "IScreenView.h"
 #include "TGuiManager.h"
+#include "TGuiButton.h"
 
 namespace nne
 {

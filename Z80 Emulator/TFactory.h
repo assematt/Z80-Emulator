@@ -2,11 +2,9 @@
 
 #include <memory>
 
-#include "TFont.h"
 #include "TTexture.h"
 #include "TTransformable.h"
 #include "TGraphicEntity.h"
-
 
 namespace nne
 {
@@ -29,8 +27,6 @@ namespace nne
 
 			TempPtr->AddComponent<TTexture>();
 			TempPtr->AddComponent<TTransformable>();
-			TempPtr->AddComponent<TFont>();
-			TempPtr->GetComponentAsPtr<TFont>()->SetText("");
 			TempPtr->InitComponents();
 
 			return std::move(TempPtr);

@@ -36,6 +36,16 @@ namespace nne
 			}
 		}
 
+		void TGuiManager::Refresh(const sf::Time& ElapsedTime)
+		{
+			mScreens[mCurrentViewIndex]->Refresh(ElapsedTime);
+		}
+
+		void TGuiManager::Update(const sf::Time& ElapsedTime)
+		{
+			mScreens[mCurrentViewIndex]->Update(ElapsedTime);
+		}
+
 		void TGuiManager::Draw()
 		{
 			mScreens[mCurrentViewIndex]->Draw();

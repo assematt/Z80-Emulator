@@ -30,6 +30,9 @@ namespace nne
 
 			void Update() override;
 
+			void Refresh() override {}
+
+
 		private:
 			
 		};

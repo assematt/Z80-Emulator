@@ -20,6 +20,8 @@ namespace nne
 
 		void Update() override {}
 
+		void Refresh() override {}
+
 		void SetPosition(float x, float y);
 		void SetPosition(const sf::Vector2f& position);
 

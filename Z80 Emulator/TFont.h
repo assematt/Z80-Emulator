@@ -1,66 +1,67 @@
 #pragma once
 
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/Graphics/Text.hpp>
-#include <string>
-#include <utility>
+#include <SFML/Graphics/Glyph.hpp>
+#include <SFML/Graphics/Font.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
+#include <vector>
+#include <memory>
 
 #include "IComponent.h"
-#include "TTexture.h"
+#include "TResource.h"
 #include "TCharStruct.h"
-#include "TRandom.h"
 
 namespace nne
 {
-	
+	class TText;
 
-	struct TFont : nne::IComponent
+	struct TFont : IComponent
 	{
 	public:
-		enum TStyle : std::size_t
+		using TGlyph = std::pair<sf::FloatRect, const TCharStruct&>;
+
+		enum class TFontType : bool
 		{
-			LINK,
-			NORMAL,
-			ACTIVE,
-			INACTIVE
+			CUSTOM = true,
+			STANDARD = false
 		};
 
 		TFont();
-
-		const std::pair<sf::FloatRect, const TCharStruct&> ExtractCharacter(const char Char) const;
-
-		void Init() override;
-
-		void Update() override {}
 		
-		void SetStyle(TStyle Style);
+		/// Data loading
+		bool LoadFromFile(const std::string& Path, bool IsStandardFont = true);
+		bool LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont = true);
+		bool LoadFromStream(sf::InputStream& Stream, bool IsStandardFont = true);
 
-		void SetFontSize(sf::Uint16 Size);
+		/// Get the font texture and vertex array for flexible rendering
+		const sf::Texture* GetFontTexture(const std::size_t CharacterSize) const;
+		const sf::VertexArray& GetFontVertexArray() const;
+		
+		/// Get the type of font we are using
+		const TFontType& GetFontType() const;
 
-		void SetText(const std::string& String);
+		void UpdateTextGeometry(const std::string& Text, const sf::Uint32 CharacterSize);
 
-		const TStyle& GetStyle() const;
-
-		const sf::Uint16& GetFontSize() const;
-
-		const sf::Uint16& GetCharacterDefaultSize() const;
-
-		const std::string& GetText() const;
+		void Update() override;
+		void Init() override;
+		void Refresh() override {}
 
 	private:
-		void RenderText();
+		const TGlyph ExtractCharacter(const char Char, const sf::Uint32 CharacterSize) const;
 
 	private:
-		std::shared_ptr<TTexture> mDrawableComponent;
-		std::string mText;
-		TStyle mStyle;
+		TResource<sf::Font> mStandardFont;
+		TResource<sf::Texture> mCustomFont;
+		sf::VertexArray mFontVertexArray;
+		TFontType mFontType;
 
+		/// Variables for our custom font
+		const std::vector<TCharStruct> mCharMap;
+		const sf::Uint16 mCharDefaultSize;
 		const sf::Uint8 mCharWidth;
 		const sf::Uint8 mCharHeight;
+		sf::Uint8 mStyle;
 
-		const std::vector<TCharStruct> mCharMap;
-
-		const sf::Uint16 mCharDefaultSize;
-		sf::Uint16 mCharCurrentSize;
+		friend class TText;
 	};
 }

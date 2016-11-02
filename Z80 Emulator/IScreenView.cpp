@@ -19,7 +19,7 @@ namespace nne
 			return mWidgetsContainer[Index];
 		}
 
-		void IScreenView::Update(sf::Time& ElapsedTime)
+		void IScreenView::Update(const sf::Time& ElapsedTime)
 		{
 			for (auto& Widget : mWidgetsContainer)
 			{
@@ -27,7 +27,7 @@ namespace nne
 			}
 		}
 
-		void IScreenView::Refresh(sf::Time& ElapsedTime)
+		void IScreenView::Refresh(const sf::Time& ElapsedTime)
 		{
 			for (auto& Widget : mWidgetsContainer)
 			{
@@ -36,7 +36,7 @@ namespace nne
 		}
 
 		void IScreenView::Draw()
-{
+		{
 			for (auto& Widget : mWidgetsContainer)
 			{
 				TGuiWindow::GetInstance().draw(*Widget);

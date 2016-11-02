@@ -73,6 +73,9 @@
     <Filter Include="Header Files\include\gui\widgets">
       <UniqueIdentifier>{decce8d8-be4a-4582-b57d-5a852bf18650}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\src\gui\widgets">
+      <UniqueIdentifier>{c6932541-e8c3-4c22-ba69-288c3eab01b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -141,9 +144,6 @@
     <ClCompile Include="TMainMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TFont.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TTexture.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
@@ -160,6 +160,15 @@
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
     <ClCompile Include="TCharStruct.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiButton.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TText.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TFont.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
@@ -257,9 +266,6 @@
     <ClInclude Include="TInfoMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
-    <ClInclude Include="TFont.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TTexture.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
@@ -293,22 +299,17 @@
     <ClInclude Include="TCharStruct.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\PROVA2.A01">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resources\PROVA2.LST">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resources\Prova2.msa">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resources\PROVA2.R01">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resources\source.asm">
-      <Filter>Resource Files</Filter>
-    </None>
+    <ClInclude Include="TResource.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TCache.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TText.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TFont.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

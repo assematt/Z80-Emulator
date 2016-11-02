@@ -9,14 +9,30 @@ namespace nne
 			Init();
 		}
 
+		TGuiWidget::~TGuiWidget()
+		{
+
+		}
+
 		void TGuiWidget::Init()
 		{
-			AddComponent<TTexture>();
-			AddComponent<TTransformable>();
-			AddComponent<TFont>();
-			GetComponentAsPtr<TTexture>()->LoadTextureFromFile("resources/images/font.png");
-			InitComponents();
+			
 		}
+
+		void TGuiWidget::Update(const sf::Time& ElapsedTime)
+		{
+			for (auto& Component : mComponents)
+				Component->Update();
+		}
+
+		void TGuiWidget::Refresh(const sf::Time& ElapsedTime)
+		{
+			//for (auto& Component : mComponents)
+				//Component->();
+			for (auto& Component : mComponents)
+				Component->Refresh();
+		}
+
 	}
 }
 

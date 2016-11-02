@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Window/Event.hpp>
+#include <SFML/System/Time.hpp>
 #include <vector>
 #include <iostream>
 
@@ -27,6 +28,10 @@ namespace nne
 			void AddMenu(IScreenView::UniquePtr& Menu);
 
 			void ChangeMenu(std::size_t NextMenu);
+
+			void Refresh(const sf::Time& ElapsedTime);
+
+			void Update(const sf::Time& ElapsedTime);
 
 			void Draw();
 

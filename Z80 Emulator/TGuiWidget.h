@@ -8,34 +8,32 @@
 #include "TGraphicEntity.h"
 #include "TTexture.h"
 #include "TTransformable.h"
-#include "TFont.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		class TGuiWidget : public nne::TLogicEntity, public TGraphicEntity
+		class TGuiWidget : public nne::TLogicEntity, public nne::TEntity, public sf::Drawable
 		{
 		public:
 			using UniquePtr = std::unique_ptr<TGuiWidget>;
 			using SharedPtr = std::shared_ptr<TGuiWidget>;
 
 			using nne::TLogicEntity::Update;
+			using nne::TLogicEntity::Refresh;
 
 			TGuiWidget();
+			virtual ~TGuiWidget();
 
-			void Init();
+			virtual void Init();
 
-			void Refresh(sf::Time& ElapsedTime) {};
+			virtual void Refresh(const sf::Time& ElapsedTime) override;
 
-			void Update(sf::Time& ElapsedTime) {};
+			virtual void Update(const sf::Time& ElapsedTime) override;
 
 			void MakeVirtual() override {};
 
-			void OnMouseClick(int X, int Y)
-			{
-
-			}
+			virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
 		};
 	}
 }

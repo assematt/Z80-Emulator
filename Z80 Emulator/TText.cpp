@@ -14,9 +14,9 @@ namespace nne
 		//mFont = std::make_shared<_TFont>();
 		mFont = mParent->GetComponentAsPtr<TFont>();
 
-		if ((mFont->GetFontType() == TFont::TFontType::STANDARD) && (mFont->mStandardFont.GetResourceData()))
+		if ((mFont->GetFontType() == TFont::TFontType::STANDARD) && (&mFont->mStandardFont))
 		{
-			mText->setFont(*mFont->mStandardFont.GetResourceData());
+			mText->setFont(mFont->mStandardFont);
 		}
 	}
 

@@ -5,13 +5,16 @@
 #include <SFML/System/Time.hpp>
 #include <memory>
 
-#include "IComponent.h"
 #include "TTransformable.h"
+#include "IComponent.h"
 #include "TEntity.h"
 #include "TResource.h"
+//#include "_TResourceOld.h"
 
 namespace nne
 {
+
+
 	struct TTexture : nne::IComponent
 	{
 	public:
@@ -27,7 +30,7 @@ namespace nne
 // 
 // 		void Refresh(const sf::Time& ElapsedTime) override {};
 
-		void SetTexture(std::unique_ptr<sf::Texture>& Texture);
+		void SetTexture(sf::Texture& Texture);
 
 		void SetOpacity(sf::Uint8 Opacity);
 
@@ -47,7 +50,25 @@ namespace nne
 
 	private:
 		sf::VertexArray mVertices;
-		TResource<sf::Texture> mTexture;
+		sf::Texture mTexture;
 		sf::Uint8 mOpacity;
+	};
+
+	struct TTextureLoader
+	{
+		TTextureLoader(const std::string& Path) :
+			mPath(Path)
+		{
+		}
+
+		TResource<TTexture> operator() ()
+		{
+			std::unique_ptr<TTexture> TempPtr = std::make_unique<TTexture>();
+			TempPtr->LoadTextureFromFile(mPath);
+			return TempPtr;
+		}
+
+	private:
+		std::string mPath;
 	};
 }

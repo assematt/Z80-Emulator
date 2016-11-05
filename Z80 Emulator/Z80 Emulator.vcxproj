@@ -157,12 +157,16 @@
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
       <Command>Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-audio-d-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-graphics-d-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-network-d-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-system-d-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-window-d-2.dll" "$(TargetDir)"</Command>
-    </PreBuildEvent>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">
     <ClCompile>
@@ -264,7 +268,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="IComponent.cpp" />
     <ClCompile Include="IScreenView.cpp" />
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="TCacheManager.cpp" />
     <ClCompile Include="TCharStruct.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TDebugger.cpp" />
@@ -299,6 +302,11 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="TCacheManager.h" />
+    <ClInclude Include="TResource.h" />
+    <ClInclude Include="TResourceLoader.h" />
+    <ClInclude Include="TResourceVector.h" />
+    <ClInclude Include="TSFResourceLoader.h" />
+    <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TCharStruct.h" />
     <ClInclude Include="TFactory.h" />
     <ClInclude Include="TText.h" />
@@ -332,7 +340,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TRandom.h" />
     <ClInclude Include="TRegisterContainer.h" />
     <ClInclude Include="TRegister.h" />
-    <ClInclude Include="TResource.h" />
     <ClInclude Include="TSourceParser.h" />
     <ClInclude Include="TStaticEntity.h" />
     <ClInclude Include="TTexture.h" />

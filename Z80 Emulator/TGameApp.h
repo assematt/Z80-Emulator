@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+#include "TSFResourceLoader.h"
+#include "TCacheManager.h"
 #include "TGuiManager.h"
 #include "TFactory.h"
 

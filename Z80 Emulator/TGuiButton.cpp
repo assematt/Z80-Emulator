@@ -17,8 +17,9 @@ namespace nne
 			AddComponent<TText>();
 			InitComponents();
 
-			//GetComponentAsPtr<TFont>()->LoadFromFile("resources/fonts/font.ttf");
-			GetComponentAsPtr<TFont>()->LoadFromFile("resources/images/font.png", false);
+			TCacheManager::GetInstance().AddResource(nne::TResourceLoader<nne::TFont>(nne::TFontLoader("resources/fonts/font.ttf"), "font_1"));
+			*GetComponentAsPtr<TFont>() = TCacheManager::GetInstance().GetResource<nne::TFont>("font_1");
+
 			GetComponentAsPtr<TText>()->SetString(GetName());
 		}
 

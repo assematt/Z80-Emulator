@@ -10,27 +10,31 @@ namespace nne
 
 	bool TGameApp::Init()
 	{
-		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default);
+		// Load the resources
+		auto& CacheManager = TCacheManager::GetInstance();
+		CacheManager.AddResource(nne::TResourceLoader<nne::TTexture>(nne::TTextureLoader("resources/images/crt_monitor_effect.png"), "sprite_1"));
+		CacheManager.AddResource(nne::TResourceLoader<nne::TTexture>(nne::TTextureLoader("resources/images/crt_monitor_frame.png"), "sprite_2"));
 
-		// Load background image
+		// Create a temp value the background and logo image
 		auto& BackgroundImage = TFactory::MakeDrawableEntity();
-
-		// If the image is successfully loaded put that in the array
-		if (BackgroundImage->GetComponentAsPtr<TTexture>()->LoadTextureFromFile("resources/images/crt_monitor_effect.png"))
-		{
-			TManager::GetInstance().AddComponent<TGraphicEntity>(std::move(BackgroundImage));
-		}
-
-		// Load logo image
 		auto& Logo = TFactory::MakeDrawableEntity();
 
-		// If the image is successfully loaded put that in the array
-		if (Logo->GetComponentAsPtr<TTexture>()->LoadTextureFromFile("resources/images/crt_monitor_frame.png"))
-		{
-			Logo->GetComponentAsPtr<TTransformable>()->SetPosition(664.f, 37.f);
-			TManager::GetInstance().AddComponent<TGraphicEntity>(std::move(Logo));
-		}
+		// Set the texture for the background and logo image
+		*BackgroundImage->GetComponentAsPtr<TTexture>() = CacheManager.GetResource<nne::TTexture>("sprite_1");
+		*Logo->GetComponentAsPtr<TTexture>() = CacheManager.GetResource<nne::TTexture>("sprite_2");
 
+		//BackgroundImage->GetComponentAsPtr<TTexture>()->SetTexture(CacheManager.GetResource<nne::TTexture>("sprite_1"));
+		//Logo->GetComponentAsPtr<TTexture>()->SetTexture(CacheManager.GetResource<nne::TTexture>("sprite_2"));
+
+		// Add the background and logo to the entity manager
+		auto& Manager = TManager::GetInstance();
+		Manager.AddComponent<TGraphicEntity>(std::move(BackgroundImage));
+		Manager.AddComponent<TGraphicEntity>(std::move(Logo));
+
+		// Create the window
+		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default);
+
+		// Initialize the GUI
 		mAppGui.Setup();
 
 		return true;

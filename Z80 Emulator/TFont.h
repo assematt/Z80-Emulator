@@ -7,8 +7,10 @@
 #include <vector>
 #include <memory>
 
+#include "TCacheManager.h"
+#include "TSFResourceLoader.h"
 #include "IComponent.h"
-#include "TResource.h"
+//#include "_TResourceOld.h"
 #include "TCharStruct.h"
 
 namespace nne
@@ -30,8 +32,8 @@ namespace nne
 		
 		/// Data loading
 		bool LoadFromFile(const std::string& Path, bool IsStandardFont = true);
-		bool LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont = true);
-		bool LoadFromStream(sf::InputStream& Stream, bool IsStandardFont = true);
+// 		bool LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont = true);
+// 		bool LoadFromStream(sf::InputStream& Stream, bool IsStandardFont = true);
 
 		/// Get the font texture and vertex array for flexible rendering
 		const sf::Texture* GetFontTexture(const std::size_t CharacterSize) const;
@@ -50,18 +52,38 @@ namespace nne
 		const TGlyph ExtractCharacter(const char Char, const sf::Uint32 CharacterSize) const;
 
 	private:
-		TResource<sf::Font> mStandardFont;
-		TResource<sf::Texture> mCustomFont;
+		sf::Font mStandardFont;
+		sf::Texture mCustomFont;
 		sf::VertexArray mFontVertexArray;
 		TFontType mFontType;
 
 		/// Variables for our custom font
-		const std::vector<TCharStruct> mCharMap;
-		const sf::Uint16 mCharDefaultSize;
-		const sf::Uint8 mCharWidth;
-		const sf::Uint8 mCharHeight;
+		mutable std::vector<TCharStruct> mCharMap;
+		mutable sf::Uint16 mCharDefaultSize;
+		mutable sf::Uint8 mCharWidth;
+		mutable sf::Uint8 mCharHeight;
 		sf::Uint8 mStyle;
 
 		friend class TText;
+	};
+
+	struct TFontLoader
+	{
+		TFontLoader(const std::string& Path, bool IsStandardFont = true) :
+			mPath(Path),
+			mIsStandard(IsStandardFont)
+		{
+		}
+
+		TResource<TFont> operator() ()
+		{
+			std::unique_ptr<TFont> TempPtr = std::make_unique<TFont>();
+			TempPtr->LoadFromFile(mPath, mIsStandard);
+			return TempPtr;
+		}
+
+	private:
+		bool mIsStandard;
+		std::string mPath;
 	};
 }

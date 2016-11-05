@@ -1,26 +1,40 @@
 #pragma once
 
-
-#include <vector>
-#include <map>
-
-#include "TResource.h"
+#include "TResourceVector.h"
 
 namespace nne
 {
-	class TCacheManager
+	struct TCacheManager
 	{
-	public:
+		using TResourceTypeID = std::size_t;
+		
+		static TCacheManager& GetInstance()
+		{
+			static TCacheManager Instance;
+			return Instance;
+		}
 
-		/// Constructor
-		TCacheManager();
+		template <class _Type>
+		void AddResource(typename TResourceLoader<_Type>& Resource)
+		{
+			TResourceTypeID ID = TUtility::GetTypeID<TResourceTypeID, _Type>();
 
-		/// Data loading
-		bool LoadFromFile(const std::string& Path);
-		bool LoadFromMemory(const void* Data, std::size_t DataSize);
-		bool LoadFromStream(sf::InputStream& Stream);
+			if (mResourcesVectors.find(ID) == mResourcesVectors.end())
+			{
+				mResourcesVectors.emplace(ID, IResourceVectorBase());
+			}
 
-	private:
-		std::vector<TResource<void*>> mResourceVector;
+			(static_cast<TResourceVector<_Type>*>(&mResourcesVectors[ID]))->AddResource(Resource);
+		}
+
+		template <class _Type>
+		typename _Type& GetResource(const std::string& Key)
+		{
+			TResourceTypeID ID = TUtility::GetTypeID<TResourceTypeID, _Type>();
+
+			return ((static_cast<TResourceVector<_Type>*>(&mResourcesVectors[ID]))->GetResource(Key));
+		}
+
+		std::map<TResourceTypeID, IResourceVectorBase> mResourcesVectors;
 	};
 }

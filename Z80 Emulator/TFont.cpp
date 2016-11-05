@@ -23,49 +23,49 @@ namespace nne
 		if (IsStandardFont)
 		{
 			mFontType = TFontType::STANDARD;
-			return mStandardFont.LoadFromFile(Path);
+			return mStandardFont.loadFromFile(Path);
 		}			
 
 		// Load a custom font
 		mFontType = TFontType::CUSTOM;
-		return mCustomFont.LoadFromFile(Path);
+		return mCustomFont.loadFromFile(Path);
 	}
 
-	bool TFont::LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont /*= true*/)
-	{
-		// If we are try to load a standard font
-		if (IsStandardFont)
-		{
-			mFontType = TFontType::STANDARD;
-			return mStandardFont.LoadFromMemory(Data, DataSize);
-		}
-
-		// Load a custom font
-		mFontType = TFontType::CUSTOM;
-		return mCustomFont.LoadFromMemory(Data, DataSize);
-	}
-
-	bool TFont::LoadFromStream(sf::InputStream& Stream, bool IsStandardFont /*= true*/)
-	{
-		// If we are try to load a standard font
-		if (IsStandardFont)
-		{
-			mFontType = TFontType::STANDARD;
-			return mStandardFont.LoadFromStream(Stream);
-		}
-
-		// Load a custom font
-		mFontType = TFontType::CUSTOM;
-		return mCustomFont.LoadFromStream(Stream);
-	}
+// 	bool TFont::LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont /*= true*/)
+// 	{
+// 		// If we are try to load a standard font
+// 		if (IsStandardFont)
+// 		{
+// 			mFontType = TFontType::STANDARD;
+// 			return mStandardFont.LoadFromMemory(Data, DataSize);
+// 		}
+// 
+// 		// Load a custom font
+// 		mFontType = TFontType::CUSTOM;
+// 		return mCustomFont.LoadFromMemory(Data, DataSize);
+// 	}
+// 
+// 	bool TFont::LoadFromStream(sf::InputStream& Stream, bool IsStandardFont /*= true*/)
+// 	{
+// 		// If we are try to load a standard font
+// 		if (IsStandardFont)
+// 		{
+// 			mFontType = TFontType::STANDARD;
+// 			return mStandardFont.LoadFromStream(Stream);
+// 		}
+// 
+// 		// Load a custom font
+// 		mFontType = TFontType::CUSTOM;
+// 		return mCustomFont.LoadFromStream(Stream);
+// 	}
 
 	const sf::Texture* TFont::GetFontTexture(const std::size_t CharacterSize) const
 	{
 		// If we loaded a standard font
 		if (mFontType == TFontType::STANDARD)
-			return &(mStandardFont.GetResourceData()->getTexture(CharacterSize));
+			return &(mStandardFont.getTexture(CharacterSize));
 
-		return mCustomFont.GetResourceData().get();
+		return &mCustomFont;
 	}
 
 	const sf::VertexArray& TFont::GetFontVertexArray() const
@@ -100,8 +100,8 @@ namespace nne
 			TGlyph CharStruct = ExtractCharacter(Char, CharacterSize);
 
 			// Get the char width/heigth
-			// 			auto CharWidth = mIsStandardFontLoaded ? mStandardFont.GetResourceData()->getGlyph(Char, CharacterSize, true).bounds.width : CharStruct.second.mCharWidth;
-			// 			auto CharHeight = mIsStandardFontLoaded ? mStandardFont.GetResourceData()->getGlyph(Char, CharacterSize, true).bounds.height : CharStruct.second.mCharWidth;
+			// 			auto CharWidth = mIsStandardFontLoaded ? mStandardFont.getGlyph(Char, CharacterSize, true).bounds.width : CharStruct.second.mCharWidth;
+			// 			auto CharHeight = mIsStandardFontLoaded ? mStandardFont.getGlyph(Char, CharacterSize, true).bounds.height : CharStruct.second.mCharWidth;
 			auto CharWidth = CharStruct.second.mCharWidth;
 			auto CharHeight = mCharHeight;
 

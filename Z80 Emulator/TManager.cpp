@@ -16,7 +16,7 @@ namespace nne
 	}
 	
 	void TManager::Update(const sf::Time& ElapsedTime)
-{
+	{
 		for (int Counter = 0; Counter < mAliveElement; ++Counter)
 		{
 			mComponents[Counter]->Update();
@@ -24,7 +24,7 @@ namespace nne
 	}
 	
 	void TManager::Refresh(const sf::Time& ElapsedTime)
-{
+	{
 		ComputeAliveEntities();
 
 		// Call the function that sort the entity container

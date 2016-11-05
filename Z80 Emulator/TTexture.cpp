@@ -6,13 +6,12 @@ namespace nne
 	TTexture::TTexture() :
 		mVertices(sf::Quads, 4)
 	{
-		mTexture.GetResourceData() = std::make_unique<sf::Texture>();
-		mTexture.GetResourceData()->setSmooth(true);
+		mTexture.setSmooth(true);
 	}
 
-	void TTexture::SetTexture(std::unique_ptr<sf::Texture>& Texture)
+	void TTexture::SetTexture(sf::Texture& Texture)
 	{
-		mTexture.GetResourceData() = std::move(Texture);
+		mTexture = Texture;
 	}
 
 	void TTexture::SetOpacity(sf::Uint8 Opacity)
@@ -29,19 +28,19 @@ namespace nne
 
 	bool TTexture::LoadTextureFromFile(const std::string& Filename)
 	{
-		if (!mTexture.GetResourceData()->loadFromFile(Filename))
+		if (!mTexture.loadFromFile(Filename))
 		{
 			return false;
 		}
 
-		SetVertices(0.f, 0.f, mTexture.GetResourceData()->getSize().x, mTexture.GetResourceData()->getSize().y);
+		SetVertices(0.f, 0.f, mTexture.getSize().x, mTexture.getSize().y);
 
 		return true;
 	}
 
 	const sf::Texture& TTexture::GetTexture() const
 	{
-		return *mTexture.GetResourceData().get();
+		return mTexture;
 	}
 
 	const sf::Uint8& TTexture::GetOpacity() const
@@ -76,4 +75,5 @@ namespace nne
 		mVertices[2].texCoords = { Rect.left + Rect.width, Rect.top + Rect.height };
 		mVertices[3].texCoords = { Rect.left, Rect.top + Rect.height };
 	}
+
 }

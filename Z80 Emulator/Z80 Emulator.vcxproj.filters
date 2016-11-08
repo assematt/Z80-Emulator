@@ -156,9 +156,6 @@
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="TGraphicEntity.cpp">
-      <Filter>Source Files\src\component_system</Filter>
-    </ClCompile>
     <ClCompile Include="TCharStruct.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
@@ -173,6 +170,12 @@
     </ClCompile>
     <ClCompile Include="TNewGameMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="TGraphicEntity.cpp">
+      <Filter>Source Files\src\component_system</Filter>
+    </ClCompile>
+    <ClCompile Include="TChip.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -287,9 +290,6 @@
     <ClInclude Include="TGuiWindow.h">
       <Filter>Header Files\include\gui</Filter>
     </ClInclude>
-    <ClInclude Include="TGraphicEntity.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
     <ClInclude Include="TFactory.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
@@ -325,6 +325,12 @@
     </ClInclude>
     <ClInclude Include="TSFResourceLoader.h">
       <Filter>Header Files\include\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="TChip.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TGraphicEntity.h">
+      <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

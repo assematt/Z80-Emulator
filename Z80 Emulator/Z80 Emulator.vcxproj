@@ -213,12 +213,16 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-audio.lib;sfml-network.lib;sfml-system.lib;sfml-main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
       <Command>Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release\sfml-audio-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release\sfml-graphics-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release\sfml-network-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release\sfml-system-2.dll" "$(TargetDir)"
 Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release\sfml-window-2.dll" "$(TargetDir)"</Command>
-    </PreBuildEvent>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">
     <ClCompile>
@@ -269,6 +273,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="IScreenView.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TCharStruct.cpp" />
+    <ClCompile Include="TChip.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TDebugger.cpp" />
     <ClCompile Include="TEntity.cpp" />
@@ -302,6 +307,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="TCacheManager.h" />
+    <ClInclude Include="TChip.h" />
     <ClInclude Include="TResource.h" />
     <ClInclude Include="TResourceLoader.h" />
     <ClInclude Include="TResourceVector.h" />

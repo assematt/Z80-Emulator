@@ -7,6 +7,7 @@ namespace nne
 
 		TPin::TPin() :
 			mPinMode(TMode::INPUT),
+			mPinName(""),
 			mPinStatus(TStatus::LOW),
 			mPinNumber(0),
 			mPinGroupID(0),
@@ -15,8 +16,9 @@ namespace nne
 		{
 		}
 
-		TPin::TPin(const TMode& PinMode, const TStatus& PinStatus /*= TStatus::LOW*/, const TPinNumber& PinNumber /*= 0*/, const TPinGroupID& PinGroupID /*= 0*/, const TPinNumber& PinGroupNumber/* = 0*/) :
+		TPin::TPin(const TMode& PinMode, const TPinName& PinName, const TStatus& PinStatus /*= TStatus::LOW*/, const TPinNumber& PinNumber /*= 0*/, const TPinGroupID& PinGroupID /*= 0*/, const TPinNumber& PinGroupNumber/* = 0*/) :
 			mPinMode(PinMode),
+			mPinName(PinName),
 			mPinStatus(PinStatus),
 			mPinNumber(PinNumber == 0 ? ++mPinNumber : PinNumber),
 			mPinGroupID(PinGroupID),

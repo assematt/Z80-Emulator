@@ -15,7 +15,7 @@ namespace nne
 {
 
 
-	struct TTexture : nne::IComponent
+	class TTexture : public nne::IComponent
 	{
 	public:
 		TTexture();

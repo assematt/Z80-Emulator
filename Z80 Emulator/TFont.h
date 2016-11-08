@@ -17,7 +17,7 @@ namespace nne
 {
 	class TText;
 
-	struct TFont : IComponent
+	class TFont : public IComponent
 	{
 	public:
 		using TGlyph = std::pair<sf::FloatRect, const TCharStruct&>;

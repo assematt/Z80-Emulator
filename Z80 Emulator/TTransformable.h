@@ -8,7 +8,7 @@
 
 namespace nne
 {
-	struct TTransformable : nne::IComponent
+	class TTransformable : public nne::IComponent
 	{
 	public:
 

@@ -18,7 +18,7 @@ namespace nne
 		}
 
 		TGuiManager::TGuiManager() :
-			mCurrentViewIndex(0)
+			mCurrentViewIndex(1)
 		{
 		}
 

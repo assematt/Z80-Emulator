@@ -14,6 +14,7 @@ namespace nne
 		{
 			using TPinPtr = std::shared_ptr<TPin>;
 			using TPinID = std::size_t;
+			using TPinName = std::string;
 			using TPinNumber = TU8BitValue;
 			using TPinGroupID = std::size_t;
 			using TPinConnections = std::vector<TPin*>;
@@ -36,7 +37,7 @@ namespace nne
 
 			TPin();
 			
-			TPin(const TMode& PinMode, const TStatus& PinStatus = TStatus::LOW, const TPinNumber& PinNumber = 0, const TPinGroupID& PinGroupID = 0, const TPinNumber& PinGroupNumber = 0);
+			TPin(const TMode& PinMode, const TPinName& PinName, const TStatus& PinStatus = TStatus::LOW, const TPinNumber& PinNumber = 0, const TPinGroupID& PinGroupID = 0, const TPinNumber& PinGroupNumber = 0);
 
 			/// Comparison operator
 			bool operator ==(TPin const& Right);
@@ -70,6 +71,7 @@ namespace nne
 
 		public:
 			TMode			mPinMode;
+			TPinName		mPinName;
 			TPinNumber		mPinNumber;
 			TPinNumber		mPinGroupNumber;
 			TPinGroupID		mPinGroupID;

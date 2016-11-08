@@ -10,6 +10,7 @@ namespace nne
 
 	bool TGameApp::Init()
 	{
+#if FALSE
 		// Load the resources
 		auto& CacheManager = TCacheManager::GetInstance();
 		CacheManager.AddResource(nne::TResourceLoader<nne::TTexture>(nne::TTextureLoader("resources/images/crt_monitor_effect.png"), "sprite_1"));
@@ -30,6 +31,37 @@ namespace nne
 		auto& Manager = TManager::GetInstance();
 		Manager.AddComponent<TGraphicEntity>(std::move(BackgroundImage));
 		Manager.AddComponent<TGraphicEntity>(std::move(Logo));
+#endif
+		mLogicEntity.AddComponent<nne::tmodules::TZ80>();
+		mLogicEntity.AddComponent<nne::tmodules::TRam>();
+		mLogicEntity.InitComponents();
+
+		// Get the Z80 and the ram entity
+		auto& Z80 = mLogicEntity.GetComponentAsPtr<nne::tmodules::TZ80>();
+		auto& Ram = mLogicEntity.GetComponentAsPtr<nne::tmodules::TRam>();
+
+		Z80->ConnectRam(Ram);
+		if (!Z80->LoadProgram("resources/programs/DJ.A01"))
+		{
+			std::cout << "Error! Could not open the file" << std::endl;
+
+			// Something went bad :(
+			return 1;
+		}
+
+		// Create a temp value the z80 and the ram
+		auto& Z80Chip = TFactory::MakeChip(Z80.get());
+		auto& RamChip = TFactory::MakeChip(Ram.get());
+
+		Z80Chip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
+		Z80Chip->GetComponentAsPtr<TTransformable>()->SetPosition(100.f, 100.f);
+
+		RamChip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
+		RamChip->GetComponentAsPtr<TTransformable>()->SetPosition(500.f, 100.f);
+
+		auto& Manager = TManager::GetInstance();
+		Manager.AddComponent<TGraphicEntity>(std::move(Z80Chip));
+		Manager.AddComponent<TGraphicEntity>(std::move(RamChip));
 
 		// Create the window
 		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default);

@@ -9,6 +9,9 @@
 #include "TGuiManager.h"
 #include "TFactory.h"
 
+#include "TZ80.h"
+#include "TRam.h"
+
 namespace nne
 {
 	class TGameApp
@@ -41,5 +44,8 @@ namespace nne
 		sf::Event	mAppEvent;
 		sf::Clock	mAppClock;
 		tgui::TGuiManager mAppGui;
+
+		TManager mLogicEntity;
+		TManager mGraphicEntity;
 	};
 }

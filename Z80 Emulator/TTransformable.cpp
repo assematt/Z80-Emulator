@@ -32,12 +32,13 @@ namespace nne
 		return mTransformable.getRotation();
 	}
 
+/*
 	const sf::Vector2f TTransformable::GetSize() const
 	{
 		auto& VertexArray = mParent->GetComponentAsPtr<TTexture>()->GetVertexArray();
 
 		return sf::Vector2f(ComputeWidth(VertexArray), ComputeHeigth(VertexArray));
-	}
+	}*/
 
 	const sf::Vector2f& TTransformable::GetScale() const
 	{
@@ -47,6 +48,35 @@ namespace nne
 	const sf::Vector2f& TTransformable::GetOrigin() const
 	{
 		return mTransformable.getOrigin();
+	}
+
+	const sf::FloatRect& TTransformable::GetEntityBounds() const
+	{
+		auto& DrawableVector = *mParent->GetComponentAsPtr<TDrawableVector>();
+
+		mBounds.height = 0;
+		mBounds.width = 0;
+		mBounds.left = 0;
+		mBounds.top = 0;
+
+		for (std::size_t Index = 0; Index < DrawableVector.GetVectorSize(); ++Index)
+		{
+			sf::Sprite* Sprite = dynamic_cast<sf::Sprite*>(DrawableVector[0].lock().get());
+
+			auto& SpriteBounds = Sprite->getGlobalBounds();
+
+			mBounds.height += SpriteBounds.height;
+			mBounds.width += SpriteBounds.width;
+			mBounds.left += SpriteBounds.left;
+			mBounds.top += SpriteBounds.top;
+		}
+
+		return mBounds;
+	}
+
+	const sf::Vector2f& TTransformable::GetEntitySize() const
+	{
+		return sf::Vector2f(mBounds.width, mBounds.height);
 	}
 
 	void TTransformable::Move(float offsetX, float offsetY)
@@ -74,6 +104,7 @@ namespace nne
 		return mTransformable.getInverseTransform();
 	}
 
+/*
 	const float TTransformable::ComputeWidth(const sf::VertexArray& Vertices) const
 	{
 		const auto& NumOfVertices = Vertices.getVertexCount();
@@ -108,7 +139,7 @@ namespace nne
 		}
 
 		return MaxValue;
-	}
+	}*/
 
 	void TTransformable::Scale(const sf::Vector2f& factor)
 	{

@@ -2,6 +2,7 @@
 
 #include "TEntity.h"
 #include "TUtility.h"
+#include "TComponentHandle.h"
 
 #include <array>
 #include <bitset>
@@ -36,6 +37,8 @@ namespace nne
 			auto NewComponentPtr = std::make_shared<T>(std::forward<TArgs>(mArgs)...);
 			NewComponentPtr->mParent = mComponentsParent;
 			NewComponentPtr->mID = UniqueID;
+
+			//TComponentHandle Test = TComponentHandle::CreatesHandle<T>();
 
 			// Put the position of the newly created shared_ptr in the mComponentsArray for easy access
 			mComponentsArray[UniqueID] = mComponents.size();

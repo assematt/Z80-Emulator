@@ -76,14 +76,9 @@ namespace nne
 			}
 		}
 
-		void TMainMenu::Display()
-		{
-
-		}
-
 		void TMainMenu::OnNewGameButtonClick(int X, int Y)
 		{
-			mParentManager->ChangeMenu(2);
+			mParentManager->ChangeMenu(1);
 		}
 
 		void TMainMenu::OnInstructionButtonClick(int X, int Y)

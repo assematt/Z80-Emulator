@@ -13,6 +13,8 @@ namespace nne
 		void TGuiButton::Init()
 		{
 			AddComponent<TTransformable>();
+			AddComponent<TDrawableVector>();
+			AddComponent<TSprite>();
 			AddComponent<TFont>();
 			AddComponent<TText>();
 			InitComponents();
@@ -48,6 +50,7 @@ namespace nne
 			// Get a ref to the text component and font component
 			auto& Text = *this->GetComponentAsPtr<TText>();
 			auto& Font = *this->GetComponentAsPtr<TFont>();
+			auto& Drawable = *this->GetComponentAsPtr<TSprite>();
 
 			// Set the right transformation matrix
 			states.transform *= this->GetComponentAsPtr<TTransformable>()->GetTransform();
@@ -57,7 +60,7 @@ namespace nne
 			{
 				states.texture = Font.GetFontTexture(Text.GetCharacterSize());
 
-				target.draw(Font.GetFontVertexArray(), states);
+				//target.draw(Drawable.GetVertexArray(), states);
 			}
 			else
 			{

@@ -2,8 +2,11 @@
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/System/Time.hpp>
-#include <vector>
 #include <iostream>
+#include <thread>
+#include <atomic>
+#include <future>
+#include <vector>
 
 #include "TRandom.h"
 #include "TManager.h"
@@ -36,9 +39,15 @@ namespace nne
 			void Draw();
 
 		private:
+			void ExecuteLoadingScreen();
+
+		private:
 			bool mIsRunning;
+			std::atomic_bool mIsloading;
+			std::future<void> mLoadingStatus;
 			std::size_t mCurrentViewIndex;
 			std::size_t mPreviousViewIndex;
+			std::thread mLoadingThread;
 			std::vector<IScreenView::UniquePtr> mScreens;
 		};
 	}

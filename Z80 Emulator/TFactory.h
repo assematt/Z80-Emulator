@@ -3,7 +3,9 @@
 #include <memory>
 
 #include "TChip.h"
-#include "TTexture.h"
+#include "TSprite.h"
+#include "TDrawableVector.h"
+#include "TConductiveTracks.h"
 #include "TTransformable.h"
 #include "TGraphicEntity.h"
 
@@ -15,7 +17,8 @@ namespace nne
 		{
 			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
 
-			TempPtr->AddComponent<TTexture>();
+			TempPtr->AddComponent<TSprite>();
+			TempPtr->AddComponent<TDrawableVector>();
 			TempPtr->AddComponent<TTransformable>();
 			TempPtr->InitComponents();
 
@@ -26,9 +29,23 @@ namespace nne
 		{
 			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
 
-			TempPtr->AddComponent<TTexture>();
+			TempPtr->AddComponent<TSprite>();
 			TempPtr->AddComponent<TTransformable>();
+			TempPtr->AddComponent<TDrawableVector>();
 			TempPtr->AddComponent<TChip>(ChipToRender);
+			TempPtr->InitComponents();
+
+			return std::move(TempPtr);
+		}
+
+		static std::shared_ptr<TGraphicEntity> MakeConductiveTrack()
+		{
+			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
+
+			TempPtr->AddComponent<TSprite>();
+			TempPtr->AddComponent<TTransformable>();
+			TempPtr->AddComponent<TDrawableVector>();
+			TempPtr->AddComponent<TConductiveTracks>();
 			TempPtr->InitComponents();
 
 			return std::move(TempPtr);
@@ -38,8 +55,9 @@ namespace nne
 		{
 			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
 
-			TempPtr->AddComponent<TTexture>();
+			TempPtr->AddComponent<TSprite>();
 			TempPtr->AddComponent<TTransformable>();
+			TempPtr->AddComponent<TDrawableVector>();
 			TempPtr->InitComponents();
 
 			return std::move(TempPtr);

@@ -69,4 +69,5 @@ namespace nne
 	private:
 		sf::InputStream* mStream;
 	};
+
 }

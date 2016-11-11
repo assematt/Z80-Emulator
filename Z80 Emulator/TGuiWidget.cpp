@@ -74,6 +74,13 @@ namespace nne
 			mVisible = Show;
 		}
 
+		const sf::FloatRect& TGuiWidget::GetWidgetBound() const
+		{
+			//return{ 0.f, 0.f, 0.f, 0.f };
+			return GetComponentAsPtr<TTransformable>()->GetEntityBounds();
+			//return HasComponent<TText>() ? GetComponentAsPtr<TText>()->GetGlobalBounds() : sf::FloatRect(GetComponentAsPtr<TTransformable>()->GetPosition(), GetComponentAsPtr<TTransformable>()->GetSize());
+		}
+
 		void TGuiWidget::Refresh(const sf::Time& ElapsedTime)
 		{
 			for (auto& Component : mComponents)

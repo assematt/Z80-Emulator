@@ -1,0 +1,18 @@
+<board>
+	<integrated_circuits>
+		<integrated>
+			<pins>
+				<number>28</number>
+				<pin>
+					<mode>INPUT</mode>
+					<name>A0</name>
+					<status>LOW</status>
+					<pin_number>10</pin_number>
+					<group>0</group>
+					<group_number>0</group_number>
+				</pin>
+			</pins>
+			<type>DIP</type>
+		</integrated>
+	</integrated_circuits>
+</board>

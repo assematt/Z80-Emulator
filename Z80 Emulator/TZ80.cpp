@@ -40,7 +40,7 @@ namespace nne
 			// Setup the CPU Pins
 			AddComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
 				// ADDRESS BUS
-				{ tcomponents::TPin::TMode::OUTPUT, "A0", tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
+				{ tcomponents::TPin::TMode::OUTPUT, "A0",  tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
 				{ tcomponents::TPin::TMode::OUTPUT, "A1",  tcomponents::TPin::TStatus::LOW, 31, CPUPinGroup::AddressBus, 2 }, // A2
 				{ tcomponents::TPin::TMode::OUTPUT, "A2",  tcomponents::TPin::TStatus::LOW, 32, CPUPinGroup::AddressBus, 0 }, // A0
 				{ tcomponents::TPin::TMode::OUTPUT, "A3",  tcomponents::TPin::TStatus::LOW, 33, CPUPinGroup::AddressBus, 3 }, // A3

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <SFML/Config.hpp>
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <memory>
 
 #include "IComponent.h"
 #include "TPinComponent.h"
-#include "TTexture.h"
+#include "TDrawableVector.h"
 #include "TEntity.h"
 
 namespace nne
@@ -28,7 +29,8 @@ namespace nne
 
 		void Init() override
 		{
-			//mDrawableObject = std::make_shared<nne::TTexture>(*mParent->GetComponentAsPtr<TTexture>());
+			mObjectShape = std::make_shared<sf::VertexArray>(sf::Quads);
+			mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject(mObjectShape);
 
 			RenderDipChip();
 		}
@@ -39,7 +41,7 @@ namespace nne
 
 		void SetSize(const sf::Vector2f& Size)
 		{
-			auto& Vertices = mParent->GetComponentAsPtr<TTexture>()->GetVertexArray();
+			auto& Vertices = *mObjectShape;
 
 			Vertices[0].position = { 0.f, 0.f };
 			Vertices[1].position = { Size.x, 0.f };
@@ -49,7 +51,7 @@ namespace nne
 
 		void SetChipColor(const sf::Color& Color)
 		{
-			auto& Vertices = mParent->GetComponentAsPtr<TTexture>()->GetVertexArray();
+			auto& Vertices = *mObjectShape;
 
 			Vertices[0].color = Color;
 			Vertices[1].color = Color;
@@ -62,7 +64,7 @@ namespace nne
 		{
 			/// Get the number of pins
 			sf::Uint8 NumberOfPins = mManagedObject->GetComponentAsPtr<tcomponents::TPinComponent>()->GetPinList().size();
-			auto& Vertices = mParent->GetComponentAsPtr<TTexture>()->GetVertexArray();
+			auto& Vertices = *mObjectShape;
 
 			//sf::Uint8 NumberOfPins = 28;
 
@@ -136,6 +138,6 @@ namespace nne
 
 	private:
 		nne::TEntity* mManagedObject;
-		std::shared_ptr<nne::TTexture> mDrawableObject;
+		std::shared_ptr<sf::VertexArray> mObjectShape;
 	};
 }

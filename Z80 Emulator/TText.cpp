@@ -17,6 +17,11 @@ namespace nne
 		if ((mFont->GetFontType() == TFont::TFontType::STANDARD) && (&mFont->mStandardFont))
 		{
 			mText->setFont(mFont->mStandardFont);
+			mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject(mText);
+		}
+		else
+		{
+
 		}
 	}
 
@@ -145,12 +150,14 @@ namespace nne
 
 	sf::FloatRect TText::GetLocalBounds() const
 	{
-		return mText->getLocalBounds();
+		return { 0.f, 0.f, 0.f, 0.f };
+		//return mParent->GetComponentAsPtr<TFont>()->GetFontType() == TFont::TFontType::STANDARD ? mText->getLocalBounds() : sf::FloatRect({ .0f, 0.f }, mParent->GetComponentAsPtr<TTransformable>()->GetSize());
 	}
 
 	sf::FloatRect TText::GetGlobalBounds() const
 	{
-		return mText->getGlobalBounds();
+		return{ 0.f, 0.f, 0.f, 0.f };
+		//return mParent->GetComponentAsPtr<TFont>()->GetFontType() == TFont::TFontType::STANDARD ? mText->getGlobalBounds() : sf::FloatRect(mParent->GetComponentAsPtr<TTransformable>()->GetPosition(), mParent->GetComponentAsPtr<TTransformable>()->GetSize());
 	}
 
 }

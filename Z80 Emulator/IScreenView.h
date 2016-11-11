@@ -2,10 +2,13 @@
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics.hpp>
+#include <memory>
+#include <future>
 #include <vector>
 
 #include "TGuiWindow.h"
 #include "TGuiWidget.h"
+#include "ILoadingScreen.h"
 #include "TRandom.h"
 
 namespace nne
@@ -35,14 +38,13 @@ namespace nne
 			using UniquePtr = std::unique_ptr<IScreenView>;
 			using SharedPtr = std::shared_ptr<IScreenView>;
 
+			IScreenView();
 			virtual ~IScreenView() = default;
 
 			virtual void Setup() = 0;
 
 			virtual void HandleEvent(sf::Event& Event) = 0;
-
-			virtual void Display() = 0;
-
+			
 			template <class T>
 			void AddWidget(T& Widget)
 			{
@@ -63,6 +65,18 @@ namespace nne
 			void RemoveWidget(std::size_t Index);
 
 			const TGuiWidget::UniquePtr& GetWidget(const std::size_t Index) const;
+
+			/// Function to set a loading screen
+			void SetLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen);
+
+			/// Function to get the loading screen
+			std::unique_ptr<ILoadingScreen>& GetLoadingScreen();
+
+// 			template <class T>
+// 			T& GetLoadingScreen()
+// 			{
+// 				return *dynamic_cast<T*>(mLoadingScreen.get());
+// 			}
 
 			/// Updates every widget in the container
 			void Update(const sf::Time& ElapsedTime);
@@ -89,6 +103,7 @@ namespace nne
 
 		protected:
 			std::vector<TGuiWidget::UniquePtr> mWidgetsContainer;
+			std::unique_ptr<ILoadingScreen> mLoadingScreen;
 			sf::Vector2f mPosition;
 			TGuiManager* mParentManager;
 

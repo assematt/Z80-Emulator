@@ -7,7 +7,9 @@
 #include "TEntity.h"
 #include "TLogicEntity.h"
 #include "TGraphicEntity.h"
-#include "TTexture.h"
+#include "TSprite.h"
+#include "TText.h"
+#include "TFont.h"
 #include "TTransformable.h"
 
 namespace nne
@@ -44,6 +46,8 @@ namespace nne
 			const sf::Vector2f& GetPosition() const;
 
 			void SetVisibility(bool Show = true);
+
+			const sf::FloatRect& GetWidgetBound() const;
 			
 			/// Function based on the widgets event
 			virtual void OnMouseClick(sf::Event::MouseButtonEvent Button) {}

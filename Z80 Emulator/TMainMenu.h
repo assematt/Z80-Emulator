@@ -14,9 +14,7 @@ namespace nne
 			virtual void Setup();
 
 			void HandleEvent(sf::Event& Event);
-
-			void Display();
-
+			
 			void OnNewGameButtonClick(int X, int Y);
 			void OnInstructionButtonClick(int X, int Y);
 			void OnInfoButtonClick(int X, int Y);

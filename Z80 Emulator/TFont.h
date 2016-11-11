@@ -8,9 +8,9 @@
 #include <memory>
 
 #include "TCacheManager.h"
-#include "TSFResourceLoader.h"
+#include "TLoaders.h"
 #include "IComponent.h"
-//#include "_TResourceOld.h"
+#include "TSprite.h"
 #include "TCharStruct.h"
 
 namespace nne
@@ -32,12 +32,9 @@ namespace nne
 		
 		/// Data loading
 		bool LoadFromFile(const std::string& Path, bool IsStandardFont = true);
-// 		bool LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont = true);
-// 		bool LoadFromStream(sf::InputStream& Stream, bool IsStandardFont = true);
 
 		/// Get the font texture and vertex array for flexible rendering
 		const sf::Texture* GetFontTexture(const std::size_t CharacterSize) const;
-		const sf::VertexArray& GetFontVertexArray() const;
 		
 		/// Get the type of font we are using
 		const TFontType& GetFontType() const;
@@ -53,7 +50,7 @@ namespace nne
 
 	private:
 		sf::Font mStandardFont;
-		sf::Texture mCustomFont;
+		std::shared_ptr<TSprite> mCustomFont;
 		sf::VertexArray mFontVertexArray;
 		TFontType mFontType;
 

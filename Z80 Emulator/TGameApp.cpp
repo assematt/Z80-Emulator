@@ -10,22 +10,19 @@ namespace nne
 
 	bool TGameApp::Init()
 	{
-#if FALSE
+#if TRUE
 		// Load the resources
 		auto& CacheManager = TCacheManager::GetInstance();
-		CacheManager.AddResource(nne::TResourceLoader<nne::TTexture>(nne::TTextureLoader("resources/images/crt_monitor_effect.png"), "sprite_1"));
-		CacheManager.AddResource(nne::TResourceLoader<nne::TTexture>(nne::TTextureLoader("resources/images/crt_monitor_frame.png"), "sprite_2"));
+		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/crt_monitor_effect.png"), "sprite_1"));
+		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/crt_monitor_frame.png"), "sprite_2"));
 
 		// Create a temp value the background and logo image
 		auto& BackgroundImage = TFactory::MakeDrawableEntity();
 		auto& Logo = TFactory::MakeDrawableEntity();
 
 		// Set the texture for the background and logo image
-		*BackgroundImage->GetComponentAsPtr<TTexture>() = CacheManager.GetResource<nne::TTexture>("sprite_1");
-		*Logo->GetComponentAsPtr<TTexture>() = CacheManager.GetResource<nne::TTexture>("sprite_2");
-
-		//BackgroundImage->GetComponentAsPtr<TTexture>()->SetTexture(CacheManager.GetResource<nne::TTexture>("sprite_1"));
-		//Logo->GetComponentAsPtr<TTexture>()->SetTexture(CacheManager.GetResource<nne::TTexture>("sprite_2"));
+		BackgroundImage->GetComponentAsPtr<TSprite>()->SetTexture(CacheManager.GetResource<sf::Texture>("sprite_1"));
+		Logo->GetComponentAsPtr<TSprite>()->SetTexture(CacheManager.GetResource<sf::Texture>("sprite_2"));
 
 		// Add the background and logo to the entity manager
 		auto& Manager = TManager::GetInstance();
@@ -52,16 +49,18 @@ namespace nne
 		// Create a temp value the z80 and the ram
 		auto& Z80Chip = TFactory::MakeChip(Z80.get());
 		auto& RamChip = TFactory::MakeChip(Ram.get());
+		auto& ConductiveRack = TFactory::MakeConductiveTrack();
 
 		Z80Chip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
-		Z80Chip->GetComponentAsPtr<TTransformable>()->SetPosition(100.f, 100.f);
+		Z80Chip->GetComponentAsPtr<TTransformable>()->SetPosition(500.f, 300.f);
 
 		RamChip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
-		RamChip->GetComponentAsPtr<TTransformable>()->SetPosition(500.f, 100.f);
+		RamChip->GetComponentAsPtr<TTransformable>()->SetPosition(1000.f, 350.f);
 
-		auto& Manager = TManager::GetInstance();
+		//auto& Manager = TManager::GetInstance();
 		Manager.AddComponent<TGraphicEntity>(std::move(Z80Chip));
 		Manager.AddComponent<TGraphicEntity>(std::move(RamChip));
+		Manager.AddComponent<TGraphicEntity>(std::move(ConductiveRack));
 
 		// Create the window
 		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default);
@@ -101,7 +100,7 @@ namespace nne
 	{
 		while (TGuiWindow::GetInstance().pollEvent(mAppEvent))
 		{
-			//mAppGui.ProcessEvents(mAppEvent);
+			mAppGui.ProcessEvents(mAppEvent);
 
 			if (mAppEvent.type == sf::Event::Closed)
 				TGuiWindow::GetInstance().close();
@@ -129,7 +128,7 @@ namespace nne
 	{
 		// Clear the back buffered window
 		TGuiWindow::GetInstance().clear();
-
+		
 		// Render all the entity in the the entity manager
 		nne::TManager::GetInstance().Draw();
 

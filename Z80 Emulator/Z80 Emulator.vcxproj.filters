@@ -144,9 +144,6 @@
     <ClCompile Include="TMainMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TTexture.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TTransformable.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
@@ -175,6 +172,12 @@
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
     <ClCompile Include="TChip.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TNewGameLoadingScreen.cpp">
+      <Filter>Source Files\src\gui\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="TSprite.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
@@ -269,9 +272,6 @@
     <ClInclude Include="TMainMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
-    <ClInclude Include="TTexture.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TTransformable.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
@@ -279,9 +279,6 @@
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
     <ClInclude Include="TEntity.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
-    <ClInclude Include="TStaticEntity.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
     <ClInclude Include="TLogicEntity.h">
@@ -323,14 +320,38 @@
     <ClInclude Include="TCacheManager.h">
       <Filter>Header Files\include\resources</Filter>
     </ClInclude>
-    <ClInclude Include="TSFResourceLoader.h">
-      <Filter>Header Files\include\resources</Filter>
-    </ClInclude>
     <ClInclude Include="TChip.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
     <ClInclude Include="TGraphicEntity.h">
       <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TComponentVector.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TComponentHandle.h">
+      <Filter>Header Files\include\component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="TLogicBoard.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TNewGameLoadingScreen.h">
+      <Filter>Header Files\include\gui\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="TConductiveTracks.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TDrawableVector.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="ILoadingScreen.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TLoaders.h">
+      <Filter>Header Files\include\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="TSprite.h">
+      <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

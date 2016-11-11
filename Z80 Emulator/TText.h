@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics/Text.hpp>
 #include "IComponent.h"
+#include "TTransformable.h"
 #include "TFont.h"
 #include "TEntity.h"
 

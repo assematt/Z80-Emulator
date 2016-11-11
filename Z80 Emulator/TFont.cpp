@@ -19,58 +19,33 @@ namespace nne
 
 	bool TFont::LoadFromFile(const std::string& Path, bool IsStandardFont /*= true*/)
 	{
+		bool Result;
+
 		// If we are try to load a standard font
 		if (IsStandardFont)
 		{
 			mFontType = TFontType::STANDARD;
-			return mStandardFont.loadFromFile(Path);
-		}			
-
+			Result = mStandardFont.loadFromFile(Path);
+		}
 		// Load a custom font
-		mFontType = TFontType::CUSTOM;
-		return mCustomFont.loadFromFile(Path);
-	}
+		else
+		{
+			mFontType = TFontType::CUSTOM;
+			sf::Texture TempTxt;
+			Result = TempTxt.loadFromFile(Path);
+			mCustomFont->SetTexture(TempTxt);
+		}
 
-// 	bool TFont::LoadFromMemory(const void* Data, std::size_t DataSize, bool IsStandardFont /*= true*/)
-// 	{
-// 		// If we are try to load a standard font
-// 		if (IsStandardFont)
-// 		{
-// 			mFontType = TFontType::STANDARD;
-// 			return mStandardFont.LoadFromMemory(Data, DataSize);
-// 		}
-// 
-// 		// Load a custom font
-// 		mFontType = TFontType::CUSTOM;
-// 		return mCustomFont.LoadFromMemory(Data, DataSize);
-// 	}
-// 
-// 	bool TFont::LoadFromStream(sf::InputStream& Stream, bool IsStandardFont /*= true*/)
-// 	{
-// 		// If we are try to load a standard font
-// 		if (IsStandardFont)
-// 		{
-// 			mFontType = TFontType::STANDARD;
-// 			return mStandardFont.LoadFromStream(Stream);
-// 		}
-// 
-// 		// Load a custom font
-// 		mFontType = TFontType::CUSTOM;
-// 		return mCustomFont.LoadFromStream(Stream);
-// 	}
+		return Result;
+	}
 
 	const sf::Texture* TFont::GetFontTexture(const std::size_t CharacterSize) const
 	{
 		// If we loaded a standard font
 		if (mFontType == TFontType::STANDARD)
 			return &(mStandardFont.getTexture(CharacterSize));
-
-		return &mCustomFont;
-	}
-
-	const sf::VertexArray& TFont::GetFontVertexArray() const
-	{
-		return mFontVertexArray;
+		
+		return &mCustomFont->GetTexture();
 	}
 
 	const TFont::TFontType& TFont::GetFontType() const
@@ -96,12 +71,9 @@ namespace nne
 		for (auto& Char : Text)
 		{
 			// Get the position of the char in the texture
-			/*TGlyph CharStruct = mIsStandardFontLoaded ? ExtractCharacterStandard(Char, CharacterSize) : ExtractCharacter(Char, CharacterSize);*/
 			TGlyph CharStruct = ExtractCharacter(Char, CharacterSize);
 
 			// Get the char width/heigth
-			// 			auto CharWidth = mIsStandardFontLoaded ? mStandardFont.getGlyph(Char, CharacterSize, true).bounds.width : CharStruct.second.mCharWidth;
-			// 			auto CharHeight = mIsStandardFontLoaded ? mStandardFont.getGlyph(Char, CharacterSize, true).bounds.height : CharStruct.second.mCharWidth;
 			auto CharWidth = CharStruct.second.mCharWidth;
 			auto CharHeight = mCharHeight;
 
@@ -137,7 +109,7 @@ namespace nne
 
 	void TFont::Init()
 	{
-
+		mCustomFont = std::make_shared<TSprite>(*mParent->GetComponentAsPtr<TSprite>());
 	}
 
 	const TFont::TGlyph TFont::ExtractCharacter(const char Char, const sf::Uint32 CharacterSize) const
@@ -150,7 +122,6 @@ namespace nne
 
 		// Keep looking in the array until we found the char (toupper(Char) != mCharMap[Index++]) or we iterate through the entire vector (Index < CharMapSize)
 		while (Index < CharMapSize && mCharMap[Index++] != toupper(Char));
-
 
 		// Return the coordinate of the char in the texture and the char struct
 		return{ sf::FloatRect((Index - 1) * mCharWidth, mCharHeight * mStyle, mCharMap[Index - 1].mCharWidth, mCharHeight), mCharMap[Index - 1] };

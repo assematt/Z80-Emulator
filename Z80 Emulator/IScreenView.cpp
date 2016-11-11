@@ -5,6 +5,13 @@ namespace nne
 	namespace tgui
 	{
 
+		IScreenView::IScreenView() :
+			mLoadingScreen(nullptr),
+			mParentManager(nullptr),
+			mPosition({.0f, .0f})
+		{
+		}
+
 		void IScreenView::RemoveWidget(std::size_t Index)
 		{
 			mWidgetsContainer.erase(mWidgetsContainer.begin() + Index);
@@ -14,6 +21,21 @@ namespace nne
 		{
 			return mWidgetsContainer[Index];
 		}
+
+		void IScreenView::SetLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen)
+		{
+			mLoadingScreen = std::move(LoadingScreen);
+		}
+
+		std::unique_ptr<nne::ILoadingScreen>& IScreenView::GetLoadingScreen()
+{
+			return mLoadingScreen;
+		}
+
+// 		std::unique_ptr<nne::ILoadingScreen>& IScreenView::GetLoadingScreen()
+// 		{
+// 			return mLoadingScreen;
+// 		}
 
 		void IScreenView::Update(const sf::Time& ElapsedTime)
 		{
@@ -90,12 +112,16 @@ namespace nne
 
 		bool IScreenView::CheckMouseClick(TGuiWidget::UniquePtr& Widget, const sf::Vector2i Mouse)
 		{
-			auto& WidgetPosition = Widget->GetComponentAsPtr<TTransformable>()->GetPosition();
-			auto& WidgetSize = Widget->GetComponentAsPtr<TTransformable>()->GetSize();
+// 			auto& WidgetPosition = Widget->GetComponentAsPtr<TTransformable>()->GetPosition();
+// 			auto& WidgetSize = Widget->GetComponentAsPtr<TTransformable>()->GetSize();
+// 
+// 			sf::FloatRect WidgetCoordinate(WidgetPosition, static_cast<sf::Vector2f>(WidgetSize));
 
-			sf::FloatRect WidgetCoordinate(WidgetPosition, static_cast<sf::Vector2f>(WidgetSize));
+			//return true;
 
-			return WidgetCoordinate.contains(static_cast<sf::Vector2f>(Mouse));
+			auto& Bounds = Widget->GetWidgetBound();
+
+			return Bounds.contains(static_cast<sf::Vector2f>(Mouse));
 		}
 
 	}

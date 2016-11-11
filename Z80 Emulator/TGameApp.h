@@ -1,10 +1,11 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/OpenGL.hpp>
 #include <memory>
 #include <string>
 
-#include "TSFResourceLoader.h"
+#include "TLoaders.h"
 #include "TCacheManager.h"
 #include "TGuiManager.h"
 #include "TFactory.h"

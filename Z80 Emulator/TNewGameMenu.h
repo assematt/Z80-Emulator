@@ -2,6 +2,7 @@
 
 #include "IScreenView.h"
 #include "TGuiManager.h"
+#include "TNewGameLoadingScreen.h"
 
 namespace nne
 {
@@ -14,7 +15,6 @@ namespace nne
 
 			void HandleEvent(sf::Event& Event);
 
-			void Display();
 		};
 	}
 }

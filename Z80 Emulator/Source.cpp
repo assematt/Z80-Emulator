@@ -6,7 +6,7 @@
 #include "TManager.h"
 #include "TGameApp.h"
 #include "TCacheManager.h"
-#include "TSFResourceLoader.h"
+#include "TLoaders.h"
 
 using namespace std;
 

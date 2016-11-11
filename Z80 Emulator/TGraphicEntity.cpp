@@ -6,8 +6,14 @@ namespace nne
 	{
 		states.transform *= this->GetComponentAsPtr<TTransformable>()->GetTransform();
 
-		states.texture = &this->GetComponentAsPtr<TTexture>()->GetTexture();
+		auto& DrawablesComponent = *GetComponentAsPtr<TDrawableVector>();
 
-		target.draw(this->GetComponentAsPtr<TTexture>()->GetVertexArray(), states);
+		//states.texture = &this->GetComponentAsPtr<TTexture>()->GetTexture();
+
+		for (std::size_t Index = 0; Index < DrawablesComponent.GetVectorSize(); ++Index)
+		{			
+			target.draw(*DrawablesComponent[Index].lock(), states);
+		}
+		
 	}
 }

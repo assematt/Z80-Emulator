@@ -154,7 +154,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-main-d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -278,6 +278,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TDebugger.cpp" />
     <ClCompile Include="TEntity.cpp" />
     <ClCompile Include="TEventContainer.cpp" />
+    <ClCompile Include="TNewGameLoadingScreen.cpp" />
     <ClCompile Include="TText.cpp" />
     <ClCompile Include="TFrequency.cpp" />
     <ClCompile Include="TGameApp.cpp" />
@@ -297,7 +298,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TPinComponent.cpp" />
     <ClCompile Include="TRam.cpp" />
     <ClCompile Include="TRegister.cpp" />
-    <ClCompile Include="TTexture.cpp" />
+    <ClCompile Include="TSprite.cpp" />
     <ClCompile Include="TTransformable.cpp" />
     <ClCompile Include="TZ80.cpp" />
     <ClCompile Include="TFont.cpp" />
@@ -308,10 +309,17 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="TCacheManager.h" />
     <ClInclude Include="TChip.h" />
+    <ClInclude Include="TComponentHandle.h" />
+    <ClInclude Include="TComponentVector.h" />
+    <ClInclude Include="ILoadingScreen.h" />
+    <ClInclude Include="TConductiveTracks.h" />
+    <ClInclude Include="TDrawableVector.h" />
+    <ClInclude Include="TLogicBoard.h" />
+    <ClInclude Include="TNewGameLoadingScreen.h" />
     <ClInclude Include="TResource.h" />
     <ClInclude Include="TResourceLoader.h" />
     <ClInclude Include="TResourceVector.h" />
-    <ClInclude Include="TSFResourceLoader.h" />
+    <ClInclude Include="TLoaders.h" />
     <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TCharStruct.h" />
     <ClInclude Include="TFactory.h" />
@@ -347,8 +355,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TRegisterContainer.h" />
     <ClInclude Include="TRegister.h" />
     <ClInclude Include="TSourceParser.h" />
-    <ClInclude Include="TStaticEntity.h" />
-    <ClInclude Include="TTexture.h" />
+    <ClInclude Include="TSprite.h" />
     <ClInclude Include="TTransformable.h" />
     <ClInclude Include="TUtility.h" />
     <ClInclude Include="TValues.h" />

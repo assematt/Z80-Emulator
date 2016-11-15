@@ -2,7 +2,9 @@
 
 #include "IScreenView.h"
 #include "TGuiManager.h"
+#include "TGuiWindow.h"
 #include "TGuiButton.h"
+#include "TGuiImage.h"
 
 namespace nne
 {
@@ -12,13 +14,8 @@ namespace nne
 		{
 		public:
 			virtual void Setup();
-
-			void HandleEvent(sf::Event& Event);
 			
-			void OnNewGameButtonClick(int X, int Y);
-			void OnInstructionButtonClick(int X, int Y);
-			void OnInfoButtonClick(int X, int Y);
-			void OnExitButtonClick(int X, int Y);
+			void OnNewGameButtonClick(const sf::Event::MouseButtonEvent& Button);
 		};
 	}
 }

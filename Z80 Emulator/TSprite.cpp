@@ -3,37 +3,72 @@
 namespace nne
 {
 
-	TSprite::TSprite()
+	TSprite::TSprite() :
+		mOpacity(255)
 	{
-		mTexture.setSmooth(true);
 	}
 
 	void TSprite::Init()
 	{
-		mSprite = std::make_shared<sf::Sprite>();
+		mVertexArray = std::make_shared<sf::VertexArray>(sf::TriangleStrip, 4);
+		mTexture = std::make_shared<sf::Texture>();
 
-		mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject(mSprite);
+		mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject({ mVertexArray, mTexture.get() });
 	}
 
-	void TSprite::SetTexture(sf::Texture& Texture)
+	void TSprite::SetTexture(const sf::Texture& Texture)
 	{
-		//mTexture = Texture;
-		mSprite->setTexture(Texture);
+		*mTexture = Texture;
+
+		UpdateTextureBounds(static_cast<sf::Vector2f>(Texture.getSize()));
 	}
 
 	void TSprite::SetOpacity(sf::Uint8 Opacity)
 	{
-		mSprite->setColor({ 255, 255, 255, Opacity });
+		mOpacity = Opacity;
+
+		(*mVertexArray)[0].color *= { 255, 255, 255, Opacity };
+		(*mVertexArray)[1].color *= { 255, 255, 255, Opacity };
+		(*mVertexArray)[2].color *= { 255, 255, 255, Opacity };
+		(*mVertexArray)[3].color *= { 255, 255, 255, Opacity };
 	}
 
 	const sf::Texture& TSprite::GetTexture() const
 	{
-		return mTexture;
+		return *mTexture;
 	}
 
 	const sf::Uint8& TSprite::GetOpacity() const
 	{
 		return mOpacity;
+	}
+
+	void TSprite::SetSize(const sf::Vector2u& Size)
+	{
+		(*mVertexArray)[0].position = { 0.f, 0.f };
+		(*mVertexArray)[1].position = { 0.f, static_cast<float>(Size.y) };
+		(*mVertexArray)[2].position = { static_cast<float>(Size.x), 0.f };
+		(*mVertexArray)[3].position = { static_cast<float>(Size.x), static_cast<float>(Size.y) };
+	}
+
+	const sf::Vector2u& TSprite::GetSize() const
+	{
+		return static_cast<sf::Vector2u>((*mVertexArray)[3].position);
+	}
+
+	void TSprite::UpdateTextureBounds(const sf::Vector2f& NewTextureSize)
+	{
+		(*mVertexArray)[0].texCoords = { 0.f, 0.f };
+		(*mVertexArray)[0].position = { 0.f, 0.f };
+
+		(*mVertexArray)[1].texCoords = { 0.f, NewTextureSize.y };
+		(*mVertexArray)[1].position = { 0.f, NewTextureSize.y };
+
+		(*mVertexArray)[2].texCoords = { NewTextureSize.x, 0.f };
+		(*mVertexArray)[2].position = { NewTextureSize.x, 0.f };
+
+		(*mVertexArray)[3].texCoords = { NewTextureSize.x, NewTextureSize.y };
+		(*mVertexArray)[3].position = { NewTextureSize.x, NewTextureSize.y };
 	}
 
 }

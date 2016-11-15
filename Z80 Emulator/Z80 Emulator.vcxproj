@@ -275,11 +275,13 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TCharStruct.cpp" />
     <ClCompile Include="TChip.cpp" />
     <ClCompile Include="TClock.cpp" />
+    <ClCompile Include="TConductiveTracks.cpp" />
     <ClCompile Include="TDebugger.cpp" />
+    <ClCompile Include="TDrawableVector.cpp" />
     <ClCompile Include="TEntity.cpp" />
     <ClCompile Include="TEventContainer.cpp" />
+    <ClCompile Include="TGuiImage.cpp" />
     <ClCompile Include="TNewGameLoadingScreen.cpp" />
-    <ClCompile Include="TText.cpp" />
     <ClCompile Include="TFrequency.cpp" />
     <ClCompile Include="TGameApp.cpp" />
     <ClCompile Include="TGraphicEntity.cpp" />
@@ -302,6 +304,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TTransformable.cpp" />
     <ClCompile Include="TZ80.cpp" />
     <ClCompile Include="TFont.cpp" />
+    <ClCompile Include="TText.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IScreenView.h" />
@@ -314,6 +317,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TConductiveTracks.h" />
     <ClInclude Include="TDrawableVector.h" />
+    <ClInclude Include="TGuiImage.h" />
     <ClInclude Include="TLogicBoard.h" />
     <ClInclude Include="TNewGameLoadingScreen.h" />
     <ClInclude Include="TResource.h" />
@@ -323,7 +327,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TCharStruct.h" />
     <ClInclude Include="TFactory.h" />
-    <ClInclude Include="TText.h" />
     <ClInclude Include="TGameApp.h" />
     <ClInclude Include="TGraphicEntity.h" />
     <ClInclude Include="TGuiButton.h" />
@@ -361,6 +364,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TValues.h" />
     <ClInclude Include="TZ80.h" />
     <ClInclude Include="TFont.h" />
+    <ClInclude Include="TText.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

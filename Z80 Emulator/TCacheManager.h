@@ -34,7 +34,7 @@ namespace nne
 
 			return ((static_cast<TResourceVector<_Type>*>(&mResourcesVectors[ID]))->GetResource(Key));
 		}
-
+	private:
 		std::map<TResourceTypeID, IResourceVectorBase> mResourcesVectors;
 	};
 }

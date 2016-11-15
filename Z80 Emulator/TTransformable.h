@@ -12,12 +12,14 @@ namespace nne
 	class TTransformable : public nne::IComponent
 	{
 	public:
+
+		TTransformable();
 		
 		void Init() override {}
 
 		void Update() override {}
 
-		void Refresh() override {}
+		void Refresh() override;
 
 		/// Function to set the entity position
 		void SetPosition(float x, float y);
@@ -47,10 +49,10 @@ namespace nne
 		const sf::Vector2f& GetOrigin() const;
 
 		/// Function to get the entity bounds
-		const sf::FloatRect& GetEntityBounds() const;
+		const sf::FloatRect& GetBounds();
 
-		/// Funcion to get the enity size
-		const sf::Vector2f& GetEntitySize() const;
+		/// Function to get the entity size
+		const sf::Vector2f& GetSize() const;
 
 		/// Move the entity by a specified offset
 		void Move(float offsetX, float offsetY);
@@ -68,11 +70,13 @@ namespace nne
 		const sf::Transform& GetInverseTransform() const;
 
 	private:
-// 		const float ComputeWidth(const sf::VertexArray& Vertices) const;
-// 		const float ComputeHeigth(const sf::VertexArray& Vertices) const;
+		void UpdateBounds();
+		const float ComputeWidth(const sf::VertexArray& Vertices) const;
+		const float ComputeHeigth(const sf::VertexArray& Vertices) const;
 
 	private:
 		sf::Transformable mTransformable;
-		mutable sf::FloatRect mBounds;
+		sf::FloatRect mBounds;
+		bool mNeedRefresh;
 	};
 }

@@ -14,14 +14,10 @@ namespace nne
 		{
 			AddComponent<TTransformable>();
 			AddComponent<TDrawableVector>();
-			AddComponent<TSprite>();
-			AddComponent<TFont>();
 			AddComponent<TText>();
 			InitComponents();
-
-			TCacheManager::GetInstance().AddResource(nne::TResourceLoader<nne::TFont>(nne::TFontLoader("resources/fonts/font.ttf"), "font_1"));
-			*GetComponentAsPtr<TFont>() = TCacheManager::GetInstance().GetResource<nne::TFont>("font_1");
-
+			
+			GetComponentAsPtr<TText>()->SetFont(TCacheManager::GetInstance().GetResource<sf::Font>("font_1"));
 			GetComponentAsPtr<TText>()->SetString(GetName());
 		}
 
@@ -47,24 +43,15 @@ namespace nne
 
 		void TGuiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
-			// Get a ref to the text component and font component
-			auto& Text = *this->GetComponentAsPtr<TText>();
-			auto& Font = *this->GetComponentAsPtr<TFont>();
-			auto& Drawable = *this->GetComponentAsPtr<TSprite>();
-
-			// Set the right transformation matrix
 			states.transform *= this->GetComponentAsPtr<TTransformable>()->GetTransform();
 
-			// If we are rendering a custom font
-			if (Font.GetFontType() == TFont::TFontType::CUSTOM)
-			{
-				states.texture = Font.GetFontTexture(Text.GetCharacterSize());
+			auto& DrawablesComponent = *GetComponentAsPtr<TDrawableVector>();
+			auto& TextComponent = *GetComponentAsPtr<TText>();
 
-				//target.draw(Drawable.GetVertexArray(), states);
-			}
-			else
+			for (std::size_t Index = 0; Index < DrawablesComponent.GetVectorSize(); ++Index)
 			{
-				target.draw(Text.GetDrawableText(), states);
+				states.texture = TextComponent.GetTexture();
+				target.draw(DrawablesComponent[Index].GetVertexArray(), states);
 			}
 		}
 

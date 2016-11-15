@@ -3,6 +3,7 @@
 #include "ILoadingScreen.h"
 #include "IScreenView.h"
 #include "TGuiButton.h"
+#include "TGuiImage.h"
 
 namespace nne
 {

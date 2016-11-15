@@ -6,7 +6,7 @@ namespace nne
 	{
 		void TInputOutputComponent::Init()
 		{
-			assert(mParent->HasComponent<TPinComponent>());
+			assert(mParent->HasComponent<TPinComponent>() && "A is not equal to B");
 
 			mPinComponent = mParent->GetComponentAsPtr<TPinComponent>();
 		}

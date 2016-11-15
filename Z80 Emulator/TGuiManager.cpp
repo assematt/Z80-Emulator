@@ -46,7 +46,13 @@ namespace nne
 		{
 			/// Skip the refresh cycle if we are loading something
 			if (mIsloading)
+			{
+				auto& LoadingScreen = *dynamic_cast<TNewGameLoadingScreen*>(mScreens[mCurrentViewIndex]->GetLoadingScreen().get());
+
+				LoadingScreen.Refresh(ElapsedTime);
 				return;
+			}
+
 
 			mScreens[mCurrentViewIndex]->Refresh(ElapsedTime);
 		}
@@ -55,7 +61,12 @@ namespace nne
 		{
 			/// Skip the update cycle if we are loading something
 			if (mIsloading)
+			{
+				auto& LoadingScreen = *dynamic_cast<TNewGameLoadingScreen*>(mScreens[mCurrentViewIndex]->GetLoadingScreen().get());
+
+				LoadingScreen.Update(ElapsedTime);
 				return;
+			}
 
 			mScreens[mCurrentViewIndex]->Update(ElapsedTime);
 		}

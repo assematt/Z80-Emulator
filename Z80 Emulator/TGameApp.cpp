@@ -10,25 +10,13 @@ namespace nne
 
 	bool TGameApp::Init()
 	{
-#if TRUE
 		// Load the resources
 		auto& CacheManager = TCacheManager::GetInstance();
-		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/crt_monitor_effect.png"), "sprite_1"));
-		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/crt_monitor_frame.png"), "sprite_2"));
+		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_effect.png"), "monitor_effect"));
+		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_shadow.png"), "monitor_shadow"));
+		CacheManager.AddResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
 
-		// Create a temp value the background and logo image
-		auto& BackgroundImage = TFactory::MakeDrawableEntity();
-		auto& Logo = TFactory::MakeDrawableEntity();
-
-		// Set the texture for the background and logo image
-		BackgroundImage->GetComponentAsPtr<TSprite>()->SetTexture(CacheManager.GetResource<sf::Texture>("sprite_1"));
-		Logo->GetComponentAsPtr<TSprite>()->SetTexture(CacheManager.GetResource<sf::Texture>("sprite_2"));
-
-		// Add the background and logo to the entity manager
-		auto& Manager = TManager::GetInstance();
-		Manager.AddComponent<TGraphicEntity>(std::move(BackgroundImage));
-		Manager.AddComponent<TGraphicEntity>(std::move(Logo));
-#endif
+		// Create a Z80 and RAM entity
 		mLogicEntity.AddComponent<nne::tmodules::TZ80>();
 		mLogicEntity.AddComponent<nne::tmodules::TRam>();
 		mLogicEntity.InitComponents();
@@ -57,13 +45,13 @@ namespace nne
 		RamChip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
 		RamChip->GetComponentAsPtr<TTransformable>()->SetPosition(1000.f, 350.f);
 
-		//auto& Manager = TManager::GetInstance();
+		auto& Manager = TManager::GetInstance();
 		Manager.AddComponent<TGraphicEntity>(std::move(Z80Chip));
 		Manager.AddComponent<TGraphicEntity>(std::move(RamChip));
 		Manager.AddComponent<TGraphicEntity>(std::move(ConductiveRack));
 
 		// Create the window
-		TGuiWindow::GetInstance().create(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default);
+		TGuiWindow::GetInstance().create(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default);
 
 		// Initialize the GUI
 		mAppGui.Setup();

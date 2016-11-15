@@ -69,7 +69,6 @@ namespace nne
 	template <class Type>
 	struct _TResource
 	{
-
 		typename typedef std::unique_ptr<Type> _TResourcePtr;
 
 		_TResource(typename _TResourceLoader<Type>& LoadFunction) :

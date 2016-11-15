@@ -1,6 +1,9 @@
 #pragma once
 
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <utility>
 #include <vector>
 
 #include "IComponent.h"
@@ -10,58 +13,47 @@ namespace nne
 {
 	class TDrawableVector : public IComponent
 	{
-	public:
-		virtual void Update() override
+	public:	
+		
+		struct TRenderPair
 		{
-		}
+			TRenderPair(const std::shared_ptr<sf::VertexArray>& Vertices, const sf::Texture* Texture = nullptr);
+
+			const sf::VertexArray& GetVertexArray() const;
+
+			const sf::Texture* GetTexture() const;
+
+			bool IsExpired();
+
+		private:
+			std::weak_ptr<sf::VertexArray> mDrawable;
+			const sf::Texture* mTexture;
+		};
+
+		using Iterator = std::vector<TRenderPair>::iterator;
+		using ConstIterator = std::vector<TRenderPair>::const_iterator;
+
+		virtual void Update() override;
 
 
-		virtual void Refresh() override
-		{
-			/// Remove dead entity
-			for (std::size_t Index = 0; Index < mDrawablesVector.size(); ++Index)
-			{
-				if (mDrawablesVector[Index].expired())
-					mDrawablesVector.erase(mDrawablesVector.begin() + Index);
-			}
-		}
+		virtual void Refresh() override;
 
-		void PushDrawableObject(std::shared_ptr<sf::Drawable> Drawable)
-		{
-			mDrawablesVector.emplace_back(Drawable);
-		}
+		void PushDrawableObject(const TRenderPair& Drawable);
 
-		virtual void Init() override
-		{
-		}
+		virtual void Init() override;
 
-		const std::size_t& GetVectorSize() const
-		{
-			return mDrawablesVector.size();
-		}
+		const std::size_t& GetVectorSize() const;
 
 		/// Helper function for c++11 foreach use
-		std::vector<std::weak_ptr<sf::Drawable>>::iterator& begin()
-		{
-			return mDrawablesVector.begin();
-		}
-		std::vector<std::weak_ptr<sf::Drawable>>::iterator& end()
-		{
-			return mDrawablesVector.end();
-		}
+		Iterator& begin();
+		Iterator& end();
 
 		/// Subscript operator to access an entity by index
-		std::weak_ptr<sf::Drawable>& operator[] (const int Index)
-		{
-			return mDrawablesVector[Index];
-		}
-		const std::weak_ptr<sf::Drawable>& operator[] (const int Index) const
-		{
-			return mDrawablesVector[Index];
-		}
+		TRenderPair& operator[] (const int Index);
+		const TRenderPair& operator[] (const int Index) const;
 
 	private:
-		std::vector<std::weak_ptr<sf::Drawable>> mDrawablesVector;
+		std::vector<TRenderPair> mDrawablesVector;
 		std::size_t mAliveComponets;
 	};
 }

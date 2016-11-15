@@ -10,13 +10,13 @@ namespace nne
 {
 	namespace tgui
 	{
-		class TGuiButton : public TGuiWidget
+		class TGuiImage : public TGuiWidget
 		{
 		public:
-			TGuiButton();
+			TGuiImage();
 
-			using UniquePtr = std::unique_ptr<TGuiButton>;
-			using SharedPtr = std::shared_ptr<TGuiButton>;
+			using UniquePtr = std::unique_ptr<TGuiImage>;
+			using SharedPtr = std::shared_ptr<TGuiImage>;
 
 			/// Init function
 			void Init();
@@ -26,9 +26,13 @@ namespace nne
 			virtual void Update(const sf::Time& ElapsedTime) override;
 
 			/// Functions to change the widget property
-			void SetCaption(const std::string& WidgetName);
-			const std::string& GetCaption() const;
-			
+			void SetImage(const sf::Texture& Image);
+			const sf::Texture& GetImage() const;
+
+			/// Functions to get/set the widget size
+			virtual void SetSize(const sf::Vector2u& Size) override;
+			virtual const sf::Vector2u& GetSize() const override;
+
 		private:
 			void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 		};

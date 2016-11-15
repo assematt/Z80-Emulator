@@ -103,7 +103,7 @@ namespace nne
 
 		TPin& TPinComponent::GetPin(TPin::TPinNumber PinToSelect)
 		{
-			assert((PinToSelect < mPins.size()), "Pin out of bound");
+			assert((PinToSelect < mPins.size()) && "Pin out of bound");
 
 			// TODO: insert return statement here
 			for (auto& Pin : mPins)

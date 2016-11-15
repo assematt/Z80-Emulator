@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "TDrawableVector.h"
 #include "TPinComponent.h"
 #include "IComponent.h"
 #include "TSprite.h"
@@ -12,38 +13,25 @@ namespace nne
 {
 	class TConductiveTracks : public IComponent
 	{
-	public:		
+	public:
 
-		virtual void Update() override
-		{
-			//throw std::logic_error("The method or operation is not implemented.");
-		}
+		TConductiveTracks();
 
+		virtual void Update() override;
 
-		virtual void Refresh() override
-		{
-			//throw std::logic_error("The method or operation is not implemented.");
-		}
+		virtual void Refresh() override;
 
-		virtual void Init() override
-		{
-			//mDrawableComponent = mParent->GetComponentAsPtr<TSprite>();
-			//mDrawableComponent->SetPrimitiveType(sf::PrimitiveType::LinesStrip);
-
-			mVertexArray = std::make_shared<sf::VertexArray>();
-
-			auto& VertexArray = *mVertexArray;
-			VertexArray.resize(4);
-
-			VertexArray[0] = { { 0.f, 0.f }, sf::Color::Red };
-			VertexArray[1] = { { 250.f, 0.f }, sf::Color::Red };
-			VertexArray[2] = { { 250.f, 500.f }, sf::Color::Red };
-			VertexArray[3] = { { 60.f, 500.f }, sf::Color::Red };
-		}
+		virtual void Init() override;
 
 	private:
-		//std::shared_ptr<TSprite> mDrawableComponent;
+
+		bool CheckOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
+
+		void LineToRectangleShape(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd, const std::size_t SegmentNumber);
+
+	private:
 		std::shared_ptr<sf::VertexArray> mVertexArray;
+		const float mTrackThickness;
 		std::vector<sf::Vertex> mPathJoints;
 	};
 }

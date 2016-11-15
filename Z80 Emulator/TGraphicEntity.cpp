@@ -8,12 +8,10 @@ namespace nne
 
 		auto& DrawablesComponent = *GetComponentAsPtr<TDrawableVector>();
 
-		//states.texture = &this->GetComponentAsPtr<TTexture>()->GetTexture();
-
 		for (std::size_t Index = 0; Index < DrawablesComponent.GetVectorSize(); ++Index)
-		{			
-			target.draw(*DrawablesComponent[Index].lock(), states);
-		}
-		
+		{
+			states.texture = DrawablesComponent[Index].GetTexture();
+			target.draw(DrawablesComponent[Index].GetVertexArray(), states);
+		}		
 	}
 }

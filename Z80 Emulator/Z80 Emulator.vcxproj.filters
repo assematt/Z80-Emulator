@@ -159,9 +159,6 @@
     <ClCompile Include="TGuiButton.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
-    <ClCompile Include="TText.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TFont.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
@@ -178,6 +175,18 @@
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
     <ClCompile Include="TSprite.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiImage.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TText.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TConductiveTracks.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TDrawableVector.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
@@ -296,9 +305,6 @@
     <ClInclude Include="TCharStruct.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
-    <ClInclude Include="TText.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TFont.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
@@ -351,6 +357,12 @@
       <Filter>Header Files\include\resources</Filter>
     </ClInclude>
     <ClInclude Include="TSprite.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiImage.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TText.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>

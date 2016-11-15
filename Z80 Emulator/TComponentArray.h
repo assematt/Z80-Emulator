@@ -54,7 +54,7 @@ namespace nne
 		void AddComponent(std::shared_ptr<T>&& Move)
 		{
 			// Make sure we are not adding a duplicate component
-			assert(!HasComponent<T>());
+			assert(!HasComponent<T>() && "A is not equal to B");
 
 			// Put the position of the newly created shared_ptr in the mComponentsArray for easy access
 			mComponentsArray[Move->mID] = mComponents.size();
@@ -99,7 +99,7 @@ namespace nne
 		inline TComponentPtr GetComponent(TID ID) const
 		{
 			// Make sure the component we are trying to get exist
-			assert(HasComponent(ID));
+			assert(HasComponent(ID) && "A is not equal to B");
 
 			// Get the component from the array
 			return mComponents[mComponentsArray[ID]];

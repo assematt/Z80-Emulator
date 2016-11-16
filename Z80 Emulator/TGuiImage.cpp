@@ -6,57 +6,57 @@ namespace nne
 	{
 		tgui::TGuiImage::TGuiImage()
 		{
-			Init();
+			init();
 		}
 
-		void tgui::TGuiImage::Init()
+		void tgui::TGuiImage::init()
 		{
-			AddComponent<TTransformable>();
-			AddComponent<TDrawableVector>();
-			AddComponent<TSprite>();
-			InitComponents();
+			addComponent<TTransformable>();
+			addComponent<TdrawableVector>();
+			addComponent<TSprite>();
+			initComponents();
 		}
 
-		void tgui::TGuiImage::Refresh(const sf::Time& ElapsedTime)
+		void tgui::TGuiImage::refresh(const sf::Time& ElapsedTime)
 		{
-			TGuiWidget::Refresh(ElapsedTime);
+			TGuiWidget::refresh(ElapsedTime);
 		}
 
-		void tgui::TGuiImage::Update(const sf::Time& ElapsedTime)
+		void tgui::TGuiImage::update(const sf::Time& ElapsedTime)
 		{
-			TGuiWidget::Update(ElapsedTime);
+			TGuiWidget::update(ElapsedTime);
 		}
 
 		void tgui::TGuiImage::SetImage(const sf::Texture& Image)
 		{
-			GetComponentAsPtr<TSprite>()->SetTexture(Image);
+			getComponentAsPtr<TSprite>()->setTexture(Image);
 		}
 
 		const sf::Texture& tgui::TGuiImage::GetImage() const
 		{
-			return GetComponentAsPtr<TSprite>()->GetTexture();
+			return getComponentAsPtr<TSprite>()->getTexture();
 		}
 
-		void TGuiImage::SetSize(const sf::Vector2u& Size)
+		void TGuiImage::setSize(const sf::Vector2u& Size)
 		{
-			GetComponentAsPtr<TSprite>()->SetSize(Size);
+			getComponentAsPtr<TSprite>()->setSize(Size);
 		}
 
-		const sf::Vector2u& TGuiImage::GetSize() const
+		const sf::Vector2u& TGuiImage::getSize() const
 		{
-			return GetComponentAsPtr<TSprite>()->GetSize();
+			return getComponentAsPtr<TSprite>()->getSize();
 		}
 
 		void TGuiImage::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
-			states.transform *= this->GetComponentAsPtr<TTransformable>()->GetTransform();
+			states.transform *= this->getComponentAsPtr<TTransformable>()->getTransform();
 
-			auto& DrawablesComponent = *GetComponentAsPtr<TDrawableVector>();
+			auto& drawablesComponent = *getComponentAsPtr<TdrawableVector>();
 
-			for (std::size_t Index = 0; Index < DrawablesComponent.GetVectorSize(); ++Index)
+			for (std::size_t Index = 0; Index < drawablesComponent.getVectorSize(); ++Index)
 			{
-				states.texture = DrawablesComponent[Index].GetTexture();
-				target.draw(DrawablesComponent[Index].GetVertexArray(), states);
+				states.texture = drawablesComponent[Index].getTexture();
+				target.draw(drawablesComponent[Index].getVertexArray(), states);
 			}
 		}
 	}

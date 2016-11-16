@@ -96,35 +96,35 @@ namespace nne
 			IScreenView();
 			virtual ~IScreenView() = default;
 
-			virtual void Setup() = 0;
+			virtual void setup() = 0;
 
-			void HandleEvent(const sf::Event& Event);
+			void handleEvent(const sf::Event& Event);
 			
 			template <class T>
-			void AddWidget(T& Widget, const TZIndex& WidgetZIndex = 0);
+			void addWidget(T& Widget, const TZIndex& WidgetZIndex = 0);
 
 			template <typename... TArgs>
-			void AddWidget(TArgs&&... mArgs, const TZIndex& WidgetZIndex = 0);
+			void addWidget(TArgs&&... mArgs, const TZIndex& WidgetZIndex = 0);
 
 			/// Function to remove a widget
-			void RemoveWidget(std::size_t Index);
+			void removeWidget(std::size_t Index);
 
-			const TGuiWidget::UniquePtr& GetWidget(const std::size_t Index) const;
+			const TGuiWidget::UniquePtr& getWidget(const std::size_t Index) const;
 
 			/// Function to set a loading screen
-			void SetLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen);
+			void setLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen);
 
 			/// Function to get the loading screen
-			std::unique_ptr<ILoadingScreen>& GetLoadingScreen();
+			std::unique_ptr<ILoadingScreen>& getLoadingScreen();
 
-			/// Updates every widget in the container
-			void Update(const sf::Time& ElapsedTime);
+			/// updates every widget in the container
+			void update(const sf::Time& ElapsedTime);
 
-			/// Refreshes every widget in the container
-			void Refresh(const sf::Time& ElapsedTime);
+			/// refreshes every widget in the container
+			void refresh(const sf::Time& ElapsedTime);
 
-			/// Draw all the widgets in the container
-			void Draw();
+			/// draw all the widgets in the container
+			void draw();
 			
 			/// Helper function for c++11 foreach use
 			std::vector<TWdigetRenderStrcut>::iterator begin();
@@ -135,13 +135,13 @@ namespace nne
 			const TGuiWidget::UniquePtr& operator[] (const int Index) const;
 
 			/// Function to access a reference point position
-			const sf::Vector2f GetReferencePointPosition(TReferencePoint RefPoint = TReferencePoint::CENTER);
+			const sf::Vector2f getReferencePointPosition(TReferencePoint RefPoint = TReferencePoint::CENTER);
 
 		protected:
-			bool CheckMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse);
+			bool checkMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse);
 
 			template <class T>
-			void InsertWidget(T& Widget, const TZIndex& WidgetZIndex = 0);
+			void insertWidget(T& Widget, const TZIndex& WidgetZIndex = 0);
 
 		protected:
 			std::vector<TWdigetRenderStrcut> mWidgetsContainer;
@@ -153,22 +153,22 @@ namespace nne
 		};
 	
 		template <class T>
-		void IScreenView::AddWidget(T& Widget, const TZIndex& WidgetZIndex /*= 0*/)
+		void IScreenView::addWidget(T& Widget, const TZIndex& WidgetZIndex /*= 0*/)
 		{
-			InsertWidget(Widget, WidgetZIndex);
+			insertWidget(Widget, WidgetZIndex);
 		}
 
 		template <typename... TArgs>
-		void IScreenView::AddWidget(TArgs&&... mArgs, const TZIndex& WidgetZIndex /*= 0*/)
+		void IScreenView::addWidget(TArgs&&... mArgs, const TZIndex& WidgetZIndex /*= 0*/)
 		{
 			// Creates a temp pointer that holds the value that we are gonna to insert in the array
 			TGuiWidget::UniquePtr TempPtr = std::make_unique<TGuiWidget>(std::forward<TArgs>(mArgs)...);
 
-			InsertWidget(TempPtr, WidgetZIndex);
+			insertWidget(TempPtr, WidgetZIndex);
 		}
 
 		template <class T>
-		void IScreenView::InsertWidget(T& Widget, const TZIndex& WidgetZIndex /*= 0*/)
+		void IScreenView::insertWidget(T& Widget, const TZIndex& WidgetZIndex /*= 0*/)
 		{
 			// Get the number of element in the vector
 			std::size_t VectorSize = mWidgetsContainer.size();

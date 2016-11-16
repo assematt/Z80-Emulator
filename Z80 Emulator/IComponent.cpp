@@ -7,8 +7,8 @@ namespace nne
 	{
 	}
 
-	const TComponentID IComponent::GetComponentID() const
-	{
+	const nne::TComponentID IComponent::getComponentID() const
+{
 		return mID;
 	}
 }

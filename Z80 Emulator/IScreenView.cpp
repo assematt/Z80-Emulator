@@ -12,7 +12,7 @@ namespace nne
 		{
 		}
 
-		void IScreenView::HandleEvent(const sf::Event& Event)
+		void IScreenView::handleEvent(const sf::Event& Event)
 		{
 			// We iterate through all the widget until we fire an event
 			bool EventFired = false;
@@ -23,10 +23,10 @@ namespace nne
 				// Get a ref to the widget the widget from the render struct
 				auto& Widget = WidgetIterator->GetWidget();
 
-				if (Event.type == sf::Event::MouseButtonPressed && Widget->IsInputEnabled() && CheckMouseClick(Widget->GetWidgetBound(), { Event.mouseButton.x, Event.mouseButton.y }))
+				if (Event.type == sf::Event::MouseButtonPressed && Widget->isInputEnabled() && checkMouseClick(Widget->getWidgetBound(), { Event.mouseButton.x, Event.mouseButton.y }))
 				{
 					// Raise the signal
-					Widget->RaiseSignal(tevent::_OnMouseClick, Event.mouseButton);
+					Widget->raiseSignal(tevent::_OnMouseClick, Event.mouseButton);
 
 					// We fired an event so we can exit the loop
 					EventFired = true;
@@ -34,47 +34,47 @@ namespace nne
 			}
 		}
 
-		void IScreenView::RemoveWidget(std::size_t Index)
+		void IScreenView::removeWidget(std::size_t Index)
 		{
 			mWidgetsContainer.erase(mWidgetsContainer.begin() + Index);
 		}
 
-		const TGuiWidget::UniquePtr& IScreenView::GetWidget(const std::size_t Index) const
+		const TGuiWidget::UniquePtr& IScreenView::getWidget(const std::size_t Index) const
 		{
 			return mWidgetsContainer[Index].mWidget;
 		}
 
-		void IScreenView::SetLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen)
+		void IScreenView::setLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen)
 		{
 			mLoadingScreen = std::move(LoadingScreen);
 		}
 
-		std::unique_ptr<nne::ILoadingScreen>& IScreenView::GetLoadingScreen()
+		std::unique_ptr<nne::ILoadingScreen>& IScreenView::getLoadingScreen()
 {
 			return mLoadingScreen;
 		}
 
-		void IScreenView::Update(const sf::Time& ElapsedTime)
+		void IScreenView::update(const sf::Time& ElapsedTime)
 		{
 			for (auto& Widget : mWidgetsContainer)
 			{
-				Widget.mWidget->Update(ElapsedTime);
+				Widget.mWidget->update(ElapsedTime);
 			}
 		}
 
-		void IScreenView::Refresh(const sf::Time& ElapsedTime)
+		void IScreenView::refresh(const sf::Time& ElapsedTime)
 		{
 			for (auto& Widget : mWidgetsContainer)
 			{
-				Widget.mWidget->Refresh(ElapsedTime);
+				Widget.mWidget->refresh(ElapsedTime);
 			}
 		}
 
-		void IScreenView::Draw()
+		void IScreenView::draw()
 		{
 			for (auto& Widget : mWidgetsContainer)
 			{
-				TGuiWindow::GetInstance().draw(*Widget.mWidget);
+				TGuiWindow::getInstance().draw(*Widget.mWidget);
 			}
 		}
 
@@ -98,9 +98,9 @@ namespace nne
 			return mWidgetsContainer[Index].mWidget;
 		}
 
-		const sf::Vector2f IScreenView::GetReferencePointPosition(TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
+		const sf::Vector2f IScreenView::getReferencePointPosition(TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
 		{
-			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(TGuiWindow::GetInstance().getSize());
+			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(TGuiWindow::getInstance().getSize());
 
 			switch (RefPoint)
 			{
@@ -127,7 +127,7 @@ namespace nne
 			}
 		}
 
-		bool IScreenView::CheckMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse)
+		bool IScreenView::checkMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse)
 		{
 			return WidgetBound.contains(static_cast<sf::Vector2f>(Mouse));
 		}

@@ -3,12 +3,12 @@
 
 namespace nne
 {	
-	void TEventContainer::PushEvent(_Event Func)
+	void TEventContainer::pushEvent(_Event Func)
 	{
 		mEventList.push_back(std::make_unique<_Event>(Func));
 	}
 	
-	TEventContainer::_Event& TEventContainer::PopEvent()
+	TEventContainer::_Event& TEventContainer::popEvent()
 	{
 		auto Temp = mEventList.back().release();
 		mEventList.pop_back();
@@ -16,7 +16,7 @@ namespace nne
 		return *Temp;
 	}
 	
-	void TEventContainer::ProcessEvent()
+	void TEventContainer::processEvent()
 	{
 		for (auto& Event : mEventList)
 		{

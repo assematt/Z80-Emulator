@@ -3,7 +3,7 @@
 namespace nne
 {
 
-	void tgui::TNewGameLoadingScreen::Setup()
+	void tgui::TNewGameLoadingScreen::setup()
 	{
 		tgui::TGuiImage::UniquePtr BackgroundColor = std::make_unique<tgui::TGuiImage>();
 		sf::Image TempImage;
@@ -11,25 +11,25 @@ namespace nne
 		sf::Texture TempTexture;
 		TempTexture.loadFromImage(TempImage);
 		BackgroundColor->SetImage(TempTexture);
-		this->AddWidget(BackgroundColor, 0);
+		this->addWidget(BackgroundColor, 0);
 
 		tgui::TGuiButton::UniquePtr Loading = std::make_unique<tgui::TGuiButton>();
-		Loading->SetPosition(GetReferencePointPosition());
-		Loading->SetName("LOADING");
+		Loading->setPosition(getReferencePointPosition());
+		Loading->setName("LOADING");
 		Loading->SetCaption("LOADING");
-		this->AddWidget(Loading, 1);
+		this->addWidget(Loading, 1);
 
 		mFiles.push_back("resources/boards/logic_board.brd");
 	}
 
-	void tgui::TNewGameLoadingScreen::Loading(std::atomic_bool& IsLoading)
+	void tgui::TNewGameLoadingScreen::loading(std::atomic_bool& IsLoading)
 	{
 		sf::sleep(sf::seconds(5.f));
 
 		IsLoading = false;
 	}
 
-	void tgui::TNewGameLoadingScreen::HandleEvent(sf::Event& Event)
+	void tgui::TNewGameLoadingScreen::handleEvent(sf::Event& Event)
 	{
 
 	}

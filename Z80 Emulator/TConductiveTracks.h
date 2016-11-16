@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "TDrawableVector.h"
+#include "TdrawableVector.h"
 #include "TPinComponent.h"
 #include "IComponent.h"
 #include "TSprite.h"
@@ -17,17 +17,17 @@ namespace nne
 
 		TConductiveTracks();
 
-		virtual void Update() override;
+		virtual void update() override;
 
-		virtual void Refresh() override;
+		virtual void refresh() override;
 
-		virtual void Init() override;
+		virtual void init() override;
 
 	private:
 
-		bool CheckOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
+		bool checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
 
-		void LineToRectangleShape(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd, const std::size_t SegmentNumber);
+		void lineToRectangleShape(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd, const std::size_t SegmentNumber);
 
 	private:
 		std::shared_ptr<sf::VertexArray> mVertexArray;

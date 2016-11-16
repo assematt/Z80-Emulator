@@ -28,13 +28,13 @@ namespace nne
 
 			~TRam() = default;
 
-			void Init();
+			void init();
 
-			void Refresh();
+			void refresh();
 
-			void Update();
+			void update();
 
-			void RefreshMemory();
+			void refreshMemory();
 
 			/// 
 			TMemory::iterator& begin();
@@ -45,10 +45,10 @@ namespace nne
 			const TU8BitValue& operator [](const std::size_t Index) const;
 
 			/// Helper to get the entire ram internal memory
-			TMemory& GetInternalMemory();
-			const TMemory& GetInternalMemory() const;
+			TMemory& getInternalMemory();
+			const TMemory& getInternalMemory() const;
 
-			virtual void MakeVirtual() {};
+			virtual void makeVirtual() {};
 		private:
 			// Save the size of the ram
 			TU16BitValue		mMemorySize;

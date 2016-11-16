@@ -8,26 +8,26 @@ namespace nne
 		mInternalClock.restart();
 	}
 
-	bool TClock::Wait()
+	bool TClock::wait()
 	{
-		while (GetElapsedTime() < mFrequency);
+		while (getElapsedTime() < mFrequency);
 
-		Restart();
+		restart();
 
 		return true;
 	}
 
-	void TClock::Restart()
+	void TClock::restart()
 	{
 		mInternalClock.restart();
 	}
 
-	const sf::Time& TClock::GetElapsedTime()
+	const sf::Time& TClock::getElapsedTime()
 	{
 		return mCurrentElapsedTime = mInternalClock.getElapsedTime();
 	}
 
-	const sf::Time& TClock::GetDuration() const
+	const sf::Time& TClock::getDuration() const
 	{
 		return mCurrentElapsedTime;
 	}

@@ -5,25 +5,25 @@ namespace nne
 	namespace tcomponents
 	{
 
-		nne::tcomponents::TPin& TMultiplexerComponent::SelectInput(const TU8BitValue& SelectedInput)
+		nne::tcomponents::TPin& TMultiplexerComponent::selectInput(const TU8BitValue& SelectedInput)
 		{
-			return mPinComponent->GetPin(SelectedInput);
+			return mPinComponent->getPin(SelectedInput);
 		}
 
-		const nne::tcomponents::TPin& TMultiplexerComponent::SelectInput(const TU8BitValue& SelectedInput) const
+		const nne::tcomponents::TPin& TMultiplexerComponent::selectInput(const TU8BitValue& SelectedInput) const
 		{
-			return mPinComponent->GetPin(SelectedInput);
+			return mPinComponent->getPin(SelectedInput);
 		}
 
-		void TMultiplexerComponent::Init()
-		{
-			assert(mParent->HasComponent<TPinComponent>());
+		void TMultiplexerComponent::init()
+{
+			assert(mParent->hasComponent<TPinComponent>());
 
-			mPinComponent = mParent->GetComponentAsPtr<TPinComponent>();
+			mPinComponent = mParent->getComponentAsPtr<TPinComponent>();
 		}
 
-		void TMultiplexerComponent::Update()
-		{
+		void TMultiplexerComponent::update()
+{
 
 		}
 

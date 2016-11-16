@@ -25,20 +25,20 @@ namespace nne
 		TGameApp(const TGameApp& Copy) = delete;
 		TGameApp(TGameApp&& Move) = delete;
 
-		bool Init();
+		bool init();
 
-		bool LoadConfiguration(const std::string& ConfigFile);
+		bool loadConfiguration(const std::string& ConfigFile);
 
-		int Run();
+		int run();
 
 	private:
-		void EventLoop();
+		void eventLoop();
 
-		void Refresh(sf::Time ElapsedTime);
+		void refresh(sf::Time ElapsedTime);
 
-		void Update(sf::Time ElapsedTime);
+		void update(sf::Time ElapsedTime);
 
-		void Draw();
+		void draw();
 		
 	private:
 		std::string mAppName;

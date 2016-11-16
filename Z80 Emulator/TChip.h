@@ -4,10 +4,13 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <memory>
+#include <vector>
 
 #include "IComponent.h"
 #include "TPinComponent.h"
-#include "TDrawableVector.h"
+#include "TTransformable.h"
+#include "TdrawableVector.h"
+#include "TChipPin.h"
 #include "TEntity.h"
 
 namespace nne
@@ -24,21 +27,29 @@ namespace nne
 
 		TChip(TEntity* ManagedObject);
 
-		void Init() override;
+		void init() override;
 
-		void Update() override;
+		void update() override;
 
-		void Refresh() override;
+		void refresh() override;
 
-		void SetSize(const sf::Vector2f& Size);
+		/// Function to Get/Set the chip size
+		void setSize(const sf::Vector2f& Size);
+		const sf::Vector2f getSize() const;
+		
+		void setChipColor(const sf::Color& Color);
 
-		void SetChipColor(const sf::Color& Color);
+		/// FUnction that updates the chip vertex array when we change the position
+		void updateChipPosition();
+
+	private:	
+
+		void renderDipChip();
 
 	private:
-		void RenderDipChip();
-
-	private:
-		nne::TEntity* mManagedObject;
-		std::shared_ptr<sf::VertexArray> mObjectShape;
+		sf::Vector2f						mSize;
+		nne::TEntity*						mManagedObject;
+		std::vector<TChipPin>				mPins;
+		std::shared_ptr<sf::VertexArray>	mObjectShape;
 	};
 }

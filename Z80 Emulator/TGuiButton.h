@@ -2,9 +2,9 @@
 
 #include "TGuiWidget.h"
 #include "IComponent.h"
-#include "TFont.h"
 #include "TTransformable.h"
 #include "TText.h"
+#include "TCacheManager.h"
 
 namespace nne
 {
@@ -19,11 +19,11 @@ namespace nne
 			using SharedPtr = std::shared_ptr<TGuiButton>;
 
 			/// Init function
-			void Init();
+			void init();
 
-			virtual void Refresh(const sf::Time& ElapsedTime) override;
+			virtual void refresh(const sf::Time& ElapsedTime) override;
 
-			virtual void Update(const sf::Time& ElapsedTime) override;
+			virtual void update(const sf::Time& ElapsedTime) override;
 
 			/// Functions to change the widget property
 			void SetCaption(const std::string& WidgetName);

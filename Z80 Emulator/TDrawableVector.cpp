@@ -1,78 +1,78 @@
-#include "TDrawableVector.h"
+#include "TdrawableVector.h"
 
 namespace nne
 {
 
-	void TDrawableVector::Update()
-	{
+	void TdrawableVector::update()
+{
 
 	}
 
-	void TDrawableVector::Refresh()
-	{
+	void TdrawableVector::refresh()
+{
 		/// Remove dead entity
-		for (std::size_t Index = 0; Index < mDrawablesVector.size(); ++Index)
+		for (std::size_t Index = 0; Index < mdrawablesVector.size(); ++Index)
 		{
-			if (mDrawablesVector[Index].IsExpired())
-				mDrawablesVector.erase(mDrawablesVector.begin() + Index);
+			if (mdrawablesVector[Index].isExpired())
+				mdrawablesVector.erase(mdrawablesVector.begin() + Index);
 		}
 	}
 
-	void TDrawableVector::PushDrawableObject(const TRenderPair& Drawable)
+	void TdrawableVector::pushdrawableObject(const TRenderPair& drawable)
 	{
-		mDrawablesVector.emplace_back(Drawable);
+		mdrawablesVector.emplace_back(drawable);
 	}
 
-	void TDrawableVector::Init()
-	{
+	void TdrawableVector::init()
+{
 
 	}
 
-	const std::size_t& TDrawableVector::GetVectorSize() const
+	const std::size_t& TdrawableVector::getVectorSize() const
 	{
-		return mDrawablesVector.size();
+		return mdrawablesVector.size();
 	}
 
-	nne::TDrawableVector::Iterator& TDrawableVector::begin()
+	nne::TdrawableVector::Iterator& TdrawableVector::begin()
 	{
-		return mDrawablesVector.begin();
+		return mdrawablesVector.begin();
 	}
 
-	nne::TDrawableVector::Iterator& TDrawableVector::end()
+	nne::TdrawableVector::Iterator& TdrawableVector::end()
 	{
-		return mDrawablesVector.end();
+		return mdrawablesVector.end();
 	}
 
-	const nne::TDrawableVector::TRenderPair& TDrawableVector::operator[](const int Index) const
+	const nne::TdrawableVector::TRenderPair& TdrawableVector::operator[](const int Index) const
 	{
-		return mDrawablesVector[Index];
+		return mdrawablesVector[Index];
 	}
 
-	nne::TDrawableVector::TRenderPair& TDrawableVector::operator[](const int Index)
+	nne::TdrawableVector::TRenderPair& TdrawableVector::operator[](const int Index)
 	{
-		return mDrawablesVector[Index];
+		return mdrawablesVector[Index];
 	}
 
-	TDrawableVector::TRenderPair::TRenderPair(const std::shared_ptr<sf::VertexArray>& Vertices, const sf::Texture* Texture /*= nullptr*/) :
-		mDrawable(Vertices),
+	TdrawableVector::TRenderPair::TRenderPair(const std::shared_ptr<sf::VertexArray>& Vertices, const sf::Texture* Texture /*= nullptr*/) :
+		mdrawable(Vertices),
 		mTexture(Texture)
 	{
 
 	}
 
-	const sf::VertexArray& TDrawableVector::TRenderPair::GetVertexArray() const
+	const sf::VertexArray& TdrawableVector::TRenderPair::getVertexArray() const
 	{
-		return *(mDrawable.lock());
+		return *(mdrawable.lock());
 	}
 
-	const sf::Texture* TDrawableVector::TRenderPair::GetTexture() const
+	const sf::Texture* TdrawableVector::TRenderPair::getTexture() const
 	{
 		return mTexture;
 	}
 
-	bool TDrawableVector::TRenderPair::IsExpired()
+	bool TdrawableVector::TRenderPair::isExpired()
 	{
-		return mDrawable.expired();
+		return mdrawable.expired();
 	}
 
 }

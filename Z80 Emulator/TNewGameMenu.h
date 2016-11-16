@@ -11,9 +11,9 @@ namespace nne
 		class TNewGameMenu : public nne::tgui::IScreenView
 		{
 		public:
-			virtual void Setup();
+			virtual void setup();
 
-			void HandleEvent(sf::Event& Event);
+			void handleEvent(sf::Event& Event);
 
 		};
 	}

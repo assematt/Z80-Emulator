@@ -140,12 +140,12 @@ namespace nne
 		return FullRegister;
 	}
 
-	TU8BitValue& T8BitRegister::GetInternalValue()
+	TU8BitValue& T8BitRegister::getInternalValue()
 	{
 		return FullRegister;
 	}
 
-	const TU8BitValue& T8BitRegister::GetInternalValue() const
+	const TU8BitValue& T8BitRegister::getInternalValue() const
 	{
 		return FullRegister;
 	}
@@ -326,32 +326,32 @@ namespace nne
 		return FullRegister;
 	}
 
-	const T8BitRegister& T16BitRegister::GetLowOrderRegister() const
+	const T8BitRegister& T16BitRegister::getLowOrderRegister() const
 	{
 		return PartialRegister[0];
 	}
 
-	T8BitRegister& T16BitRegister::GetLowOrderRegister()
+	T8BitRegister& T16BitRegister::getLowOrderRegister()
 	{
 		return PartialRegister[0];
 	}
 
-	const T8BitRegister& T16BitRegister::GetHighOrderRegister() const
+	const T8BitRegister& T16BitRegister::getHighOrderRegister() const
 	{
 		return PartialRegister[1];
 	}
 
-	T8BitRegister& T16BitRegister::GetHighOrderRegister()
+	T8BitRegister& T16BitRegister::getHighOrderRegister()
 	{
 		return PartialRegister[1];
 	}
 
-	TU16BitValue& T16BitRegister::GetInternalValue()
+	TU16BitValue& T16BitRegister::getInternalValue()
 	{
 		return FullRegister;
 	}
 
-	const TU16BitValue& T16BitRegister::GetInternalValue() const
+	const TU16BitValue& T16BitRegister::getInternalValue() const
 	{
 		return FullRegister;
 	}

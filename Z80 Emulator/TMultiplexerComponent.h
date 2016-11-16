@@ -14,14 +14,14 @@ namespace nne
 		struct TMultiplexerComponent : nne::IComponent
 		{
 		public:
-			tcomponents::TPin& SelectInput(const TU8BitValue& SelectedInput);
-			const tcomponents::TPin& SelectInput(const TU8BitValue& SelectedInput) const;
+			tcomponents::TPin& selectInput(const TU8BitValue& SelectedInput);
+			const tcomponents::TPin& selectInput(const TU8BitValue& SelectedInput) const;
 
-			void Init() override;
+			void init() override;
 
-			void Update() override;
+			void update() override;
 
-			void Refresh() override {}
+			void refresh() override {}
 
 		private:
 			std::shared_ptr<TPinComponent> mPinComponent;

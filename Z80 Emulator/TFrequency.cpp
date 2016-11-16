@@ -18,17 +18,17 @@ namespace nne
 		mPeriod = sf::seconds(1);
 	}
 
-	TFrequency Hertz(float Value)
+	TFrequency hertz(float Value)
 	{
 		return TFrequency(sf::seconds(1 / Value));
 	}
 
-	TFrequency KiloHertz(float Value)
+	TFrequency kiloHertz(float Value)
 	{
 		return TFrequency(sf::seconds(1 / (Value * std::kilo::num)));
 	}
 
-	TFrequency MegaHertz(float Value)
+	TFrequency megaHertz(float Value)
 	{
 		return TFrequency(sf::seconds(1 / (Value * std::mega::num)));
 	}

@@ -16,13 +16,13 @@ int main()
 // 	cout << "Test Z80 Emulator" << endl;
 // 
 // 	nne::TManager EntitiesManager;
-// 	EntitiesManager.AddComponent<nne::tmodules::TZ80>();
-// 	EntitiesManager.AddComponent<nne::tmodules::TRam>();
-// 	EntitiesManager.InitComponents();
+// 	EntitiesManager.addComponent<nne::tmodules::TZ80>();
+// 	EntitiesManager.addComponent<nne::tmodules::TRam>();
+// 	EntitiesManager.initComponents();
 // 
 // 	// Get the Z80 and the ram entity
-// 	auto& Z80 = EntitiesManager.GetComponentAsPtr<nne::tmodules::TZ80>();
-// 	auto& Ram = EntitiesManager.GetComponentAsPtr<nne::tmodules::TRam>();
+// 	auto& Z80 = EntitiesManager.getComponentAsPtr<nne::tmodules::TZ80>();
+// 	auto& Ram = EntitiesManager.getComponentAsPtr<nne::tmodules::TRam>();
 // 
 // 	Z80->ConnectRam(Ram);
 // 	if (!Z80->LoadProgram("resources/programs/DJ.A01"))
@@ -35,16 +35,16 @@ int main()
 // 
 // 	do 
 // 	{
-// 		// Refresh the entities
-// 		EntitiesManager.Refresh(sf::Time::Zero);
+// 		// refresh the entities
+// 		EntitiesManager.refresh(sf::Time::Zero);
 // 
-// 		// Update the entities
-// 		EntitiesManager.Update(sf::Time::Zero);
+// 		// update the entities
+// 		EntitiesManager.update(sf::Time::Zero);
 // 	} while (false)
 	
 	nne::TGameApp App;
 
-	App.Init();
+	App.init();
 
-	return App.Run();
+	return App.run();
 }

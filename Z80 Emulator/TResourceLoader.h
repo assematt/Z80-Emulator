@@ -21,12 +21,12 @@ namespace nne
 		{
 		}
 
-		TResource<T> LoadResource() const
+		TResource<T> loadResource() const
 		{
 			return mResourceLoader();
 		}
 
-		std::string	GetResourceID() const
+		std::string	getResourceID() const
 		{
 			return mResourceID;
 		}

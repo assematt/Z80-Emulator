@@ -5,13 +5,13 @@ namespace nne
 	namespace tgui
 	{
 		TGuiWidget::TGuiWidget() :
-			mName("Widget" + std::to_string(GetEntityID())),
+			mName("Widget" + std::to_string(getEntityID())),
 			mPosition(0.f, 0.f),
 			mSize(0, 0),
 			mVisible(true),
 			mAcceptInput(true)
 		{
-			Init();
+			init();
 		}
 
 		TGuiWidget::TGuiWidget(const std::string WidgetName) :
@@ -21,7 +21,7 @@ namespace nne
 			mVisible(true),
 			mAcceptInput(true)
 		{
-			Init();
+			init();
 		}
 
 		TGuiWidget::~TGuiWidget()
@@ -29,87 +29,87 @@ namespace nne
 
 		}
 
-		void TGuiWidget::Init()
+		void TGuiWidget::init()
 		{
 			
 		}
 
-		void TGuiWidget::Update(const sf::Time& ElapsedTime)
+		void TGuiWidget::update(const sf::Time& ElapsedTime)
 		{
 			for (auto& Component : mComponents)
-				Component->Update();
+				Component->update();
 		}
 
-		void TGuiWidget::SetName(const std::string& WidgetName)
+		void TGuiWidget::setName(const std::string& WidgetName)
 		{
 			mName = WidgetName;
 		}
 
-		const std::string& TGuiWidget::GetName() const
+		const std::string& TGuiWidget::getName() const
 		{
 			return mName;
 		}
 
-		void TGuiWidget::SetSize(const sf::Vector2u& WidgetSize)
+		void TGuiWidget::setSize(const sf::Vector2u& WidgetSize)
 		{
 			mSize = WidgetSize;
 		}
 
-		const sf::Vector2u& TGuiWidget::GetSize() const
+		const sf::Vector2u& TGuiWidget::getSize() const
 		{
 			return mSize;
 		}
 
-		void TGuiWidget::SetPosition(const sf::Vector2f& WidgetSize)
+		void TGuiWidget::setPosition(const sf::Vector2f& WidgetSize)
 		{
-			GetComponentAsPtr<TTransformable>()->SetPosition(WidgetSize);
+			getComponentAsPtr<TTransformable>()->setPosition(WidgetSize);
 			mPosition = WidgetSize;
 		}
 
-		const sf::Vector2f& TGuiWidget::GetPosition() const
+		const sf::Vector2f& TGuiWidget::getPosition() const
 		{
 			return mPosition;
 		}
 
-		void TGuiWidget::SetVisibility(bool Show /*= true*/)
+		void TGuiWidget::setVisibility(bool Show /*= true*/)
 		{
 			mVisible = Show;
 		}
 
-		bool TGuiWidget::GetVisibility()
+		bool TGuiWidget::IsVisible()
 		{
 			return mVisible;
 		}
 
-		void TGuiWidget::EnableInput()
+		void TGuiWidget::enableInput()
 		{
 			mAcceptInput = true;
 		}
 
-		void TGuiWidget::DisableInput()
+		void TGuiWidget::disableInput()
 		{
 			mAcceptInput = false;
 		}
 
-		bool TGuiWidget::IsInputEnabled()
+		bool TGuiWidget::isInputEnabled()
 		{
 			return mAcceptInput;
 		}
 
-		void TGuiWidget::ConnectSignal(const tevent::BaseEvent& Function, const tevent::TEventTypes& SignalToConnect)
+		void TGuiWidget::connectSignal(const tevent::BaseEvent& Function, const tevent::TEventTypes& SignalToConnect)
 		{
 			mSignals[SignalToConnect] = Function;
 		}
 
-		const sf::FloatRect& TGuiWidget::GetWidgetBound() const
+		const sf::FloatRect& TGuiWidget::getWidgetBound() const
 		{
-			return GetComponentAsPtr<TTransformable>()->GetBounds();
+			return getComponentAsPtr<TTransformable>()->getBounds();
 		}
 
-		void TGuiWidget::Refresh(const sf::Time& ElapsedTime)
+		void TGuiWidget::refresh(const sf::Time& ElapsedTime)
 		{
 			for (auto& Component : mComponents)
-				Component->Refresh();
+				Component->refresh();
 		}
 
 	}

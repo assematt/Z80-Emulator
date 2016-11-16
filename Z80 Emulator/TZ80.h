@@ -43,60 +43,60 @@ namespace nne
 			TZ80();
 			~TZ80() = default;
 	
-			void Reset();
+			void reset();
 	
-			void Init();
+			void init();
 	
 			// Use the refresh instruction as an M1 cycle
-			void Refresh();
+			void refresh();
 	
-			void Update();
+			void update();
 	
-			bool LoadProgram(const std::string& Program);
+			bool loadProgram(const std::string& Program);
 	
-			bool ConnectRam(std::shared_ptr<tmodules::TRam> Ram);
+			bool connectRam(std::shared_ptr<tmodules::TRam> Ram);
 	
-			virtual void MakeVirtual() {};
+			virtual void makeVirtual() {};
 	
 			/// Fetch the instruction from memory
-			TU8BitValue FetchInstruction(const TU16BitValue& Address = 0);
+			TU8BitValue fetchInstruction(const TU16BitValue& Address = 0);
 	
 			// Execute instruction
-			TU16BitValue ExecuteInstruction(const TOpCodesMainInstruction& OpCode);
+			TU16BitValue executeInstruction(const TOpCodesMainInstruction& OpCode);
 	
 		private:
 	
 			/// Put the data in the address bus
-			void PushDataToAddressBus(const TU16BitValue& Value);
+			void pushDataToAddressBus(const TU16BitValue& Value);
 	
 			/// Get the data from the address bus
-			TU16BitValue GetDataFromAddressBus();
+			TU16BitValue getDataFromAddressBus();
 	
 			/// Put the data in the data bus
-			void PushDataToDataBus(const TU8BitValue& Value);
+			void pushDataToDataBus(const TU8BitValue& Value);
 	
 			/// Get the data from the data bus
-			TU8BitValue GetDataFromDataBus();
+			TU8BitValue getDataFromDataBus();
 	
 			/// Helper function for loading data into register
 			template <class T, class S = T>
-			void LoadRegisterFromRegister(const TRegisterType& Destination, const TRegisterType& Source);
+			void loadRegisterFromRegister(const TRegisterType& Destination, const TRegisterType& Source);
 			template <class T>
-			void LoadRegisterFromMemory(const TRegisterType& Register, const TMemoryAddress& MemoryLocation);
+			void loadRegisterFromMemory(const TRegisterType& Register, const TMemoryAddress& MemoryLocation);
 			template <class T, class S = T>
-			void LoadRegisterFromNumber(const TRegisterType& LeftRegister, const S& RightRegister);
+			void loadRegisterFromNumber(const TRegisterType& LeftRegister, const S& RightRegister);
 	
 			/// Helper function for loading data into memory
 			template <class T>
-			void LoadMemoryFromRegister(const TRegisterType& Register, const TMemoryAddress& MemoryLocation);
+			void loadMemoryFromRegister(const TRegisterType& Register, const TMemoryAddress& MemoryLocation);
 	
 			/// Stack functions
-			void PushMemory(const TRegisterType& Register);
-			void PopMemory(const TRegisterType& Register);
+			void pushMemory(const TRegisterType& Register);
+			void popMemory(const TRegisterType& Register);
 	
 			/// Call/Return functions
-			void Call(const TU16BitValue& Address);
-			void Return();
+			void call(const TU16BitValue& Address);
+			void returnFromCall();
 	
 		private:
 			bool mIsRunning;
@@ -128,27 +128,27 @@ namespace nne
 		};
 	
 		template <class T, class S /*= T*/>
-		void TZ80::LoadRegisterFromRegister(const TRegisterType& Destination, const TRegisterType& Source)
+		void TZ80::loadRegisterFromRegister(const TRegisterType& Destination, const TRegisterType& Source)
 		{
-			mRegisters.GetRegister<T>(Destination) = mRegisters.GetRegister<S>(Source);
+			mRegisters.getRegister<T>(Destination) = mRegisters.getRegister<S>(Source);
 		}
 	
 		template <class T>
-		void TZ80::LoadRegisterFromMemory(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
+		void TZ80::loadRegisterFromMemory(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
 		{
-			mRegisters.GetRegister<T>(Register) = (*mRam)[MemoryLocation];
+			mRegisters.getRegister<T>(Register) = (*mRam)[MemoryLocation];
 		}
 	
 		template <class T, class S /*= T*/>
-		void TZ80::LoadRegisterFromNumber(const TRegisterType& LeftRegister, const S& RightRegister)
+		void TZ80::loadRegisterFromNumber(const TRegisterType& LeftRegister, const S& RightRegister)
 		{
-			mRegisters.GetRegister<T>(LeftRegister) = mRegisters.GetRegister<S>(RightRegister);
+			mRegisters.getRegister<T>(LeftRegister) = mRegisters.getRegister<S>(RightRegister);
 		}
 	
 		template <class T>
-		void TZ80::LoadMemoryFromRegister(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
+		void TZ80::loadMemoryFromRegister(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
 		{
-			(*mRam)[MemoryLocation] = mRegisters.GetRegister<T>(Register);
+			(*mRam)[MemoryLocation] = mRegisters.getRegister<T>(Register);
 		}
 	}
 }

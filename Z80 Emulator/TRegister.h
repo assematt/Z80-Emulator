@@ -12,8 +12,8 @@ namespace nne
 		operator const TU8BitValue() const;
 
 		/// Get the low order register
-		TU8BitValue& GetInternalValue();
-		const TU8BitValue& GetInternalValue() const;
+		TU8BitValue& getInternalValue();
+		const TU8BitValue& getInternalValue() const;
 
 		/// Simple assignment 
 		T8BitRegister& operator =(const T8BitRegister& Right);
@@ -78,16 +78,16 @@ namespace nne
 		operator const TU16BitValue() const;
 
 		/// Get the low order register
-		T8BitRegister& GetLowOrderRegister();
-		const T8BitRegister& GetLowOrderRegister() const;
+		T8BitRegister& getLowOrderRegister();
+		const T8BitRegister& getLowOrderRegister() const;
 
 		/// Get the high order register
-		T8BitRegister& GetHighOrderRegister();
-		const T8BitRegister& GetHighOrderRegister() const;
+		T8BitRegister& getHighOrderRegister();
+		const T8BitRegister& getHighOrderRegister() const;
 
 		/// Get the low order register
-		TU16BitValue& GetInternalValue();
-		const TU16BitValue& GetInternalValue() const;
+		TU16BitValue& getInternalValue();
+		const TU16BitValue& getInternalValue() const;
 
 		/// Simple assignment 
 		T16BitRegister& operator =(const T16BitRegister& Right);

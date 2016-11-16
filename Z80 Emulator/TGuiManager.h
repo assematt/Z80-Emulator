@@ -24,19 +24,19 @@ namespace nne
 		public:
 			TGuiManager();
 
-			void Setup();
+			void setup();
 
-			void ProcessEvents(sf::Event& EventToProcess);
+			void processEvents(sf::Event& EventToProcess);
 
-			void AddMenu(IScreenView::UniquePtr& Menu);
+			void addMenu(IScreenView::UniquePtr& Menu);
 
-			void ChangeMenu(std::size_t NextMenu);
+			void changeMenu(std::size_t NextMenu);
 
-			void Refresh(const sf::Time& ElapsedTime);
+			void refresh(const sf::Time& ElapsedTime);
 
-			void Update(const sf::Time& ElapsedTime);
+			void update(const sf::Time& ElapsedTime);
 
-			void Draw();
+			void draw();
 
 		private:
 			void ExecuteLoadingScreen();

@@ -23,13 +23,13 @@ namespace nne
 		// Connect a single Pin to another single pin or multiple pin
 		namespace TPinComponentUtility
 		{
-			void ConnectPins(TPin& LeftPin, TPin& RightPin);
-			void ConnectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
-			void ConnectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+			void connectPins(TPin& LeftPin, TPin& RightPin);
+			void connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+			void connectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
 
-			void DetachPins(TPin& LeftPin, TPin& RightPin);
-			void DetachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
-			void DetachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+			void detachPins(TPin& LeftPin, TPin& RightPin);
+			void detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+			void detachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
 		}
 
 		struct TPinComponent : nne::IComponent
@@ -41,60 +41,60 @@ namespace nne
 			TPinComponent(const std::initializer_list<TPin>& PinList, std::size_t PinCount);
 
 			/// Setup the pins configuration
-			void SetupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount);
+			void setupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount);
 
 			/// Subscript operator to get a pin
 			TPin& operator[] (const TPin::TPinNumber PinToSelect);
 			const TPin& operator[] (const TPin::TPinNumber PinToSelect) const;
 			
 			/// Get a pin
-			TPin& GetPin(const TPin::TPinNumber PinToSelect);
-			const TPin& GetPin(const TPin::TPinNumber PinToSelect) const;
+			TPin& getPin(const TPin::TPinNumber PinToSelect);
+			const TPin& getPin(const TPin::TPinNumber PinToSelect) const;
 
 			/// Get bus
-			TPinBus GetPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin = 0, const TPinBusIndex BusEnd = 0);
+			TPinBus getPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin = 0, const TPinBusIndex BusEnd = 0);
 
 			/// Get the pin list
-			TPinList& GetPinList();
-			const TPinList& GetPinList() const;
+			TPinList& getPinList();
+			const TPinList& getPinList() const;
 
 			/// Convert the value of the pins to a single 8 bit value or 16 bit value
 			template <class T>
-			T PinsToValue(TPin::TPinGroupID PinGroup = 0);
+			T pinsToValue(TPin::TPinGroupID PinGroup = 0);
 
 			/// Convert the value a single 8 bit value or 16 bit value to the pins
 			template <class T>
-			void ValueToPins(const T& Value, TPin::TPinGroupID PinGroup = 0);
+			void valueToPins(const T& Value, TPin::TPinGroupID PinGroup = 0);
 
-			void Init() override;
+			void init() override;
 
-			void Update() override;
+			void update() override;
 
-			void Refresh() override {}
+			void refresh() override {}
 
 		private:
 			
 			// Connect a single Pin to another single pin or multiple pin
-			friend void TPinComponentUtility::ConnectPins(TPin& LeftPin, TPin& RightPin);
-			friend void TPinComponentUtility::ConnectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
-			friend void TPinComponentUtility::ConnectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+			friend void TPinComponentUtility::connectPins(TPin& LeftPin, TPin& RightPin);
+			friend void TPinComponentUtility::connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+			friend void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
 
 			// Function to detach pin
-			friend void TPinComponentUtility::DetachPins(TPin& LeftPin, TPin& RightPin);
-			friend void TPinComponentUtility::DetachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
-			friend void TPinComponentUtility::DetachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+			friend void TPinComponentUtility::detachPins(TPin& LeftPin, TPin& RightPin);
+			friend void TPinComponentUtility::detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+			friend void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
 
 		private:
 			TPinList mPins;
 		};
 
 		template<class T>
-		inline T TPinComponent::PinsToValue(TPin::TPinGroupID PinGroup)
+		inline T TPinComponent::pinsToValue(TPin::TPinGroupID PinGroup)
 		{
 			T ReturnValue = 0;
 
 			// Get the bus where we are writing the data
-			auto PinBus = GetPinBus(PinGroup);
+			auto PinBus = getPinBus(PinGroup);
 
 			// Bit value to store which bit we are trying to write
 			std::size_t Bit = 0;
@@ -102,17 +102,17 @@ namespace nne
 			// Put the bit in the bus
 			for (auto& Pin = PinBus.first; Pin != PinBus.second; ++Pin)
 			{
-				ReturnValue |= Pin->GetPinStatus() << Bit++;
+				ReturnValue |= Pin->getPinStatus() << Bit++;
 			}
 
 			return ReturnValue;
 		}
 
 		template<class T>
-		inline void TPinComponent::ValueToPins(const T& Value, TPin::TPinGroupID PinGroup)
+		inline void TPinComponent::valueToPins(const T& Value, TPin::TPinGroupID PinGroup)
 		{
 			// Get the bus where we are writing the data
-			auto PinBus = GetPinBus(PinGroup);
+			auto PinBus = getPinBus(PinGroup);
 
 			// Bit value to store which bit we are trying to write
 			TU8BitValue Bit = 0;
@@ -120,9 +120,9 @@ namespace nne
 			// Put the bit in the bus
 			for (auto& Pin = PinBus.first; Pin != PinBus.second; ++Pin)
 			{
-				auto SelectedBit = nne::TUtility::GetBit(Value, Bit++);
+				auto SelectedBit = nne::TUtility::getBit(Value, Bit++);
 				auto NewStatus = static_cast<tcomponents::TPin::TStatus>(SelectedBit);
-				Pin->ChangePinStatus(NewStatus, true);
+				Pin->changePinStatus(NewStatus, true);
 			}
 		}
 	}

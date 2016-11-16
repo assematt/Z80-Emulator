@@ -15,44 +15,44 @@ namespace nne
 		{
 		}
 
-		void TRam::Update()
+		void TRam::update()
 		{
-			RefreshMemory();
+			refreshMemory();
 		}
 
 		TMemory::iterator& TRam::begin()
 		{
-			return GetInternalMemory().begin();
+			return getInternalMemory().begin();
 		}
 
 		TMemory::iterator& TRam::end()
 		{
-			return GetInternalMemory().end();
+			return getInternalMemory().end();
 		}
 
 		TU8BitValue& TRam::operator[](const std::size_t Index)
 		{
-			return GetInternalMemory()[Index];
+			return getInternalMemory()[Index];
 		}
 
 		const TU8BitValue& TRam::operator[](const std::size_t Index) const
 		{
-			return GetInternalMemory()[Index];
+			return getInternalMemory()[Index];
 		}
 
-		TMemory& TRam::GetInternalMemory()
+		TMemory& TRam::getInternalMemory()
 		{
-			return GetComponentAsPtr<tcomponents::TMemoryComponent>()->GetInternalMemory();
+			return getComponentAsPtr<tcomponents::TMemoryComponent>()->getInternalMemory();
 		}
 
-		const TMemory& TRam::GetInternalMemory() const
+		const TMemory& TRam::getInternalMemory() const
 		{
-			return GetComponentAsPtr<tcomponents::TMemoryComponent>()->GetInternalMemory();
+			return getComponentAsPtr<tcomponents::TMemoryComponent>()->getInternalMemory();
 		}
 
-		void TRam::Init()
+		void TRam::init()
 		{
-			AddComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
+			addComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
 				// ADDRESS BUS
 				{ tcomponents::TPin::TMode::INPUT, "A0",  tcomponents::TPin::TStatus::LOW, 10, TRamPinGroup::AddressBus, 0 }, // A0
 				{ tcomponents::TPin::TMode::INPUT, "A1",  tcomponents::TPin::TStatus::LOW,  9, TRamPinGroup::AddressBus, 1 }, // A1
@@ -89,23 +89,23 @@ namespace nne
 				{ tcomponents::TPin::TMode::POWER, "VCC", tcomponents::TPin::TStatus::LOW, 28, TRamPinGroup::Others }, // VCC
 				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 14, TRamPinGroup::Others }, // GND
 			}, 28);
-			AddComponent<tcomponents::TMemoryComponent>(mMemorySize);
-			InitComponents();
+			addComponent<tcomponents::TMemoryComponent>(mMemorySize);
+			initComponents();
 
 			// Cache the status of some pins for easy access during the program life time
-			auto& PinComponent = GetComponentAsPtr<tcomponents::TPinComponent>();
+			auto& PinComponent = getComponentAsPtr<tcomponents::TPinComponent>();
 			
-			mChipEnablePin = &(PinComponent->GetPin(20));
-			mWritePin = &(PinComponent->GetPin(27));
-			mOutputEnable = &(PinComponent->GetPin(22));
+			mChipEnablePin = &(PinComponent->getPin(20));
+			mWritePin = &(PinComponent->getPin(27));
+			mOutputEnable = &(PinComponent->getPin(22));
 		}
 
-		void TRam::Refresh()
+		void TRam::refresh()
 		{
-			RefreshMemory();
+			refreshMemory();
 		}
 
-		void TRam::RefreshMemory()
+		void TRam::refreshMemory()
 		{
 			// Check if the chip is disabled (this one is disabled on high)
 			if (*mChipEnablePin == tcomponents::TPin::HIGH)
@@ -118,22 +118,22 @@ namespace nne
 			// If we arrive at this point we are sure we are performing a read/write operation
 
 			// Get a ref to the pin component
-			auto& PinComponent = *GetComponentAsPtr<tcomponents::TPinComponent>();
+			auto& PinComponent = *getComponentAsPtr<tcomponents::TPinComponent>();
 
 			// Get a ref to the memory component
-			auto& MemoryComponent = *GetComponentAsPtr<tcomponents::TMemoryComponent>();
+			auto& MemoryComponent = *getComponentAsPtr<tcomponents::TMemoryComponent>();
 
 			// Read the data on the address bus to figure it where we are writing/reading the data
-			TU16BitValue MemoryAddress = PinComponent.PinsToValue<TU16BitValue>(TRamPinGroup::AddressBus);
+			TU16BitValue MemoryAddress = PinComponent.pinsToValue<TU16BitValue>(TRamPinGroup::AddressBus);
 
 			// Reads the data that we want to write/read to the ram
-			TU8BitValue Data = PinComponent.PinsToValue<TU8BitValue>(TRamPinGroup::DataBus);
+			TU8BitValue Data = PinComponent.pinsToValue<TU8BitValue>(TRamPinGroup::DataBus);
 
 			// Check if we are reading data from the ram
 			if (*mWritePin == tcomponents::TPin::HIGH)
 			{
 				// Writes the data into the ram
-				PinComponent.ValueToPins<TU8BitValue>(MemoryComponent[MemoryAddress], TRamPinGroup::DataBus);
+				PinComponent.valueToPins<TU8BitValue>(MemoryComponent[MemoryAddress], TRamPinGroup::DataBus);
 			}
 			// If we got here it means we are writing to the ram
 			else

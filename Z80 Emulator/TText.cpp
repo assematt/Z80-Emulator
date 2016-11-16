@@ -50,7 +50,7 @@ namespace nne
 		mOutlineColor(0, 0, 0),
 		mOutlineThickness(0),
 		mBounds(),
-		mGeometryNeedUpdate(false)
+		mGeometryNeedupdate(false)
 	{
 		mVertices = std::make_shared<sf::VertexArray>(sf::Triangles);
 		mOutlineVertices = std::make_shared<sf::VertexArray>(sf::Triangles);
@@ -65,49 +65,49 @@ namespace nne
 		mOutlineColor(0, 0, 0),
 		mOutlineThickness(0),
 		mBounds(),
-		mGeometryNeedUpdate(true)
+		mGeometryNeedupdate(true)
 	{
 		mVertices = std::make_shared<sf::VertexArray>(sf::Triangles);
 		mOutlineVertices = std::make_shared<sf::VertexArray>(sf::Triangles);
 	}
 
-	void TText::SetString(const sf::String& String)
+	void TText::setString(const sf::String& String)
 	{
 		if (mString != String)
 		{
 			mString = String;
-			mGeometryNeedUpdate = true;
+			mGeometryNeedupdate = true;
 		}
 	}
 
-	void TText::SetFont(const sf::Font& Font)
+	void TText::setFont(const sf::Font& Font)
 	{
 		if (mFont != &Font)
 		{
 			mFont = &Font;
-			mGeometryNeedUpdate = true;
+			mGeometryNeedupdate = true;
 		}
 	}
 
-	void TText::SetCharacterSize(std::size_t Size)
+	void TText::setCharacterSize(std::size_t Size)
 	{
 		if (mCharacterSize != Size)
 		{
 			mCharacterSize = Size;
-			mGeometryNeedUpdate = true;
+			mGeometryNeedupdate = true;
 		}
 	}
 
-	void TText::SetStyle(sf::Uint32 Style)
+	void TText::setStyle(sf::Uint32 Style)
 	{
 		if (mStyle != Style)
 		{
 			mStyle = Style;
-			mGeometryNeedUpdate = true;
+			mGeometryNeedupdate = true;
 		}
 	}
 	
-	void TText::SetFillColor(const sf::Color& Color)
+	void TText::setFillColor(const sf::Color& Color)
 	{
 		if (Color != mFillColor)
 		{
@@ -115,7 +115,7 @@ namespace nne
 
 			// Change vertex colors directly, no need to update whole geometry
 			// (if geometry is updated anyway, we can skip this step)
-			if (!mGeometryNeedUpdate)
+			if (!mGeometryNeedupdate)
 			{
 				for (std::size_t i = 0; i < (*mVertices).getVertexCount(); ++i)
 					(*mVertices)[i].color = mFillColor;
@@ -123,7 +123,7 @@ namespace nne
 		}
 	}
 
-	void TText::SetOutlineColor(const sf::Color& Color)
+	void TText::setOutlineColor(const sf::Color& Color)
 	{
 		if (Color != mOutlineColor)
 		{
@@ -131,7 +131,7 @@ namespace nne
 
 			// Change vertex colors directly, no need to update whole geometry
 			// (if geometry is updated anyway, we can skip this step)
-			if (!mGeometryNeedUpdate)
+			if (!mGeometryNeedupdate)
 			{
 				for (std::size_t i = 0; i < (*mOutlineVertices).getVertexCount(); ++i)
 					(*mOutlineVertices)[i].color = mOutlineColor;
@@ -139,51 +139,51 @@ namespace nne
 		}
 	}
 
-	void TText::SetOutlineThickness(float Thickness)
+	void TText::setOutlineThickness(float Thickness)
 	{
 		if (Thickness != mOutlineThickness)
 		{
 			mOutlineThickness = Thickness;
-			mGeometryNeedUpdate = true;
+			mGeometryNeedupdate = true;
 		}
 	}
 
-	const sf::String& TText::GetString() const
-{
+	const sf::String& TText::getString() const
+	{
 		return mString;
 	}
 
-	const sf::Font* TText::GetFont() const
+	const sf::Font* TText::getFont() const
 	{
 		return mFont;
 	}
 
-	std::size_t TText::GetCharacterSize() const
-{
+	std::size_t TText::getCharacterSize() const
+	{
 		return mCharacterSize;
 	}
 
-	sf::Uint32 TText::GetStyle() const
-{
+	sf::Uint32 TText::getStyle() const
+	{
 		return mStyle;
 	}
 
-	const sf::Color& TText::GetFillColor() const
-{
+	const sf::Color& TText::getFillColor() const
+	{
 		return mFillColor;
 	}
 
-	const sf::Color& TText::GetOutlineColor() const
-{
+	const sf::Color& TText::getOutlineColor() const
+	{
 		return mOutlineColor;
 	}
 
-	float TText::GetOutlineThickness() const
-{
+	float TText::getOutlineThickness() const
+	{
 		return mOutlineThickness;
 	}
 
-	sf::Vector2f TText::FindCharacterPos(std::size_t Index) const
+	sf::Vector2f TText::findCharacterPos(std::size_t Index) const
 	{
 		// Make sure that we have a valid font
 		if (!mFont)
@@ -222,87 +222,60 @@ namespace nne
 		}
 
 		// Transform the position to global coordinates
-		position = mParent->GetComponentAsPtr<TTransformable>()->GetTransform().transformPoint(position);
+		position = mParent->getComponentAsPtr<TTransformable>()->getTransform().transformPoint(position);
 
 		return position;
 	}
 
-	sf::FloatRect TText::GetLocalBounds() const
-{
-		EnsureGeometryUpdate();
+	sf::FloatRect TText::getLocalBounds() const
+	{
+		ensureGeometryupdate();
 
 		return mBounds;
 	}
 	
-	sf::FloatRect TText::GetGlobalBounds() const
+	sf::FloatRect TText::getGlobalBounds() const
 	{
-		return mParent->GetComponentAsPtr<TTransformable>()->GetTransform().transformRect(GetLocalBounds());
+		return mParent->getComponentAsPtr<TTransformable>()->getTransform().transformRect(getLocalBounds());
 	}
 
-	void TText::Update()
+	void TText::update()
 	{
-		//throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	void TText::Refresh()
+	void TText::refresh()
 	{
-		//throw std::logic_error("The method or operation is not implemented.");
-		if (!mGeometryNeedUpdate)
+		if (!mGeometryNeedupdate)
 			return;
 
-		EnsureGeometryUpdate();
-		mGeometryNeedUpdate = false;
+		ensureGeometryupdate();
+		mGeometryNeedupdate = false;
 	}
 
-	void TText::Init()
+	void TText::init()
 	{
-		//throw std::logic_error("The method or operation is not implemented.");
-
-		//std::static_pointer_cast<sf::VertexArray>(mOutlineVertices);
-
-		//std::static_pointer_cast<const sf::Texture>(mCachedTexture.lock());
-
-		//const auto TextureCast = const_cast<sf::Texture*>(&mFont->getTexture(mCharacterSize));
-
-		mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject({ mOutlineVertices });
-		mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject({ mVertices });
+		mParent->getComponentAsPtr<TdrawableVector>()->pushdrawableObject({ mOutlineVertices });
+		mParent->getComponentAsPtr<TdrawableVector>()->pushdrawableObject({ mVertices });
 	}
 
-	const sf::VertexArray& TText::GetVertexArray() const
+	const sf::VertexArray& TText::getVertexArray() const
 	{
 		return *mVertices;
 	}
 
-	const sf::Texture* TText::GetTexture() const
+	const sf::Texture* TText::getTexture() const
 	{
 		return &mFont->getTexture(mCharacterSize);
 	}
 
-// 	void _TText::draw(sf::RenderTarget& Target, sf::RenderStates States) const
-// 	{
-// 		if (mFont)
-// 		{
-// 			EnsureGeometryUpdate();
-// 
-// 			States.transform *= mParent->GetComponentAsPtr<TTransformable>()->GetTransform();
-// 			States.texture = &mFont->getTexture(mCharacterSize);
-// 
-// 			// Only draw the outline if there is something to draw
-// 			if (mOutlineThickness != 0)
-// 				Target.draw((*mOutlineVertices), States);
-// 
-// 			Target.draw((*mVertices), States);
-// 		}
-// 	}
-
-	void TText::EnsureGeometryUpdate() const
+	void TText::ensureGeometryupdate() const
 {
 		// Do nothing, if geometry has not changed
-		if (!mGeometryNeedUpdate)
+		if (!mGeometryNeedupdate)
 			return;
 
 		// Mark geometry as updated
-		mGeometryNeedUpdate = false;
+		mGeometryNeedupdate = false;
 
 		// Clear the previous geometry
 		(*mVertices).clear();
@@ -368,7 +341,7 @@ namespace nne
 			// Handle special characters
 			if ((curChar == ' ') || (curChar == '\t') || (curChar == '\n'))
 			{
-				// Update the current bounds (min coordinates)
+				// update the current bounds (min coordinates)
 				minX = std::min(minX, x);
 				minY = std::min(minY, y);
 
@@ -379,7 +352,7 @@ namespace nne
 				case '\n': y += vspace; x = 0; break;
 				}
 
-				// Update the current bounds (max coordinates)
+				// update the current bounds (max coordinates)
 				maxX = std::max(maxX, x);
 				maxY = std::max(maxY, y);
 
@@ -401,7 +374,7 @@ namespace nne
 				// Add the outline glyph to the vertices
 				nne::AddGlyphQuad((*mOutlineVertices), sf::Vector2f(x, y), mOutlineColor, glyph, italic, mOutlineThickness);
 
-				// Update the current bounds with the outlined glyph bounds
+				// update the current bounds with the outlined glyph bounds
 				minX = std::min(minX, x + left - italic * bottom - mOutlineThickness);
 				maxX = std::max(maxX, x + right - italic * top - mOutlineThickness);
 				minY = std::min(minY, y + top - mOutlineThickness);
@@ -414,7 +387,7 @@ namespace nne
 			// Add the glyph to the vertices
 			nne::AddGlyphQuad((*mVertices), sf::Vector2f(x, y), mFillColor, glyph, italic);
 
-			// Update the current bounds with the non outlined glyph bounds
+			// update the current bounds with the non outlined glyph bounds
 			if (mOutlineThickness == 0)
 			{
 				float left = glyph.bounds.left;
@@ -450,7 +423,7 @@ namespace nne
 				AddLine((*mOutlineVertices), x, y, mOutlineColor, strikeThroughOffset, underlineThickness, mOutlineThickness);
 		}
 
-		// Update the bounding rectangle
+		// update the bounding rectangle
 		mBounds.left = minX;
 		mBounds.top = minY;
 		mBounds.width = maxX - minX;

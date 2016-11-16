@@ -17,15 +17,15 @@ namespace nne
 
 	private:
 
-		friend TFrequency Hertz(float Value);
-		friend TFrequency KiloHertz(float Value);
-		friend TFrequency MegaHertz(float Value);
+		friend TFrequency hertz(float Value);
+		friend TFrequency kiloHertz(float Value);
+		friend TFrequency megaHertz(float Value);
 
 	private:
 		sf::Time mPeriod;
 	};
 
-	TFrequency Hertz(float Value);
-	TFrequency KiloHertz(float Value);
-	TFrequency MegaHertz(float Value);
+	TFrequency hertz(float Value);
+	TFrequency kiloHertz(float Value);
+	TFrequency megaHertz(float Value);
 }

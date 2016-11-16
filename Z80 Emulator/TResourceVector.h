@@ -18,16 +18,16 @@ namespace nne
 
 		virtual ~TResourceVector() {}
 
-		void AddResource(typename TResourceLoader<_Type>& Resource)
+		void addResource(typename TResourceLoader<_Type>& Resource)
 		{
-			auto TempPtr = Resource.LoadResource();
-			auto TempID = Resource.GetResourceID();
+			auto TempPtr = Resource.loadResource();
+			auto TempID = Resource.getResourceID();
 			auto RealPtr = std::make_unique<void*>(TempPtr.release());
 
 			mResources.insert(std::pair<std::string, TResourceGeneric>(TempID, std::move(RealPtr)));
 		}
 
-		_Type& GetResource(const std::string& Key)
+		_Type& getResource(const std::string& Key)
 		{
 			auto TempPtr = *mResources[Key];
 			auto ReturnPtr = static_cast<_Type*>(TempPtr);

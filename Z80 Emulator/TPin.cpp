@@ -12,7 +12,7 @@ namespace nne
 			mPinNumber(0),
 			mPinGroupID(0),
 			mPinGroupNumber(0),
-			mPinID(GenerateID())
+			mPinID(generateID())
 		{
 		}
 
@@ -23,7 +23,7 @@ namespace nne
 			mPinNumber(PinNumber == 0 ? ++mPinNumber : PinNumber),
 			mPinGroupID(PinGroupID),
 			mPinGroupNumber(PinGroupNumber),
-			mPinID(GenerateID())
+			mPinID(generateID())
 		{
 		}
 
@@ -47,31 +47,31 @@ namespace nne
 			return mPinStatus;
 		}
 
-		TPin::TStatus TPin::GetPinStatus()
+		TPin::TStatus TPin::getPinStatus()
 		{
 			return mPinStatus;
 		}
 
-		const TPin::TStatus TPin::GetPinStatus() const
+		const TPin::TStatus TPin::getPinStatus() const
 		{
 			return mPinStatus;
 		}
 
-		const TPin::TPinID& TPin::GetPinID()
+		const TPin::TPinID& TPin::getPinID()
 		{
 			return mPinID;
 		}
 
-		TPin::TPinID TPin::GenerateID()
+		TPin::TPinID TPin::generateID()
 		{
 			static TPin::TPinID PinID = 0;
 
 			return PinID++;
 		}
 
-		void TPin::ChangePinStatus(const TStatus& NewStatus, bool Propagate /*= false*/)
+		void TPin::changePinStatus(const TStatus& NewStatus, bool Propagate /*= false*/)
 		{
-			// Update the pin status
+			// update the pin status
 			mPinStatus = NewStatus;
 
 			// IF the propagate value is true update all the pin connection
@@ -79,39 +79,39 @@ namespace nne
 			{
 				for (auto& Pin : mPinConnections)
 				{
-					Pin->ChangePinStatus(NewStatus, false);
+					Pin->changePinStatus(NewStatus, false);
 				}
 			}
 		}
 
-		nne::tcomponents::TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus logicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return static_cast<TPin::TStatus>(Left && Right);
 		}
 
-		nne::tcomponents::TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus logicOr(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return static_cast<TPin::TStatus>(Left || Right);
 		}
 
-		nne::tcomponents::TPin::TStatus LogicNot(const TPin::TStatus& Pin)
+		nne::tcomponents::TPin::TStatus logicNot(const TPin::TStatus& Pin)
 		{
 			return Pin == TPin::HIGH ? TPin::LOW : TPin::HIGH;
 		}
 
-		nne::tcomponents::TPin::TStatus LogicNand(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus logicNand(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
-			return LogicNot(LogicAnd(Left, Right));
+			return logicNot(logicAnd(Left, Right));
 		}
 
-		nne::tcomponents::TPin::TStatus LogicNor(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus logicNor(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
-			return LogicNot(LogicOr(Left, Right));
+			return logicNot(logicOr(Left, Right));
 		}
 
-		nne::tcomponents::TPin::TStatus LogicXor(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus logicXor(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
-			return LogicAnd(LogicOr(Left, Right), LogicNand(Left, Right));
+			return logicAnd(logicOr(Left, Right), logicNand(Left, Right));
 			/*
 			
 			A | B | C	A | B | C	A | B | C
@@ -124,9 +124,9 @@ namespace nne
 			*/
 		}
 
-		nne::tcomponents::TPin::TStatus LogicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right)
+		nne::tcomponents::TPin::TStatus logicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
-			return LogicNot(LogicXor(Left, Right));
+			return logicNot(logicXor(Left, Right));
 		}
 
 	}

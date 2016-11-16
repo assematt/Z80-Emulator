@@ -42,9 +42,9 @@ namespace nne
 		#pragma region ALU ADD
 	
 		template <class T>
-		inline void AluAdd(T& Value) {}
+		inline void aluAdd(T& Value) {}
 		template <class T>
-		inline void AluAdd(T&& Value) {}
+		inline void aluAdd(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		//	S is set if result is negative; otherwise, it is reset.
@@ -54,10 +54,10 @@ namespace nne
 		// 	N is reset.
 		// 	C is set if carry from bit 7; otherwise, it is reset.
 		template <>
-		inline void AluAdd(TU8BitValue& Value)
+		inline void aluAdd(TU8BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& Accumulator = mRegistersReference.Accumulator();
+			auto& Accumulator = mRegistersReference.accumulator();
 	
 			// Save the old value of the accumulator
 			auto OldAccumulator = Accumulator;
@@ -66,27 +66,27 @@ namespace nne
 			Accumulator += Value;
 	
 			// S register
-			Accumulator > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Accumulator > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Accumulator == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Accumulator == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			CheckCarryFromBit<TU8BitValue>(3, Accumulator, OldAccumulator) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkCarryFromBit<TU8BitValue>(3, Accumulator, OldAccumulator) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// P/V register
-			CheckOverflow(OldAccumulator, Accumulator) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkOverflow(OldAccumulator, Accumulator) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			ResetFlag(TFlags::N);
+			resetFlag(TFlags::N);
 	
 			// C register
-			Accumulator < OldAccumulator ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			Accumulator < OldAccumulator ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluAdd(TU8BitValue&& Value)
+		inline void aluAdd(TU8BitValue&& Value)
 		{
-			AluAdd(Value);
+			aluAdd(Value);
 		}
 	
 		/// 16 BIT SPECIALIZATION
@@ -97,10 +97,10 @@ namespace nne
 		// 	N is reset.
 		// 	C is set if carry from bit 15; otherwise, it is reset.
 		template <>
-		inline void AluAdd(TU16BitValue& Value)
+		inline void aluAdd(TU16BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& HLRegister = mRegistersReference.GetRegister<nne::T16BitRegister>(TRegisterType::HL);
+			auto& HLRegister = mRegistersReference.getRegister<nne::T16BitRegister>(TRegisterType::HL);
 	
 			// Save the old value of the accumulator
 			auto OldHLRegister = HLRegister;
@@ -109,27 +109,27 @@ namespace nne
 			HLRegister += Value;
 	
 			// H register
-			CheckCarryFromBit(11, HLRegister, OldHLRegister) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkCarryFromBit(11, HLRegister, OldHLRegister) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// N register
-			ResetFlag(TFlags::N);
+			resetFlag(TFlags::N);
 	
 			// C register
-			HLRegister < OldHLRegister ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			HLRegister < OldHLRegister ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluAdd(TU16BitValue&& Value)
+		inline void aluAdd(TU16BitValue&& Value)
 		{
-			AluAdd(Value);
+			aluAdd(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU SUB
 	
 		template <class T>
-		inline void AluSub(T& Value) {}
+		inline void aluSub(T& Value) {}
 		template <class T>
-		inline void AluSub(T&& Value) {}
+		inline void aluSub(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -139,10 +139,10 @@ namespace nne
 		// 	N is set.
 		// 	C is set if borrow; otherwise, it is reset.
 		template <>
-		inline void AluSub(TU8BitValue& Value)
+		inline void aluSub(TU8BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& Accumulator = mRegistersReference.Accumulator();
+			auto& Accumulator = mRegistersReference.accumulator();
 	
 			// Save the old value of the accumulator
 			auto OldAccumulator = Accumulator;
@@ -151,27 +151,27 @@ namespace nne
 			Accumulator -= Value;
 	
 			// S register
-			Accumulator > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Accumulator > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Accumulator == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Accumulator == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			CheckBorrowFromBit<TU8BitValue>(4, Accumulator, OldAccumulator) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkBorrowFromBit<TU8BitValue>(4, Accumulator, OldAccumulator) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// P/V register
-			CheckOverflow(OldAccumulator, Accumulator) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkOverflow(OldAccumulator, Accumulator) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			SetFlag(TFlags::N);
+			setFlag(TFlags::N);
 	
 			// C register
-			Accumulator > OldAccumulator ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			Accumulator > OldAccumulator ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluSub(TU8BitValue&& Value)
+		inline void aluSub(TU8BitValue&& Value)
 		{
-			AluSub(Value);
+			aluSub(Value);
 		}
 	
 		/// 16 BIT SPECIALIZATION
@@ -182,10 +182,10 @@ namespace nne
 		// 	N is set.
 		// 	C is set if borrow; otherwise, it is reset.
 		template <>
-		inline void AluSub(TU16BitValue& Value)
+		inline void aluSub(TU16BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& HLRegister = mRegistersReference.GetRegister<nne::T16BitRegister>(TRegisterType::HL);
+			auto& HLRegister = mRegistersReference.getRegister<nne::T16BitRegister>(TRegisterType::HL);
 
 			// Save the old value of the accumulator
 			auto OldHLRegister = HLRegister;
@@ -194,36 +194,36 @@ namespace nne
 			HLRegister -= Value;
 	
 			// S register
-			HLRegister > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			HLRegister > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			HLRegister == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			HLRegister == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			CheckBorrowFromBit<TU16BitValue>(12, HLRegister, OldHLRegister) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkBorrowFromBit<TU16BitValue>(12, HLRegister, OldHLRegister) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// P/V register
-			CheckOverflow(OldHLRegister, HLRegister) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkOverflow(OldHLRegister, HLRegister) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			SetFlag(TFlags::N);
+			setFlag(TFlags::N);
 	
 			// C register
-			HLRegister > OldHLRegister ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			HLRegister > OldHLRegister ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluSub(TU16BitValue&& Value)
+		inline void aluSub(TU16BitValue&& Value)
 		{
-			AluSub(Value);
+			aluSub(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU INC
 	
 		template <class T>
-		inline void AluInc(T& Value) {}
+		inline void aluInc(T& Value) {}
 		template <class T>
-		inline void AluInc(T&& Value) {}
+		inline void aluInc(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -233,7 +233,7 @@ namespace nne
 		// 	N is reset.
 		// 	C is not affected
 		template <>
-		inline void AluInc(TU8BitValue& Value)
+		inline void aluInc(TU8BitValue& Value)
 		{
 			// Save the old value 
 			auto OldValue = Value;
@@ -242,46 +242,46 @@ namespace nne
 			++Value;
 	
 			// S register
-			Value > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Value > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Value == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Value == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			CheckCarryFromBit<TU8BitValue>(3, Value, OldValue) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkCarryFromBit<TU8BitValue>(3, Value, OldValue) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// P/V register
-			OldValue == 0x7F ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			OldValue == 0x7F ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			ResetFlag(TFlags::N);
+			resetFlag(TFlags::N);
 		}
 		template <>
-		inline void AluInc(TU8BitValue&& Value)
+		inline void aluInc(TU8BitValue&& Value)
 		{
-			AluInc(Value);
+			aluInc(Value);
 		}
 	
 		/// 16 BIT SPECIALIZATION
 		template <>
-		inline void AluInc(TU16BitValue& Value)
+		inline void aluInc(TU16BitValue& Value)
 		{
 			// Increment the value
 			++Value;
 		}
 		template <>
-		inline void AluInc(TU16BitValue&& Value)
+		inline void aluInc(TU16BitValue&& Value)
 		{
-			AluInc(Value);
+			aluInc(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU DEC
 	
 		template <class T>
-		inline void AluDec(T& Value) {}
+		inline void aluDec(T& Value) {}
 		template <class T>
-		inline void AluDec(T&& Value) {}
+		inline void aluDec(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -291,7 +291,7 @@ namespace nne
 		// 	N is set.
 		// 	C is not affected.
 		template <>
-		inline void AluDec(TU8BitValue& Value)
+		inline void aluDec(TU8BitValue& Value)
 		{
 			// Save the old value 
 			auto OldValue = Value;
@@ -300,46 +300,46 @@ namespace nne
 			--Value;
 	
 			// S register
-			Value > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Value > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Value == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Value == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			CheckBorrowFromBit<TU8BitValue>(4, Value, OldValue) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkBorrowFromBit<TU8BitValue>(4, Value, OldValue) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// P/V register
-			OldValue == 0x80 ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			OldValue == 0x80 ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			SetFlag(TFlags::N);
+			setFlag(TFlags::N);
 		}
 		template <>
-		inline void AluDec(TU8BitValue&& Value)
+		inline void aluDec(TU8BitValue&& Value)
 		{
-			AluDec(Value);
+			aluDec(Value);
 		}
 	
 		/// 16 BIT SPECIALIZATION
 		template <>
-		inline void AluDec(TU16BitValue& Value)
+		inline void aluDec(TU16BitValue& Value)
 		{
 			// Decrement the value
 			--Value;
 		}
 		template <>
-		inline void AluDec(TU16BitValue&& Value)
+		inline void aluDec(TU16BitValue&& Value)
 		{
-			AluDec(Value);
+			aluDec(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU AND
 	
 		template <class T>
-		inline void AluAnd(T& Value) {}
+		inline void aluAnd(T& Value) {}
 		template <class T>
-		inline void AluAnd(T&& Value) {}
+		inline void aluAnd(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -349,45 +349,45 @@ namespace nne
 		// 	N is reset.
 		// 	C is reset.
 		template <>
-		inline void AluAnd(TU8BitValue& Value)
+		inline void aluAnd(TU8BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& Accumulator = mRegistersReference.Accumulator();
+			auto& Accumulator = mRegistersReference.accumulator();
 	
 			// Add the value to the register
 			Accumulator &= Value;
 	
 			// S register
-			Accumulator > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Accumulator > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Accumulator == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Accumulator == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			SetFlag(TFlags::H);
+			setFlag(TFlags::H);
 	
 			// P/V register
-			CheckParity(Accumulator) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkParity(Accumulator) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			ResetFlag(TFlags::N);
+			resetFlag(TFlags::N);
 	
 			// C register
-			ResetFlag(TFlags::C);
+			resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluAnd(TU8BitValue&& Value)
+		inline void aluAnd(TU8BitValue&& Value)
 		{
-			AluAnd(Value);
+			aluAnd(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU OR
 	
 		template <class T>
-		inline void AluOr(T& Value) {}
+		inline void aluOr(T& Value) {}
 		template <class T>
-		inline void AluOr(T&& Value) {}
+		inline void aluOr(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -397,45 +397,45 @@ namespace nne
 		// 	N is reset.
 		// 	C is reset.
 		template <>
-		inline void AluOr(TU8BitValue& Value)
+		inline void aluOr(TU8BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& Accumulator = mRegistersReference.Accumulator();
+			auto& Accumulator = mRegistersReference.accumulator();
 	
 			// Add the value to the register
 			Accumulator |= Value;
 	
 			// S register
-			Accumulator > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Accumulator > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Accumulator == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Accumulator == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			ResetFlag(TFlags::H);
+			resetFlag(TFlags::H);
 	
 			// P/V register
-			CheckParity(Accumulator) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkParity(Accumulator) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			ResetFlag(TFlags::N);
+			resetFlag(TFlags::N);
 	
 			// C register
-			ResetFlag(TFlags::C);
+			resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluOr(TU8BitValue&& Value)
+		inline void aluOr(TU8BitValue&& Value)
 		{
-			AluOr(Value);
+			aluOr(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU XOR
 	
 		template <class T>
-		inline void AluXor(T& Value) {}
+		inline void aluXor(T& Value) {}
 		template <class T>
-		inline void AluXor(T&& Value) {}
+		inline void aluXor(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -445,45 +445,45 @@ namespace nne
 		// 	N is reset.
 		// 	C is reset.
 		template <>
-		inline void AluXor(TU8BitValue& Value)
+		inline void aluXor(TU8BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& Accumulator = mRegistersReference.Accumulator();
+			auto& Accumulator = mRegistersReference.accumulator();
 	
 			// Add the value to the register
 			Accumulator ^= Value;
 	
 			// S register
-			Accumulator > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Accumulator > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Accumulator == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Accumulator == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			ResetFlag(TFlags::H);
+			resetFlag(TFlags::H);
 	
 			// P/V register
-			CheckParity(Accumulator) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkParity(Accumulator) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			ResetFlag(TFlags::N);
+			resetFlag(TFlags::N);
 	
 			// C register
-			ResetFlag(TFlags::C);
+			resetFlag(TFlags::C);
 		}
 		template <>
-		inline void AluXor(TU8BitValue&& Value)
+		inline void aluXor(TU8BitValue&& Value)
 		{
-			AluXor(Value);
+			aluXor(Value);
 		}
 		#pragma endregion
 	
 		#pragma region ALU CP
 	
 		template <class T>
-		inline void AluCp(T& Value) {}
+		inline void aluCp(T& Value) {}
 		template <class T>
-		inline void AluCp(T&& Value) {}
+		inline void aluCp(T&& Value) {}
 	
 		/// 8 BIT SPECIALIZATION
 		// 	S is set if result is negative; otherwise, it is reset.
@@ -493,11 +493,11 @@ namespace nne
 		// 	N is set.
 		// 	C is set if borrow; otherwise, it is reset.
 		template <>
-		inline void AluCp(TU8BitValue& Value)
+		inline void aluCp(TU8BitValue& Value)
 		{
 			// Get the value and address of the accumulator
-			auto& Accumulator = mRegistersReference.Accumulator();
-			auto& Flag = mRegistersReference.GetRegister<nne::T8BitRegister>(TRegisterType::F);
+			auto& Accumulator = mRegistersReference.accumulator();
+			auto& Flag = mRegistersReference.getRegister<nne::T8BitRegister>(TRegisterType::F);
 	
 			// Save the old value of the accumulator
 			auto OldAccumulator = Accumulator;
@@ -506,30 +506,30 @@ namespace nne
 			Accumulator -= Value;
 	
 			// S register
-			Accumulator > 0x7F /*(0111 1111)*/ ? SetFlag(TFlags::S) : ResetFlag(TFlags::S);
+			Accumulator > 0x7F /*(0111 1111)*/ ? setFlag(TFlags::S) : resetFlag(TFlags::S);
 	
 			// Z register
-			Accumulator == 0 ? SetFlag(TFlags::Z) : ResetFlag(TFlags::Z);
+			Accumulator == 0 ? setFlag(TFlags::Z) : resetFlag(TFlags::Z);
 	
 			// H register
-			CheckBorrowFromBit(4, Accumulator, OldAccumulator) ? SetFlag(TFlags::H) : ResetFlag(TFlags::H);
+			checkBorrowFromBit(4, Accumulator, OldAccumulator) ? setFlag(TFlags::H) : resetFlag(TFlags::H);
 	
 			// P/V register
-			CheckOverflow(OldAccumulator, Accumulator) ? SetFlag(TFlags::P_V) : ResetFlag(TFlags::P_V);
+			checkOverflow(OldAccumulator, Accumulator) ? setFlag(TFlags::P_V) : resetFlag(TFlags::P_V);
 	
 			// N register
-			SetFlag(TFlags::N);
+			setFlag(TFlags::N);
 	
 			// C register
-			Accumulator > OldAccumulator ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			Accumulator > OldAccumulator ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 	
 			// Since we are just comparing the two values, 
 			Accumulator = OldAccumulator;
 		}
 		template <>
-		inline void AluCp(TU8BitValue&& Value)
+		inline void aluCp(TU8BitValue&& Value)
 		{
-			AluCp(Value);
+			aluCp(Value);
 		}
 		#pragma endregion
 	
@@ -537,59 +537,59 @@ namespace nne
 	
 		// Function to rotate the content of an 8 bit value left. The carry options allows to choose if we want to put the value of the carry or of the 7th bit in the first bit of the rotate 8 bit value
 		template <class T>
-		void RotateLeft(T& Value, bool Carry = true)
+		void rotateLeft(T& Value, bool Carry = true)
 		{
 			// Get the old value of the carry bit
-			auto OldCarryBit = CheckFlag(TFlags::C);
-			auto Old7Bit = nne::TUtility::RotateLeft(Value);
+			auto OldCarryBit = checkFlag(TFlags::C);
+			auto Old7Bit = nne::TUtility::rotateLeft(Value);
 	
 			// Put the old 7 bit value in the carry
-			Old7Bit ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			Old7Bit ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 	
 			// If Carry is true put the old value of the carry in the bit 0 otherwise put the 
-			Carry ? nne::TUtility::SetBit(Value, 0, OldCarryBit) : nne::TUtility::SetBit(Value, 0, Old7Bit);
+			Carry ? nne::TUtility::setBit(Value, 0, OldCarryBit) : nne::TUtility::setBit(Value, 0, Old7Bit);
 	
 			// Reset the N and H flags
-			ResetFlag(TFlags::N | TFlags::H);
+			resetFlag(TFlags::N | TFlags::H);
 		}
 	
 		// Function to rotate the content of an 8 bit value right. The carry options allows to choose if we want to put the value of the carry or of the 0 bit in the 7th bit of the rotate 8 bit value
 		template <class T>
-		void RotateRight(T& Value, bool Carry = false)
+		void rotateRight(T& Value, bool Carry = false)
 		{
 			// Get the old value of the carry bit
-			auto OldCarryBit = CheckFlag(TFlags::C);
-			auto Old0Bit = nne::TUtility::RotateRight(Value);
+			auto OldCarryBit = checkFlag(TFlags::C);
+			auto Old0Bit = nne::TUtility::rotateRight(Value);
 	
 			// Put the old 0 bit value in the carry
-			Old0Bit ? SetFlag(TFlags::C) : ResetFlag(TFlags::C);
+			Old0Bit ? setFlag(TFlags::C) : resetFlag(TFlags::C);
 	
 			// If Carry is true put the old value of the carry in the bit 0 otherwise put the 
-			Carry ? nne::TUtility::SetBit(Value, 7, OldCarryBit) : nne::TUtility::SetBit(Value, 7, Old0Bit);
+			Carry ? nne::TUtility::setBit(Value, 7, OldCarryBit) : nne::TUtility::setBit(Value, 7, Old0Bit);
 	
 			// Reset the N and H flags
-			ResetFlag(TFlags::N | TFlags::H);
+			resetFlag(TFlags::N | TFlags::H);
 		}
 		#pragma endregion
 	
 		/// Helper function for setting/resetting and checking the F register bit (CPU flags)
-		inline void SetFlag(const TU8BitValue Flag)
+		inline void setFlag(const TU8BitValue Flag)
 		{
-			mRegistersReference.FLags() |= 1 << Flag;
+			mRegistersReference.fLags() |= 1 << Flag;
 		}
-		inline void ResetFlag(const TU8BitValue Flag)
+		inline void resetFlag(const TU8BitValue Flag)
 		{
-			mRegistersReference.FLags() &= ~(1 << Flag);
+			mRegistersReference.fLags() &= ~(1 << Flag);
 		}
-		inline const bool CheckFlag(const TU8BitValue Flag) const
+		inline const bool checkFlag(const TU8BitValue Flag) const
 		{		
-			const auto& Flags = mRegistersReference.FLags();
+			const auto& Flags = mRegistersReference.fLags();
 	
 			return (Flags >> Flag) & 1;
 		}
 	
 		template <class T>
-		bool CheckParity(T Value)
+		bool checkParity(T Value)
 		{
 			std::uint8_t Parity = 0;
 			for (std::uint8_t NumberOfBit = 0; NumberOfBit < sizeof(Value); ++NumberOfBit)
@@ -601,7 +601,7 @@ namespace nne
 		}
 	
 		template <class T, class S>
-		bool CheckCarryFromBit(std::uint8_t Bit, T OldValue, S NewValue)
+		bool checkCarryFromBit(std::uint8_t Bit, T OldValue, S NewValue)
 		{
 			// Create a bit mask
 			int BitMask = 0xFF & (1 << (Bit + 1));
@@ -613,7 +613,7 @@ namespace nne
 		}
 	
 		template <class T, class S>
-		bool CheckBorrowFromBit(std::uint8_t Bit, T OldValue, S NewValue)
+		bool checkBorrowFromBit(std::uint8_t Bit, T OldValue, S NewValue)
 		{
 			// Create a bit mask
 			int BitMask = 0xFF & (0x80 >> (Bit - 1));
@@ -625,7 +625,7 @@ namespace nne
 		}
 	
 		template <class T, class S>
-		bool CheckOverflow(T OldValue, S NewValue)
+		bool checkOverflow(T OldValue, S NewValue)
 		{
 			// Check the overflow in the first 7 bit
 			auto TempOldValue = OldValue & 0x7F;

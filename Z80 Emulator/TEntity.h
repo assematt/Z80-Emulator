@@ -22,37 +22,31 @@ namespace nne
 
 		/// Helper function to make an entity
 		template <typename... TArgs>
-		static TEntityPtr MakeEntity(TArgs&&... mArgs)
+		static TEntityPtr makeEntity(TArgs&&... mArgs)
 		{
 			return std::make_unique<TEntity>(std::forward<TArgs>(mArgs)...);
 		}
 
 		/// Function to check if a function in alive
-		const bool IsAlive() const;
+		const bool isAlive() const;
 
 		/// Helper function to kill the entity
-		void Kill();
+		void kill();
 
-		/// Update function
-		virtual void Update();
+		/// update function
+		virtual void update();
 
-		/// Update function
-		virtual void Refresh();
+		/// update function
+		virtual void refresh();
 
 		/// Init function
-		virtual void Init();
-
-		/// This function is called when the entity is created
-		void OnCreate();
-
-		/// This function is called when the entity is destroyed
-		void OnDestroy();
+		virtual void init();
 
 		/// Get entity ID
-		const TEntityID& GetEntityID() const;
+		const TEntityID& getEntityID() const;
 
 		/// 
-		virtual void MakeVirtual() = 0;
+		virtual void makeVirtual() = 0;
 	private:
 		bool mAlive;
 		TManager* mParent;

@@ -14,23 +14,23 @@ namespace nne
 	public:
 		TDebugger();
 
-		void ClearWindow();
+		void clearWindow();
 
-		void ShowDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU16BitValue& AddressBus, const nne::TClock& Clock);
+		void showDebugWindow(const TRegisterContainer& Registers, const TMemory* Memory, const TU8BitValue& DataBus, const TU16BitValue& AddressBus, const nne::TClock& Clock);
 
 	private:
 
-		void ShowProgramMemory(const nne::T16BitRegister& ProgramCounter, const TMemory& Memory);
+		void showProgramMemory(const nne::T16BitRegister& ProgramCounter, const TMemory& Memory);
 
-		void ShowFlags(const nne::T8BitRegister& FlagRegister);
+		void showFlags(const nne::T8BitRegister& FlagRegister);
 
-		void ShowRegistersValue(const TRegisterContainer& Registers);
+		void showRegistersValue(const TRegisterContainer& Registers);
 
-		void ShowTiming(const nne::TClock& Clock);
+		void showTiming(const nne::TClock& Clock);
 
-		void ShowDataBus(const TU8BitValue& Value);
+		void showDataBus(const TU8BitValue& Value);
 
-		void ShowAddressBus(const TU16BitValue& Value);
+		void showAddressBus(const TU16BitValue& Value);
 
 	private:
 		HANDLE mConsoleHandle;

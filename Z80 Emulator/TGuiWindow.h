@@ -9,13 +9,13 @@ namespace nne
 	public:
 		TGuiWindow();
 
-		static sf::RenderWindow& GetInstance();
+		static sf::RenderWindow& getInstance();
 
-		void Clear();
+		void clear();
 
-		void Display();
+		void display();
 
-		void Draw(const sf::Drawable &Drawable, const sf::RenderStates &States = sf::RenderStates::Default);
+		void draw(const sf::Drawable &drawable, const sf::RenderStates &States = sf::RenderStates::Default);
 
 	private:
 		sf::RenderWindow mRenderSurface;

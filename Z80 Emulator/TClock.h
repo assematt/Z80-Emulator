@@ -13,13 +13,13 @@ namespace nne
 	
 		TClock(const TFrequency Frequency);
 
-		bool Wait();
+		bool wait();
 
-		void Restart();
+		void restart();
 
-		const sf::Time& GetElapsedTime();
+		const sf::Time& getElapsedTime();
 
-		const sf::Time& GetDuration() const;
+		const sf::Time& getDuration() const;
 
 	private:
 		TFrequency mFrequency;

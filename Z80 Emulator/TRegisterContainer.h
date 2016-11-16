@@ -67,7 +67,7 @@ namespace nne
 	public:
 	
 		/// Function to reset the state of the registers
-		void Reset()
+		void reset()
 		{
 			// Reset the input vector and refresh counter register
 			mIRegister = 0;
@@ -96,29 +96,29 @@ namespace nne
 	
 		/// Function to get the value of the registers
 		template <class T>
-		inline T& GetRegister(const TRegisterType& Register);
+		inline T& getRegister(const TRegisterType& Register);
 		template <>
-		inline nne::T8BitRegister& GetRegister(const TRegisterType& Register)
+		inline nne::T8BitRegister& getRegister(const TRegisterType& Register)
 		{
 			switch (Register)
 			{
 				// Accumulator
-				case TRegisterType::A: return mAFRegister.GetHighOrderRegister();
+				case TRegisterType::A: return mAFRegister.getHighOrderRegister();
 	
 				// BC register
-				case TRegisterType::B: return mBCRegister.GetHighOrderRegister();
-				case TRegisterType::C: return mBCRegister.GetLowOrderRegister();
+				case TRegisterType::B: return mBCRegister.getHighOrderRegister();
+				case TRegisterType::C: return mBCRegister.getLowOrderRegister();
 	
 				// DE register
-				case TRegisterType::D: return mDERegister.GetHighOrderRegister();
-				case TRegisterType::E: return mDERegister.GetLowOrderRegister();
+				case TRegisterType::D: return mDERegister.getHighOrderRegister();
+				case TRegisterType::E: return mDERegister.getLowOrderRegister();
 	
 				// Flag register
-				case TRegisterType::F: return mAFRegister.GetLowOrderRegister();
+				case TRegisterType::F: return mAFRegister.getLowOrderRegister();
 	
 				// HL register
-				case TRegisterType::H: return mHLRegister.GetHighOrderRegister();
-				case TRegisterType::L: return mHLRegister.GetLowOrderRegister();
+				case TRegisterType::H: return mHLRegister.getHighOrderRegister();
+				case TRegisterType::L: return mHLRegister.getLowOrderRegister();
 	
 				// Interrupt vector
 				case TRegisterType::I: return mIRegister;
@@ -126,7 +126,7 @@ namespace nne
 			}
 		}
 		template <>
-		inline nne::T16BitRegister& GetRegister(const TRegisterType& Register)
+		inline nne::T16BitRegister& getRegister(const TRegisterType& Register)
 		{
 			switch (Register)
 			{
@@ -152,29 +152,29 @@ namespace nne
 	
 		/// Function to get the value of the registers read-only
 		template <class T>
-		inline const T& GetRegister(const TRegisterType& Register) const;
+		inline const T& getRegister(const TRegisterType& Register) const;
 		template <>
-		inline const nne::T8BitRegister& GetRegister(const TRegisterType& Register) const
+		inline const nne::T8BitRegister& getRegister(const TRegisterType& Register) const
 		{
 			switch (Register)
 			{
 				// Accumulator
-				case TRegisterType::A: return mAFRegister.GetHighOrderRegister();
+				case TRegisterType::A: return mAFRegister.getHighOrderRegister();
 
 				// BC register
-				case TRegisterType::B: return mBCRegister.GetHighOrderRegister();
-				case TRegisterType::C: return mBCRegister.GetLowOrderRegister();
+				case TRegisterType::B: return mBCRegister.getHighOrderRegister();
+				case TRegisterType::C: return mBCRegister.getLowOrderRegister();
 
 				// DE register
-				case TRegisterType::D: return mDERegister.GetHighOrderRegister();
-				case TRegisterType::E: return mDERegister.GetLowOrderRegister();
+				case TRegisterType::D: return mDERegister.getHighOrderRegister();
+				case TRegisterType::E: return mDERegister.getLowOrderRegister();
 
 				// Flag register
-				case TRegisterType::F: return mAFRegister.GetLowOrderRegister();
+				case TRegisterType::F: return mAFRegister.getLowOrderRegister();
 
 				// HL register
-				case TRegisterType::H: return mHLRegister.GetHighOrderRegister();
-				case TRegisterType::L: return mHLRegister.GetLowOrderRegister();
+				case TRegisterType::H: return mHLRegister.getHighOrderRegister();
+				case TRegisterType::L: return mHLRegister.getLowOrderRegister();
 
 				// Interrupt vector
 				case TRegisterType::I: return mIRegister;
@@ -182,7 +182,7 @@ namespace nne
 			}
 		}
 		template <>
-		inline const nne::T16BitRegister& GetRegister(const TRegisterType& Register) const
+		inline const nne::T16BitRegister& getRegister(const TRegisterType& Register) const
 		{
 			switch (Register)
 			{
@@ -207,43 +207,43 @@ namespace nne
 		}
 	
 		/// Helper function to get the program counter
-		nne::T16BitRegister& ProgramCounter()
+		nne::T16BitRegister& programCounter()
 		{
 			return mPCRegister;
 		}
-		const nne::T16BitRegister& ProgramCounter() const
+		const nne::T16BitRegister& programCounter() const
 		{
 			return mPCRegister;
 		}
 	
 		/// Helper function to get the stack pointer
-		nne::T16BitRegister& StackPointer()
+		nne::T16BitRegister& stackPointer()
 		{
 			return mSPRegister;
 		}
-		const nne::T16BitRegister& StackPointer() const
+		const nne::T16BitRegister& stackPointer() const
 		{
 			return mSPRegister;
 		}
 	
 		/// Helper function to get the accumulator
-		nne::T8BitRegister& Accumulator()
+		nne::T8BitRegister& accumulator()
 		{
-			return mAFRegister.GetHighOrderRegister();
+			return mAFRegister.getHighOrderRegister();
 		}
-		const nne::T8BitRegister& Accumulator() const
+		const nne::T8BitRegister& accumulator() const
 		{
-			return mAFRegister.GetHighOrderRegister();
+			return mAFRegister.getHighOrderRegister();
 		}
 	
 		/// Helper function to get the accumulator
-		nne::T8BitRegister& FLags()
+		nne::T8BitRegister& fLags()
 		{
-			return mAFRegister.GetLowOrderRegister();
+			return mAFRegister.getLowOrderRegister();
 		}
-		const nne::T8BitRegister& FLags() const
+		const nne::T8BitRegister& fLags() const
 		{
-			return mAFRegister.GetLowOrderRegister();
+			return mAFRegister.getLowOrderRegister();
 		}
 	
 	private:

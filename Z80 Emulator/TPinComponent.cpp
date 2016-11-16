@@ -7,10 +7,10 @@ namespace nne
 
 		TPinComponent::TPinComponent(const std::initializer_list<TPin>& PinList, std::size_t PinCount)
 		{
-			SetupPins(PinList, PinCount);
+			setupPins(PinList, PinCount);
 		}
 
-		void TPinComponent::SetupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount)
+		void TPinComponent::setupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount)
 		{
 			mPins.resize(PinCount);
 
@@ -27,14 +27,14 @@ namespace nne
 			return mPins[PinToSelect];
 		}
 
-		void TPinComponentUtility::ConnectPins(TPin& LeftPin, TPin& RightPin)
+		void TPinComponentUtility::connectPins(TPin& LeftPin, TPin& RightPin)
 		{
 			RightPin.mPinConnections.push_back(&LeftPin);
 
 			LeftPin.mPinConnections.push_back(&RightPin);
 		}
 
-		void TPinComponentUtility::ConnectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
+		void TPinComponentUtility::connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
 		{
 			for (auto Pin : RightPins)
 			{
@@ -44,7 +44,7 @@ namespace nne
 			}
 		}
 		
-		void TPinComponentUtility::ConnectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
+		void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
 		{
 			// 
 			for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
@@ -54,22 +54,22 @@ namespace nne
 			}
 		}
 
-		void TPinComponentUtility::DetachPins(TPin& LeftPin, TPin& RightPin)
+		void TPinComponentUtility::detachPins(TPin& LeftPin, TPin& RightPin)
 		{
 
 		}
 
-		void TPinComponentUtility::DetachPins(const TPinBus& LeftBus, const TPinBus& RightBus)
+		void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus)
 		{
 
 		}
 
-		void TPinComponentUtility::DetachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
+		void TPinComponentUtility::detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
 		{
 
 		}
 
-		TPinBus TPinComponent::GetPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin /*= 0*/, const TPinBusIndex BusEnd /*= 0*/)
+		TPinBus TPinComponent::getPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin /*= 0*/, const TPinBusIndex BusEnd /*= 0*/)
 		{
 			// store the return value
 			TPinBus ReturnValue(mPins.end(), mPins.end());
@@ -91,17 +91,17 @@ namespace nne
 			return TPinBus(ReturnValue.first + BusBegin, ReturnValue.first + BusEnd + 1);
 		}
 
-		TPinList& TPinComponent::GetPinList()
+		TPinList& TPinComponent::getPinList()
 		{
 			return mPins;
 		}
 
-		const TPinList& TPinComponent::GetPinList() const
+		const TPinList& TPinComponent::getPinList() const
 		{
 			return mPins;
 		}
 
-		TPin& TPinComponent::GetPin(TPin::TPinNumber PinToSelect)
+		TPin& TPinComponent::getPin(TPin::TPinNumber PinToSelect)
 		{
 			assert((PinToSelect < mPins.size()) && "Pin out of bound");
 
@@ -115,19 +115,19 @@ namespace nne
 			return mPins[PinToSelect];
 		}
 
-		const TPin& TPinComponent::GetPin(TPin::TPinNumber PinToSelect) const
+		const TPin& TPinComponent::getPin(TPin::TPinNumber PinToSelect) const
 		{
 			// TODO: insert return statement here
 			return mPins[PinToSelect];
 		}
 
-		void TPinComponent::Init()
-		{
+		void TPinComponent::init()
+{
 
 		}
 
-		void TPinComponent::Update()
-		{
+		void TPinComponent::update()
+{
 			
 		}
 

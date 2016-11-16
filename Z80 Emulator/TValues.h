@@ -14,6 +14,5 @@ using TS16BitValue = std::int16_t;
 
 // 
 using TMemoryAddress = std::uint16_t;
-//using TMemory = std::array<TU8BitValue, 65536 >;
 using TMemory = std::vector<TU8BitValue>;
 

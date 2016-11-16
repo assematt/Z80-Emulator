@@ -8,22 +8,22 @@ namespace nne
 	{
 	}
 
-	void TSprite::Init()
-	{
+	void TSprite::init()
+{
 		mVertexArray = std::make_shared<sf::VertexArray>(sf::TriangleStrip, 4);
 		mTexture = std::make_shared<sf::Texture>();
 
-		mParent->GetComponentAsPtr<TDrawableVector>()->PushDrawableObject({ mVertexArray, mTexture.get() });
+		mParent->getComponentAsPtr<TdrawableVector>()->pushdrawableObject({ mVertexArray, mTexture.get() });
 	}
 
-	void TSprite::SetTexture(const sf::Texture& Texture)
+	void TSprite::setTexture(const sf::Texture& Texture)
 	{
 		*mTexture = Texture;
 
-		UpdateTextureBounds(static_cast<sf::Vector2f>(Texture.getSize()));
+		updateTextureBounds(static_cast<sf::Vector2f>(Texture.getSize()));
 	}
 
-	void TSprite::SetOpacity(sf::Uint8 Opacity)
+	void TSprite::setOpacity(sf::Uint8 Opacity)
 	{
 		mOpacity = Opacity;
 
@@ -33,17 +33,17 @@ namespace nne
 		(*mVertexArray)[3].color *= { 255, 255, 255, Opacity };
 	}
 
-	const sf::Texture& TSprite::GetTexture() const
+	const sf::Texture& TSprite::getTexture() const
 	{
 		return *mTexture;
 	}
 
-	const sf::Uint8& TSprite::GetOpacity() const
+	const sf::Uint8& TSprite::getOpacity() const
 	{
 		return mOpacity;
 	}
 
-	void TSprite::SetSize(const sf::Vector2u& Size)
+	void TSprite::setSize(const sf::Vector2u& Size)
 	{
 		(*mVertexArray)[0].position = { 0.f, 0.f };
 		(*mVertexArray)[1].position = { 0.f, static_cast<float>(Size.y) };
@@ -51,12 +51,12 @@ namespace nne
 		(*mVertexArray)[3].position = { static_cast<float>(Size.x), static_cast<float>(Size.y) };
 	}
 
-	const sf::Vector2u& TSprite::GetSize() const
+	const sf::Vector2u& TSprite::getSize() const
 	{
 		return static_cast<sf::Vector2u>((*mVertexArray)[3].position);
 	}
 
-	void TSprite::UpdateTextureBounds(const sf::Vector2f& NewTextureSize)
+	void TSprite::updateTextureBounds(const sf::Vector2f& NewTextureSize)
 	{
 		(*mVertexArray)[0].texCoords = { 0.f, 0.f };
 		(*mVertexArray)[0].position = { 0.f, 0.f };

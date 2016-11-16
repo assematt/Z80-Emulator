@@ -7,51 +7,51 @@ namespace nne
 
 		TGuiButton::TGuiButton()
 		{
-			Init();
+			init();
 		}
 
-		void TGuiButton::Init()
+		void TGuiButton::init()
 		{
-			AddComponent<TTransformable>();
-			AddComponent<TDrawableVector>();
-			AddComponent<TText>();
-			InitComponents();
+			addComponent<TTransformable>();
+			addComponent<TdrawableVector>();
+			addComponent<TText>();
+			initComponents();
 			
-			GetComponentAsPtr<TText>()->SetFont(TCacheManager::GetInstance().GetResource<sf::Font>("font_1"));
-			GetComponentAsPtr<TText>()->SetString(GetName());
+			getComponentAsPtr<TText>()->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
+			getComponentAsPtr<TText>()->setString(getName());
 		}
 
-		void TGuiButton::Refresh(const sf::Time& ElapsedTime)
+		void TGuiButton::refresh(const sf::Time& ElapsedTime)
 		{
-			TGuiWidget::Refresh(ElapsedTime);
+			TGuiWidget::refresh(ElapsedTime);
 		}
 
-		void TGuiButton::Update(const sf::Time& ElapsedTime)
+		void TGuiButton::update(const sf::Time& ElapsedTime)
 		{
-			TGuiWidget::Update(ElapsedTime);
+			TGuiWidget::update(ElapsedTime);
 		}
 
 		void TGuiButton::SetCaption(const std::string& WidgetName)
 		{
-			GetComponentAsPtr<TText>()->SetString(WidgetName);
+			getComponentAsPtr<TText>()->setString(WidgetName);
 		}
 
 		const std::string& TGuiButton::GetCaption() const
 		{
-			return GetComponentAsPtr<TText>()->GetString();
+			return getComponentAsPtr<TText>()->getString();
 		}
 
 		void TGuiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
-			states.transform *= this->GetComponentAsPtr<TTransformable>()->GetTransform();
+			states.transform *= this->getComponentAsPtr<TTransformable>()->getTransform();
 
-			auto& DrawablesComponent = *GetComponentAsPtr<TDrawableVector>();
-			auto& TextComponent = *GetComponentAsPtr<TText>();
+			auto& drawablesComponent = *getComponentAsPtr<TdrawableVector>();
+			auto& TextComponent = *getComponentAsPtr<TText>();
 
-			for (std::size_t Index = 0; Index < DrawablesComponent.GetVectorSize(); ++Index)
+			for (std::size_t Index = 0; Index < drawablesComponent.getVectorSize(); ++Index)
 			{
-				states.texture = TextComponent.GetTexture();
-				target.draw(DrawablesComponent[Index].GetVertexArray(), states);
+				states.texture = TextComponent.getTexture();
+				target.draw(drawablesComponent[Index].getVertexArray(), states);
 			}
 		}
 

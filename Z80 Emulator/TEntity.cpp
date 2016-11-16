@@ -8,43 +8,37 @@ namespace nne
 	{
 	}
 	
-	const bool TEntity::IsAlive() const
+	const bool TEntity::isAlive() const
 	{
 		return mAlive;
 	}
 	
-	void TEntity::Kill()
+	void TEntity::kill()
 	{
 		mAlive = false;
 	}
 
-	void TEntity::Update()
+	void TEntity::update()
 	{
 		for (auto& Component : mComponents)
 		{
-			Component->Update();
+			Component->update();
 		}
 	}
 
-	void TEntity::Init()
+	void TEntity::init()
 	{
 	}
 
-	void TEntity::Refresh()
+	void TEntity::refresh()
 	{
-	}
-	
-	void TEntity::OnCreate()
-	{
-		std::cout << "Entity created" << std::endl;
-	}
-	
-	void TEntity::OnDestroy()
-	{
-		std::cout << "Entity destroyed" << std::endl;
+		for (auto& Component : mComponents)
+		{
+			Component->refresh();
+		}
 	}
 
-	const TEntity::TEntityID& TEntity::GetEntityID() const
+	const TEntity::TEntityID& TEntity::getEntityID() const
 	{
 		return mID;
 	}

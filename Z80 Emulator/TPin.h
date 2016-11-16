@@ -48,26 +48,26 @@ namespace nne
 			operator const TStatus() const;
 
 			/// Function to change the pin status
-			void ChangePinStatus(const TStatus& NewStatus, bool Propagate = false);
+			void changePinStatus(const TStatus& NewStatus, bool Propagate = false);
 
 			/// Explicit member assignment
-			TStatus GetPinStatus();
-			const TStatus GetPinStatus() const;
+			TStatus getPinStatus();
+			const TStatus getPinStatus() const;
 
 			/// Get Pin ID
-			const TPinID& GetPinID();
+			const TPinID& getPinID();
 
 		private:
-			static TPinID GenerateID();
+			static TPinID generateID();
 			
 		private:
-			friend TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
-			friend TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right);
-			friend TPin::TStatus LogicNot(const TPin::TStatus& Pin);
-			friend TPin::TStatus LogicNand(const TPin::TStatus& Left, const TPin::TStatus& Right);
-			friend TPin::TStatus LogicNor(const TPin::TStatus& Left, const TPin::TStatus& Right);
-			friend TPin::TStatus LogicXor(const TPin::TStatus& Left, const TPin::TStatus& Right);
-			friend TPin::TStatus LogicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right);
+			friend TPin::TStatus logicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
+			friend TPin::TStatus logicOr(const TPin::TStatus& Left, const TPin::TStatus& Right);
+			friend TPin::TStatus logicNot(const TPin::TStatus& Pin);
+			friend TPin::TStatus logicNand(const TPin::TStatus& Left, const TPin::TStatus& Right);
+			friend TPin::TStatus logicNor(const TPin::TStatus& Left, const TPin::TStatus& Right);
+			friend TPin::TStatus logicXor(const TPin::TStatus& Left, const TPin::TStatus& Right);
+			friend TPin::TStatus logicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right);
 
 		public:
 			TMode			mPinMode;
@@ -83,12 +83,12 @@ namespace nne
 		};
 	
 
-		TPin::TStatus LogicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
-		TPin::TStatus LogicOr(const TPin::TStatus& Left, const TPin::TStatus& Right);
-		TPin::TStatus LogicNot(const TPin::TStatus& Pin);
-		TPin::TStatus LogicNand(const TPin::TStatus& Left, const TPin::TStatus& Right);
-		TPin::TStatus LogicNor(const TPin::TStatus& Left, const TPin::TStatus& Right);
-		TPin::TStatus LogicXor(const TPin::TStatus& Left, const TPin::TStatus& Right);
-		TPin::TStatus LogicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right);
+		TPin::TStatus logicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
+		TPin::TStatus logicOr(const TPin::TStatus& Left, const TPin::TStatus& Right);
+		TPin::TStatus logicNot(const TPin::TStatus& Pin);
+		TPin::TStatus logicNand(const TPin::TStatus& Left, const TPin::TStatus& Right);
+		TPin::TStatus logicNor(const TPin::TStatus& Left, const TPin::TStatus& Right);
+		TPin::TStatus logicXor(const TPin::TStatus& Left, const TPin::TStatus& Right);
+		TPin::TStatus logicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right);
 	}
 }

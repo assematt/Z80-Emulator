@@ -15,68 +15,68 @@ namespace nne
 
 		TTransformable();
 		
-		void Init() override {}
+		void init() override {}
 
-		void Update() override {}
+		void update() override {}
 
-		void Refresh() override;
+		void refresh() override;
 
 		/// Function to set the entity position
-		void SetPosition(float x, float y);
-		void SetPosition(const sf::Vector2f& position);
+		void setPosition(float x, float y);
+		void setPosition(const sf::Vector2f& position);
 
 		/// Function to set the entity rotation
-		void SetRotation(float angle);
+		void setRotation(float angle);
 
 		/// Function to set the entity scale
-		void SetScale(float factorX, float factorY);
-		void SetScale(const sf::Vector2f& factors);
+		void setScale(float factorX, float factorY);
+		void setScale(const sf::Vector2f& factors);
 
 		/// Function to set the entity origin
-		void SetOrigin(float x, float y);
-		void SetOrigin(const sf::Vector2f& origin);
+		void setOrigin(float x, float y);
+		void setOrigin(const sf::Vector2f& origin);
 
 		/// Function to get the entity position
-		const sf::Vector2f& GetPosition() const;
+		const sf::Vector2f& getPosition() const;
 
 		/// Function to get the entity rotation
-		float GetRotation() const;
+		float getRotation() const;
 
 		/// Get the entity scale
-		const sf::Vector2f& GetScale() const;
+		const sf::Vector2f& getScale() const;
 
 		/// Get the entity origin
-		const sf::Vector2f& GetOrigin() const;
+		const sf::Vector2f& getOrigin() const;
 
 		/// Function to get the entity bounds
-		const sf::FloatRect& GetBounds();
+		const sf::FloatRect& getBounds();
 
 		/// Function to get the entity size
-		const sf::Vector2f& GetSize() const;
+		const sf::Vector2f& getSize() const;
 
 		/// Move the entity by a specified offset
-		void Move(float offsetX, float offsetY);
-		void Move(const sf::Vector2f& offset);
+		void move(float offsetX, float offsetY);
+		void move(const sf::Vector2f& offset);
 
 		/// Rotate the entity by a specified amount
-		void Rotate(float angle);
+		void rotate(float angle);
 
 		/// Scale the entity by a specified amount
-		void Scale(float factorX, float factorY);
-		void Scale(const sf::Vector2f& factor);
+		void scale(float factorX, float factorY);
+		void scale(const sf::Vector2f& factor);
 
 		/// Function to get the internal transform object
-		const sf::Transform& GetTransform() const;
-		const sf::Transform& GetInverseTransform() const;
+		const sf::Transform& getTransform() const;
+		const sf::Transform& getInverseTransform() const;
 
 	private:
-		void UpdateBounds();
-		const float ComputeWidth(const sf::VertexArray& Vertices) const;
-		const float ComputeHeigth(const sf::VertexArray& Vertices) const;
+		void updateBounds();
+		const float computeWidth(const sf::VertexArray& Vertices) const;
+		const float computeHeigth(const sf::VertexArray& Vertices) const;
 
 	private:
 		sf::Transformable mTransformable;
 		sf::FloatRect mBounds;
-		bool mNeedRefresh;
+		bool mNeedrefresh;
 	};
 }

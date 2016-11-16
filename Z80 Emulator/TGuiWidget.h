@@ -12,7 +12,6 @@
 #include "TLogicEntity.h"
 #include "TEntity.h"
 #include "TSprite.h"
-#include "TFont.h"
 
 namespace nne
 {
@@ -43,55 +42,55 @@ namespace nne
 			using UniquePtr = std::unique_ptr<TGuiWidget>;
 			using SharedPtr = std::shared_ptr<TGuiWidget>;
 			
-			using nne::TLogicEntity::Update;
-			using nne::TLogicEntity::Refresh;
+			using nne::TLogicEntity::update;
+			using nne::TLogicEntity::refresh;
 
 			TGuiWidget();
 			TGuiWidget(const std::string WidgetName);
 			virtual ~TGuiWidget();
 
-			virtual void Init();
+			virtual void init();
 
-			virtual void Refresh(const sf::Time& ElapsedTime) override;
+			virtual void refresh(const sf::Time& ElapsedTime) override;
 
-			virtual void Update(const sf::Time& ElapsedTime) override;
+			virtual void update(const sf::Time& ElapsedTime) override;
 
 			/// Functions to get/set the widget name
-			void SetName(const std::string& WidgetName);
-			const std::string& GetName() const;
+			void setName(const std::string& WidgetName);
+			const std::string& getName() const;
 
 			/// Functions to get/set the widget size
-			virtual void SetSize(const sf::Vector2u& WidgetSize);
-			virtual const sf::Vector2u& GetSize() const;
+			virtual void setSize(const sf::Vector2u& WidgetSize);
+			virtual const sf::Vector2u& getSize() const;
 
 			/// Functions to get/set the widget position
-			void SetPosition(const sf::Vector2f& WidgetSize);
-			const sf::Vector2f& GetPosition() const;
+			void setPosition(const sf::Vector2f& WidgetSize);
+			const sf::Vector2f& getPosition() const;
 
 			/// Functions to get/set the widget visibility
-			void SetVisibility(bool Show = true);
-			bool GetVisibility();
+			void setVisibility(bool Show = true);
+			bool IsVisible();
 
 			/// Functions to get/set the widget ability to accept input
-			void EnableInput();
-			void DisableInput();
-			bool IsInputEnabled();
+			void enableInput();
+			void disableInput();
+			bool isInputEnabled();
 
 			/// Connect a signal to the widget
-			void ConnectSignal(const tevent::BaseEvent& Function, const tevent::TEventTypes& SignalToConnect);
+			void connectSignal(const tevent::BaseEvent& Function, const tevent::TEventTypes& SignalToConnect);
 
 			/// Raise a signal
-			void RaiseSignal(const tevent::TEventTypes& SignalToConnect, const sf::Event::MouseButtonEvent& Button)
+			void raiseSignal(const tevent::TEventTypes& SignalToConnect, const sf::Event::MouseButtonEvent& Button)
 			{
 				if (mSignals[SignalToConnect])
 					mSignals[SignalToConnect](Button);
 			}
 
 			/// Get the widget bound
-			const sf::FloatRect& GetWidgetBound() const;
+			const sf::FloatRect& getWidgetBound() const;
 		
 		private:
-			void MakeVirtual() override {};
+			void makeVirtual() override {};
 			virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
 
 		private:

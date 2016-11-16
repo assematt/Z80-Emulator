@@ -2,7 +2,6 @@
 
 #include "TEntity.h"
 #include "TUtility.h"
-#include "TComponentHandle.h"
 
 #include <array>
 #include <bitset>
@@ -25,13 +24,13 @@ namespace nne
 
 		/// Function to add a component to the entity
 		template <class T, typename... TArgs>
-		void AddComponent(TArgs&&... mArgs)
+		void addComponent(TArgs&&... mArgs)
 		{
 			// Make sure we are not adding a duplicate component
-			assert(!HasComponent<T>());
+			assert(!hasComponent<T>());
 
 			// Compute an unique ID
-			TID UniqueID = TUtility::GetTypeID<TID, T>();
+			TID UniqueID = TUtility::getTypeID<TID, T>();
 
 			// Creates a shared ptr that hold the component and set his parent entity and component id value
 			auto NewComponentPtr = std::make_shared<T>(std::forward<TArgs>(mArgs)...);
@@ -51,10 +50,10 @@ namespace nne
 		}
 
 		template <class T>
-		void AddComponent(std::shared_ptr<T>&& Move)
+		void addComponent(std::shared_ptr<T>&& Move)
 		{
 			// Make sure we are not adding a duplicate component
-			assert(!HasComponent<T>() && "A is not equal to B");
+			assert(!hasComponent<T>() && "A is not equal to B");
 
 			// Put the position of the newly created shared_ptr in the mComponentsArray for easy access
 			mComponentsArray[Move->mID] = mComponents.size();
@@ -67,13 +66,13 @@ namespace nne
 
 		/// Function to remove a component by component type
 		template <class T>
-		inline void RemoveComponent()
+		inline void removeComponent()
 		{
-			RemoveComponent(TUtility::GetTypeID<TID, T>());
+			removeComponent(TUtility::getTypeID<TID, T>());
 		}
 
 		/// Function to remove a component by component ID
-		inline void RemoveComponent(TID ID)
+		inline void removeComponent(TID ID)
 		{
 			// Delete the component and flag the component as dead
 			mComponents.erase(mComponents.begin() + ID);
@@ -83,23 +82,23 @@ namespace nne
 
 		/// Function to get a component by component type as cast
 		template <class T>
-		inline T& GetComponent() const
+		inline T& getComponent() const
 		{
-			return *dynamic_cast<T*>(GetComponent(TUtility::GetTypeID<TID, T>()).get());
+			return *dynamic_cast<T*>(getComponent(TUtility::getTypeID<TID, T>()).get());
 		}
 
 		/// Function to get a component by component type as shared_ptr 
 		template <class T>
-		inline std::shared_ptr<T> GetComponentAsPtr() const
+		inline std::shared_ptr<T> getComponentAsPtr() const
 		{
-			return std::static_pointer_cast<T>(GetComponent(TUtility::GetTypeID<TID, T>()));
+			return std::static_pointer_cast<T>(getComponent(TUtility::getTypeID<TID, T>()));
 		}
 
 		/// Function to get a component to the entity by component ID
-		inline TComponentPtr GetComponent(TID ID) const
+		inline TComponentPtr getComponent(TID ID) const
 		{
 			// Make sure the component we are trying to get exist
-			assert(HasComponent(ID) && "A is not equal to B");
+			assert(hasComponent(ID) && "A is not equal to B");
 
 			// Get the component from the array
 			return mComponents[mComponentsArray[ID]];
@@ -107,37 +106,37 @@ namespace nne
 
 		/// Function to check if a component exist by component type
 		template <class T>
-		inline const bool HasComponent() const
+		inline const bool hasComponent() const
 		{
-			return mComponentsState[TUtility::GetTypeID<TID, T>()];
+			return mComponentsState[TUtility::getTypeID<TID, T>()];
 		}
 
 		/// Function to check if a component exist by component ID
-		inline const bool HasComponent(TID ID) const
+		inline const bool hasComponent(TID ID) const
 		{
 			return mComponentsState[ID];
 		}
 
 		/// Function that init all the components
-		inline void InitComponents()
+		inline void initComponents()
 		{
 			for (auto& Component : mComponents)
 			{
-				Component->Init();
+				Component->init();
 			}
 		}
 
 		/// Function that init a single component by component type
 		template <class T>
-		inline void InitComponent()
+		inline void initComponent()
 		{
-			GetComponent<T>().Init();
+			getComponent<T>().init();
 		}
 
 		/// Function that init a single component by component ID
-		inline void InitComponent(TID ID)
+		inline void initComponent(TID ID)
 		{
-			GetComponent(ID)->Init();
+			getComponent(ID)->init();
 		}
 
 	private:

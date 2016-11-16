@@ -4,80 +4,80 @@ namespace nne
 {
 
 	TTransformable::TTransformable() :
-		mNeedRefresh(false)
+		mNeedrefresh(false)
 	{
 	}
 
-	void TTransformable::Refresh()
-	{
-		if (mNeedRefresh)
-			UpdateBounds();
+	void TTransformable::refresh()
+{
+		if (mNeedrefresh)
+			updateBounds();
 	}
 
-	void TTransformable::SetPosition(float x, float y)
+	void TTransformable::setPosition(float x, float y)
 	{
 		mTransformable.setPosition(x, y);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::SetRotation(float angle)
+	void TTransformable::setRotation(float angle)
 	{
 		mTransformable.setRotation(angle);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::SetScale(float factorX, float factorY)
+	void TTransformable::setScale(float factorX, float factorY)
 	{
 		mTransformable.setScale(factorX, factorY);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::SetOrigin(float x, float y)
+	void TTransformable::setOrigin(float x, float y)
 	{
 		mTransformable.setOrigin(x, y);
 	}
 
-	const sf::Vector2f& TTransformable::GetPosition() const
+	const sf::Vector2f& TTransformable::getPosition() const
 	{
 		return mTransformable.getPosition();
 	}
 
-	float TTransformable::GetRotation() const
+	float TTransformable::getRotation() const
 	{
 		return mTransformable.getRotation();
 	}
 
-	const sf::Vector2f& TTransformable::GetScale() const
+	const sf::Vector2f& TTransformable::getScale() const
 	{
 		return mTransformable.getScale();
 	}
 
-	const sf::Vector2f& TTransformable::GetOrigin() const
+	const sf::Vector2f& TTransformable::getOrigin() const
 	{
 		return mTransformable.getOrigin();
 	}
 
-	const sf::FloatRect& TTransformable::GetBounds()
+	const sf::FloatRect& TTransformable::getBounds()
 	{
-		UpdateBounds();
+		updateBounds();
 
 		return mBounds;
 	}
 
-	const sf::Vector2f& TTransformable::GetSize() const
+	const sf::Vector2f& TTransformable::getSize() const
 	{
-		auto& Drawables = *mParent->GetComponentAsPtr<TDrawableVector>();
+		auto& drawables = *mParent->getComponentAsPtr<TdrawableVector>();
 		
-		float MaxWidth = ComputeWidth(Drawables[0].GetVertexArray());
-		float MaxHeight = ComputeHeigth(Drawables[0].GetVertexArray());
+		float MaxWidth = computeWidth(drawables[0].getVertexArray());
+		float MaxHeight = computeHeigth(drawables[0].getVertexArray());
 
-		for (std::size_t Index = 1; Index < Drawables.GetVectorSize(); ++Index)
+		for (std::size_t Index = 1; Index < drawables.getVectorSize(); ++Index)
 		{
-			const auto& CompWidth = ComputeWidth(Drawables[Index].GetVertexArray());
-			const auto& CompHeight = ComputeHeigth(Drawables[Index].GetVertexArray());
+			const auto& CompWidth = computeWidth(drawables[Index].getVertexArray());
+			const auto& CompHeight = computeHeigth(drawables[Index].getVertexArray());
 
 			MaxWidth = MaxWidth < CompWidth ? CompWidth : MaxWidth;
 			MaxHeight = MaxHeight < CompHeight ? CompHeight : MaxHeight;
@@ -86,43 +86,43 @@ namespace nne
 		return sf::Vector2f(MaxWidth, MaxHeight);
 	}
 
-	void TTransformable::Move(float offsetX, float offsetY)
+	void TTransformable::move(float offsetX, float offsetY)
 	{
 		mTransformable.move(offsetX, offsetY);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::Rotate(float angle)
+	void TTransformable::rotate(float angle)
 	{
 		mTransformable.rotate(angle);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::Scale(float factorX, float factorY)
+	void TTransformable::scale(float factorX, float factorY)
 	{
 		mTransformable.scale(factorX, factorY);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	const sf::Transform& TTransformable::GetTransform() const
+	const sf::Transform& TTransformable::getTransform() const
 	{
 		return mTransformable.getTransform();
 	}
 
-	const sf::Transform& TTransformable::GetInverseTransform() const
+	const sf::Transform& TTransformable::getInverseTransform() const
 	{
 		return mTransformable.getInverseTransform();
 	}
 
-	void TTransformable::UpdateBounds()
+	void TTransformable::updateBounds()
 	{
-		mBounds = sf::FloatRect(GetPosition(), GetSize());
+		mBounds = sf::FloatRect(getPosition(), getSize());
 	}
 
-	const float TTransformable::ComputeWidth(const sf::VertexArray& Vertices) const
+	const float TTransformable::computeWidth(const sf::VertexArray& Vertices) const
 	{
 		if (!Vertices.getVertexCount())
 			return 0.f;
@@ -140,7 +140,7 @@ namespace nne
 		return MaxValue;
 	}
 
-	const float TTransformable::ComputeHeigth(const sf::VertexArray& Vertices) const
+	const float TTransformable::computeHeigth(const sf::VertexArray& Vertices) const
 	{
 		if (!Vertices.getVertexCount())
 			return 0.f;
@@ -158,36 +158,36 @@ namespace nne
 		return MaxValue;
 	}
 
-	void TTransformable::Scale(const sf::Vector2f& factor)
+	void TTransformable::scale(const sf::Vector2f& factor)
 	{
 		mTransformable.scale(factor);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::Move(const sf::Vector2f& offset)
+	void TTransformable::move(const sf::Vector2f& offset)
 	{
 		mTransformable.move(offset);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::SetOrigin(const sf::Vector2f& origin)
+	void TTransformable::setOrigin(const sf::Vector2f& origin)
 	{
 		mTransformable.setOrigin(origin);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 
-	void TTransformable::SetScale(const sf::Vector2f& factors)
+	void TTransformable::setScale(const sf::Vector2f& factors)
 	{
 		mTransformable.setScale(factors);
 	}
 
-	void TTransformable::SetPosition(const sf::Vector2f& position)
+	void TTransformable::setPosition(const sf::Vector2f& position)
 	{
 		mTransformable.setPosition(position);
 
-		mNeedRefresh = true;
+		mNeedrefresh = true;
 	}
 }

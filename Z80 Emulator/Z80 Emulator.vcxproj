@@ -274,12 +274,14 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TCharStruct.cpp" />
     <ClCompile Include="TChip.cpp" />
+    <ClCompile Include="TChipPin.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TConductiveTracks.cpp" />
     <ClCompile Include="TDebugger.cpp" />
     <ClCompile Include="TDrawableVector.cpp" />
     <ClCompile Include="TEntity.cpp" />
     <ClCompile Include="TEventContainer.cpp" />
+    <ClCompile Include="TFactory.cpp" />
     <ClCompile Include="TGuiImage.cpp" />
     <ClCompile Include="TNewGameLoadingScreen.cpp" />
     <ClCompile Include="TFrequency.cpp" />
@@ -290,7 +292,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TGuiWidget.cpp" />
     <ClCompile Include="TGuiWindow.cpp" />
     <ClCompile Include="TNewGameMenu.cpp" />
-    <ClCompile Include="TInputOutputComponent.cpp" />
     <ClCompile Include="TLogicGateComponent.cpp" />
     <ClCompile Include="TMainMenu.cpp" />
     <ClCompile Include="TManager.cpp" />
@@ -303,7 +304,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TSprite.cpp" />
     <ClCompile Include="TTransformable.cpp" />
     <ClCompile Include="TZ80.cpp" />
-    <ClCompile Include="TFont.cpp" />
     <ClCompile Include="TText.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -312,13 +312,12 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="TCacheManager.h" />
     <ClInclude Include="TChip.h" />
-    <ClInclude Include="TComponentHandle.h" />
-    <ClInclude Include="TComponentVector.h" />
+    <ClInclude Include="TChipPin.h" />
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TConductiveTracks.h" />
+    <ClInclude Include="TDrawableComponent.h" />
     <ClInclude Include="TDrawableVector.h" />
     <ClInclude Include="TGuiImage.h" />
-    <ClInclude Include="TLogicBoard.h" />
     <ClInclude Include="TNewGameLoadingScreen.h" />
     <ClInclude Include="TResource.h" />
     <ClInclude Include="TResourceLoader.h" />
@@ -334,8 +333,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TGuiWidget.h" />
     <ClInclude Include="TGuiWindow.h" />
     <ClInclude Include="TNewGameMenu.h" />
-    <ClInclude Include="TInputOutputComponent.h" />
-    <ClInclude Include="TLed.h" />
     <ClInclude Include="TLogicEntity.h" />
     <ClInclude Include="TLogicGateComponent.h" />
     <ClInclude Include="TClock.h" />
@@ -349,10 +346,8 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TManager.h" />
     <ClInclude Include="TMemoryComponent.h" />
     <ClInclude Include="TMultiplexerComponent.h" />
-    <ClInclude Include="TNandChip.h" />
     <ClInclude Include="TPin.h" />
     <ClInclude Include="TPinComponent.h" />
-    <ClInclude Include="TPower.h" />
     <ClInclude Include="TRam.h" />
     <ClInclude Include="TRandom.h" />
     <ClInclude Include="TRegisterContainer.h" />
@@ -363,7 +358,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TUtility.h" />
     <ClInclude Include="TValues.h" />
     <ClInclude Include="TZ80.h" />
-    <ClInclude Include="TFont.h" />
     <ClInclude Include="TText.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

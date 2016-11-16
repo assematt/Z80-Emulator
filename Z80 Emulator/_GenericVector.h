@@ -33,7 +33,7 @@ namespace nne
 			return mResourceLoader();
 		}
 
-		std::string	GetResourceID() const
+		std::string	getResourceID() const
 		{
 			return mResourceID;
 		}
@@ -79,7 +79,7 @@ namespace nne
 		void Load()
 		{
 			mResource = std::move(mLoader.LoadResource());
-			mResourceID = std::move(mLoader.GetResourceID());
+			mResourceID = std::move(mLoader.getResourceID());
 		}
 
 		Type* GetData()
@@ -121,7 +121,7 @@ namespace nne
 			mResources.insert(std::pair<std::string, _TResourceBase>(Key, std::move(UniquePtr)));
 		}
 
-		ResourcePtr& GetResource(const std::string& Key)
+		ResourcePtr& getResource(const std::string& Key)
 		{
 			return static_cast<_Type>(mResources[Key]);
 		}
@@ -135,7 +135,7 @@ namespace nne
 		template <class Type>
 		void AddResource(typename _TResourceVector<Type>::ResourcePtr& Resource, const std::string& Key)
 		{
-			_TResourceTypeID ID = TUtility::GetTypeID<_TResourceTypeID, Type>();
+			_TResourceTypeID ID = TUtility::getTypeID<_TResourceTypeID, Type>();
 
 			if (mResourcesVectors.find(ID) == mResourcesVectors.end())
 			{
@@ -146,11 +146,11 @@ namespace nne
 		}
 
 		// 		template <class Type>
-		// 		ResourcePtr& GetResource(const std::string& Key)
+		// 		ResourcePtr& getResource(const std::string& Key)
 		// 		{
-		// 			_TResourceTypeID ID = TUtility::GetTypeID<_TResourceTypeID, Type>();
+		// 			_TResourceTypeID ID = TUtility::getTypeID<_TResourceTypeID, Type>();
 		// 
-		// 			return ((static_cast<_TResourceVector<Type>*>(&mResourcesVectors[ID]))->GetResource(Key));
+		// 			return ((static_cast<_TResourceVector<Type>*>(&mResourcesVectors[ID]))->getResource(Key));
 		// 		}
 
 		std::map<_TResourceTypeID, _IResourceVectorBase> mResourcesVectors;

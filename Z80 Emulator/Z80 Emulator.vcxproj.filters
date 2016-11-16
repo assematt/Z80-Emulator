@@ -111,9 +111,6 @@
     <ClCompile Include="TMultiplexerComponent.cpp">
       <Filter>Source Files\src\components</Filter>
     </ClCompile>
-    <ClCompile Include="TInputOutputComponent.cpp">
-      <Filter>Source Files\src\components</Filter>
-    </ClCompile>
     <ClCompile Include="TDebugger.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -159,9 +156,6 @@
     <ClCompile Include="TGuiButton.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
-    <ClCompile Include="TFont.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TNewGameMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
@@ -188,6 +182,12 @@
     </ClCompile>
     <ClCompile Include="TDrawableVector.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TChipPin.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TFactory.cpp">
+      <Filter>Source Files\src\internals</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -221,22 +221,10 @@
     <ClInclude Include="TLogicGateComponent.h">
       <Filter>Header Files\include\components</Filter>
     </ClInclude>
-    <ClInclude Include="TNandChip.h">
-      <Filter>Header Files\include\modules</Filter>
-    </ClInclude>
     <ClInclude Include="TMemoryComponent.h">
       <Filter>Header Files\include\components</Filter>
     </ClInclude>
-    <ClInclude Include="TLed.h">
-      <Filter>Header Files\include\components</Filter>
-    </ClInclude>
-    <ClInclude Include="TPower.h">
-      <Filter>Header Files\include\components</Filter>
-    </ClInclude>
     <ClInclude Include="TMultiplexerComponent.h">
-      <Filter>Header Files\include\components</Filter>
-    </ClInclude>
-    <ClInclude Include="TInputOutputComponent.h">
       <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TGuiWidget.h">
@@ -305,9 +293,6 @@
     <ClInclude Include="TCharStruct.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
-    <ClInclude Include="TFont.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TNewGameMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
@@ -332,15 +317,6 @@
     <ClInclude Include="TGraphicEntity.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
-    <ClInclude Include="TComponentVector.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
-    <ClInclude Include="TComponentHandle.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
-    <ClInclude Include="TLogicBoard.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TNewGameLoadingScreen.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
@@ -363,6 +339,12 @@
       <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
     <ClInclude Include="TText.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TChipPin.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TDrawableComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>

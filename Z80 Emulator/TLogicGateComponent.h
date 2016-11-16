@@ -24,13 +24,13 @@ namespace nne
 				XNOR
 			};
 
-			TPin::TStatus PerformInstruction(const TPin::TStatus& LeftPin, const TPin::TStatus& RightPin, const TOperation& Operation);
+			TPin::TStatus performInstruction(const TPin::TStatus& LeftPin, const TPin::TStatus& RightPin, const TOperation& Operation);
 
-			void Init() override;
+			void init() override;
 
-			void Update() override;
+			void update() override;
 
-			void Refresh() override {}
+			void refresh() override {}
 
 
 		private:

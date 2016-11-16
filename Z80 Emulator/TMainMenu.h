@@ -5,6 +5,7 @@
 #include "TGuiWindow.h"
 #include "TGuiButton.h"
 #include "TGuiImage.h"
+#include "TCacheManager.h"
 
 namespace nne
 {
@@ -13,9 +14,9 @@ namespace nne
 		class TMainMenu : public nne::tgui::IScreenView
 		{
 		public:
-			virtual void Setup();
+			virtual void setup();
 			
-			void OnNewGameButtonClick(const sf::Event::MouseButtonEvent& Button);
+			void onNewGameButtonClick(const sf::Event::MouseButtonEvent& Button);
 		};
 	}
 }

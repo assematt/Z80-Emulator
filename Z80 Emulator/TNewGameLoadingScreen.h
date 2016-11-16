@@ -13,11 +13,11 @@ namespace nne
 		{
 		public:
 
-			void Setup() final;
+			void setup() final;
 
-			virtual void Loading(std::atomic_bool& IsLoading) override;
+			virtual void loading(std::atomic_bool& IsLoading) override;
 
-			virtual void HandleEvent(sf::Event& Event);
+			virtual void handleEvent(sf::Event& Event);
 			
 		private:
 		};

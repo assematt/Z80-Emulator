@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/Export.hpp>
-#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Rect.hpp>
@@ -36,52 +36,52 @@ namespace nne
 		TText();
 		TText(const sf::String& String, const sf::Font& Font, unsigned int characterSize = 30);
 
-		void SetString(const sf::String& String);
+		void setString(const sf::String& String);
 
-		void SetFont(const sf::Font& Font);
+		void setFont(const sf::Font& Font);
 
-		void SetCharacterSize(std::size_t Size);
+		void setCharacterSize(std::size_t Size);
 
-		void SetStyle(sf::Uint32 Style);
+		void setStyle(sf::Uint32 Style);
 
-		void SetFillColor(const sf::Color& Color);
+		void setFillColor(const sf::Color& Color);
 
-		void SetOutlineColor(const sf::Color& Color);
+		void setOutlineColor(const sf::Color& Color);
 
-		void SetOutlineThickness(float Thickness);
+		void setOutlineThickness(float Thickness);
 
-		const sf::String& GetString() const;
+		const sf::String& getString() const;
 
-		const sf::Font* GetFont() const;
+		const sf::Font* getFont() const;
 
-		std::size_t GetCharacterSize() const;
+		std::size_t getCharacterSize() const;
 
-		sf::Uint32 GetStyle() const;
+		sf::Uint32 getStyle() const;
 
-		const sf::Color& GetFillColor() const;
+		const sf::Color& getFillColor() const;
 
-		const sf::Color& GetOutlineColor() const;
+		const sf::Color& getOutlineColor() const;
 
-		float GetOutlineThickness() const;
+		float getOutlineThickness() const;
 
-		sf::Vector2f FindCharacterPos(std::size_t Index) const;
+		sf::Vector2f findCharacterPos(std::size_t Index) const;
 
-		sf::FloatRect GetLocalBounds() const;
+		sf::FloatRect getLocalBounds() const;
 
-		sf::FloatRect GetGlobalBounds() const;
+		sf::FloatRect getGlobalBounds() const;
 
-		virtual void Update() override;
+		virtual void update() override;
 
-		virtual void Refresh() override;
+		virtual void refresh() override;
 
-		virtual void Init() override;
+		virtual void init() override;
 
-		const sf::VertexArray& GetVertexArray() const;
+		const sf::VertexArray& getVertexArray() const;
 
-		const sf::Texture* GetTexture() const;
+		const sf::Texture* getTexture() const;
 
 	private:
-		void EnsureGeometryUpdate() const;
+		void ensureGeometryupdate() const;
 
 	private:
 		sf::String              mString;             ///< String to display
@@ -94,7 +94,7 @@ namespace nne
 		mutable TVertexArrayPtr	mVertices;           ///< Vertex array containing the fill geometry
 		mutable TVertexArrayPtr	mOutlineVertices;    ///< Vertex array containing the outline geometry
 		mutable sf::FloatRect   mBounds;             ///< Bounding rectangle of the text (in local coordinates)
-		mutable bool			mGeometryNeedUpdate; ///< Does the geometry need to be recomputed?
+		mutable bool			mGeometryNeedupdate; ///< Does the geometry need to be recomputed?
 	};
 
 }

@@ -4,14 +4,14 @@ namespace nne
 {
 	void TGraphicEntity::draw(sf::RenderTarget & target, sf::RenderStates states) const
 	{
-		states.transform *= this->GetComponentAsPtr<TTransformable>()->GetTransform();
+		states.transform *= this->getComponentAsPtr<TTransformable>()->getTransform();
 
-		auto& DrawablesComponent = *GetComponentAsPtr<TDrawableVector>();
+		auto& drawablesComponent = *getComponentAsPtr<TdrawableVector>();
 
-		for (std::size_t Index = 0; Index < DrawablesComponent.GetVectorSize(); ++Index)
+		for (std::size_t Index = 0; Index < drawablesComponent.getVectorSize(); ++Index)
 		{
-			states.texture = DrawablesComponent[Index].GetTexture();
-			target.draw(DrawablesComponent[Index].GetVertexArray(), states);
+			states.texture = drawablesComponent[Index].getTexture();
+			target.draw(drawablesComponent[Index].getVertexArray(), states);
 		}		
 	}
 }

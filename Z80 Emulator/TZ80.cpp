@@ -9,7 +9,7 @@ namespace nne
 			mIsHalted(false),
 			mMaskableInterrupt(true),
 			mAlu(mRegisters),
-			mClock(Hertz(1.l)),
+			mClock(hertz(1.l)),
 			mTStates(0),
 			mRam(nullptr),
 			mAddressBus(0),
@@ -18,10 +18,10 @@ namespace nne
 		{
 		}
 		
-		void TZ80::Reset()
+		void TZ80::reset()
 		{
 			// Reset the state of the register
-			mRegisters.Reset();
+			mRegisters.reset();
 		
 			// Reset the R/W Memory portion if we have one connected
 			if (mRam)
@@ -33,12 +33,12 @@ namespace nne
 			}		
 		}
 		
-		void TZ80::Init()
+		void TZ80::init()
 		{
 			// Add the right Components to make a CPU
 
 			// Setup the CPU Pins
-			AddComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
+			addComponent<tcomponents::TPinComponent>(std::initializer_list<tcomponents::TPin>{
 				// ADDRESS BUS
 				{ tcomponents::TPin::TMode::OUTPUT, "A0",  tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
 				{ tcomponents::TPin::TMode::OUTPUT, "A1",  tcomponents::TPin::TStatus::LOW, 31, CPUPinGroup::AddressBus, 2 }, // A2
@@ -92,38 +92,38 @@ namespace nne
 				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 29, CPUPinGroup::Others }, // GND
 
 			}, 40);
-			InitComponents();
+			initComponents();
 
 			// Reset the state of the CPU
-			Reset();
+			reset();
 		}
 		
-		void TZ80::Refresh()
+		void TZ80::refresh()
 		{
 			// Get the current instruction Opcode
-			FetchInstruction();
+			fetchInstruction();
 		}
 	
-		void TZ80::Update()
+		void TZ80::update()
 		{
 			// Before check if the z80 is still active
 			if (!mIsRunning)
 				return;
 	
 			// Show the debug window
-			mDebugger.ShowDebugWindow(mRegisters, &mRam->GetInternalMemory(), mDataBus, mAddressBus, mClock);
+			mDebugger.showDebugWindow(mRegisters, &mRam->getInternalMemory(), mDataBus, mAddressBus, mClock);
 			
 			// Get the current instruction Opcode
 			//TOpCodesMainInstruction CurrentInstruction = FetchInstruction<TOpCodesMainInstruction>();
 	
 			// Execute the instruction
 			auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
-			ExecuteInstruction(Instruction);
+			executeInstruction(Instruction);
 	
-			mClock.Wait();
+			mClock.wait();
 		}
 	
-		bool TZ80::LoadProgram(const std::string& Program)
+		bool TZ80::loadProgram(const std::string& Program)
 		{
 			// Check if we have a connected ram to load the program into
 			if (!mRam)
@@ -165,7 +165,7 @@ namespace nne
 			return true;
 		}
 		
-		bool TZ80::ConnectRam(std::shared_ptr<tmodules::TRam> Ram)
+		bool TZ80::connectRam(std::shared_ptr<tmodules::TRam> Ram)
 		{
 			// Check the the passed argument points to something
 			if (!Ram)
@@ -175,59 +175,59 @@ namespace nne
 			mRam = std::make_shared<tmodules::TRam>(*Ram.get());
 	
 			// Get a ref to the PinComponent of the z80 and ram
-			auto& CpuPinComponent = GetComponentAsPtr<tcomponents::TPinComponent>();
-			auto& RamPinComponent = mRam->GetComponentAsPtr<tcomponents::TPinComponent>();
+			auto& CpuPinComponent = getComponentAsPtr<tcomponents::TPinComponent>();
+			auto& RamPinComponent = mRam->getComponentAsPtr<tcomponents::TPinComponent>();
 	
 			// Connects the Z80 Address bus to the Ram AddressBus
-			auto& LeftBus = CpuPinComponent->GetPinBus(CPUPinGroup::AddressBus, 0, 14);
-			auto& RightBus = RamPinComponent->GetPinBus(tmodules::TRamPinGroup::AddressBus);
-			tcomponents::TPinComponentUtility::ConnectPins(LeftBus, RightBus);
+			auto& LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::AddressBus, 0, 14);
+			auto& RightBus = RamPinComponent->getPinBus(tmodules::TRamPinGroup::AddressBus);
+			tcomponents::TPinComponentUtility::connectPins(LeftBus, RightBus);
 	
 			// Connects the Z80 data bus to the Ram data bus
-			LeftBus = CpuPinComponent->GetPinBus(CPUPinGroup::DataBus);
-			RightBus = RamPinComponent->GetPinBus(tmodules::TRamPinGroup::DataBus);
-			tcomponents::TPinComponentUtility::ConnectPins(LeftBus, RightBus);
+			LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::DataBus);
+			RightBus = RamPinComponent->getPinBus(tmodules::TRamPinGroup::DataBus);
+			tcomponents::TPinComponentUtility::connectPins(LeftBus, RightBus);
 	
 			// Connect the MREQ pin to the CE of the ram
-			tcomponents::TPinComponentUtility::ConnectPins(CpuPinComponent->GetPin(19), RamPinComponent->GetPin(20));
+			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
 	
 			// Connect the RD pin to the OE of the ram
-			tcomponents::TPinComponentUtility::ConnectPins(CpuPinComponent->GetPin(21), RamPinComponent->GetPin(22));
+			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
 
 			return true;
 		}
 		
-		TU8BitValue TZ80::FetchInstruction(const TU16BitValue& Address /*= 0*/)
+		TU8BitValue TZ80::fetchInstruction(const TU16BitValue& Address /*= 0*/)
 		{
 			// Check if we have a connected ram, if we don't have one return nop
 			if (!mRam)
 				return static_cast<TOpCodesMainInstruction>(TOpCodesMainInstruction::NOP);
 	
 			// Get a ref to the PinComponent
-			auto& Pins = GetComponentAsPtr<tcomponents::TPinComponent>();
+			auto& Pins = getComponentAsPtr<tcomponents::TPinComponent>();
 	
 			// Activates MREQ and RD pin
-			Pins->GetPin(19).ChangePinStatus(tcomponents::TPin::LOW, true);
-			Pins->GetPin(21).ChangePinStatus(tcomponents::TPin::LOW, true);
+			Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true);
+			Pins->getPin(21).changePinStatus(tcomponents::TPin::LOW, true);
 	
 			// Select the instruction by putting the address in the address bus
-			auto& PC = mRegisters.ProgramCounter();
-			PushDataToAddressBus(Address > 0 ? Address : PC);
+			auto& PC = mRegisters.programCounter();
+			pushDataToAddressBus(Address > 0 ? Address : PC);
 	
-			// Refresh the memory logic
-			mRam->RefreshMemory();
+			// refresh the memory logic
+			mRam->refreshMemory();
 	
 			// Get the instruction from the bus
-			mCurrentInstruction = GetDataFromDataBus();
+			mCurrentInstruction = getDataFromDataBus();
 			
 			// Deactivates MREQ and RD pin
-			Pins->GetPin(19).ChangePinStatus(tcomponents::TPin::HIGH, true);
-			Pins->GetPin(21).ChangePinStatus(tcomponents::TPin::HIGH, true);
+			Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true);
+			Pins->getPin(21).changePinStatus(tcomponents::TPin::HIGH, true);
 	
 			return mCurrentInstruction;
 		}
 	
-		TU16BitValue TZ80::ExecuteInstruction(const TOpCodesMainInstruction& OpCode)
+		TU16BitValue TZ80::executeInstruction(const TOpCodesMainInstruction& OpCode)
 		{
 			switch (OpCode)
 			{
@@ -313,10 +313,10 @@ namespace nne
 				}
 		
 				// Perform the loading operation
-				LoadRegisterFromRegister<T8BitRegister>(DestinationRegister, SourceRegister);
+				loadRegisterFromRegister<T8BitRegister>(DestinationRegister, SourceRegister);
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -344,10 +344,10 @@ namespace nne
 				}
 		
 				// Perform the loading operation
-				LoadRegisterFromMemory<T8BitRegister>(DestinationRegister, mRegisters.ProgramCounter() + 1);
+				loadRegisterFromMemory<T8BitRegister>(DestinationRegister, mRegisters.programCounter() + 1);
 		
 				// Increment the PC
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			} break;
 		#pragma endregion
 		
@@ -375,10 +375,10 @@ namespace nne
 				}
 		
 				// Perform the loading operation
-				LoadRegisterFromMemory<T8BitRegister>(DestinationRegister, mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL));
+				loadRegisterFromMemory<T8BitRegister>(DestinationRegister, mRegisters.getRegister<T16BitRegister>(TRegisterType::HL));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -406,10 +406,10 @@ namespace nne
 				}
 		
 				// Perform the loading instruction
-				LoadMemoryFromRegister<T8BitRegister>(SourceRegister, mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL));
+				loadMemoryFromRegister<T8BitRegister>(SourceRegister, mRegisters.getRegister<T16BitRegister>(TRegisterType::HL));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -422,7 +422,7 @@ namespace nne
 				TRegisterType DestinationRegister;
 		
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Get the source address by looking at the second 3 bits
 				switch (static_cast<TU8BitValue>(OpCode) >> 4 & 3)
@@ -434,7 +434,7 @@ namespace nne
 				}
 		
 				// Perform the loading operation
-				mRegisters.GetRegister<T16BitRegister>(DestinationRegister) = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				mRegisters.getRegister<T16BitRegister>(DestinationRegister) = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 				// Increment the PC
 				ProgramCounter += 3;
@@ -445,50 +445,50 @@ namespace nne
 			case LD_A_INDIRECT_BC:
 			{
 				// Perform the loading operation
-				LoadRegisterFromMemory<T8BitRegister>(TRegisterType::A, mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC));
+				loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, mRegisters.getRegister<T16BitRegister>(TRegisterType::BC));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 			// LD A,(DE)
 			case LD_A_INDIRECT_DE:
 			{
 				// Perform the loading operation
-				LoadRegisterFromMemory<T8BitRegister>(TRegisterType::A, mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE));
+				loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, mRegisters.getRegister<T16BitRegister>(TRegisterType::DE));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 			// LD (BC),A
 			case LD_INDIRECT_BC_A:
 			{
 				// Perform the loading operation
-				LoadMemoryFromRegister<T8BitRegister>(TRegisterType::A, mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC));
+				loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, mRegisters.getRegister<T16BitRegister>(TRegisterType::BC));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 			// LD (DE),A
 			case LD_INDIRECT_DE_A:
 			{
 				// Perform the loading operation
-				LoadMemoryFromRegister<T8BitRegister>(TRegisterType::A, mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC));
+				loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, mRegisters.getRegister<T16BitRegister>(TRegisterType::BC));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 			// LD A,(NN)
 			case LD_A_INDIRECT_ADR:
 			{
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Perform the loading operation
-				LoadRegisterFromMemory<T8BitRegister>(TRegisterType::A, TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
+				loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
 		
 				// Increment the PC
 				ProgramCounter += 3;
@@ -499,10 +499,10 @@ namespace nne
 			{
 		
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Perform the loading operation
-				LoadMemoryFromRegister<T8BitRegister>(TRegisterType::A, TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
+				loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
 		
 				// Increment the PC
 				ProgramCounter += 3;
@@ -512,14 +512,14 @@ namespace nne
 			case LD_INDIRECT_ADR_HL:
 			{
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Get the destination address
-				auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 				// Perform the loading operation
-				(*mRam)[Address] = mRegisters.GetRegister<T8BitRegister>(TRegisterType::L);
-				(*mRam)[Address + 1] = mRegisters.GetRegister<T8BitRegister>(TRegisterType::H);
+				(*mRam)[Address] = mRegisters.getRegister<T8BitRegister>(TRegisterType::L);
+				(*mRam)[Address + 1] = mRegisters.getRegister<T8BitRegister>(TRegisterType::H);
 		
 				// Increment PC
 				ProgramCounter += 3;
@@ -529,14 +529,14 @@ namespace nne
 			case LD_HL_INDIRECT_ADR:
 			{
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Get the destination address
-				auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 				// Perform the loading operation
-				mRegisters.GetRegister<T8BitRegister>(TRegisterType::L) = (*mRam)[Address];
-				mRegisters.GetRegister<T8BitRegister>(TRegisterType::H) = (*mRam)[Address + 1];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::L) = (*mRam)[Address];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::H) = (*mRam)[Address + 1];
 		
 				// Increment PC
 				ProgramCounter += 3;
@@ -546,10 +546,10 @@ namespace nne
 			case LD_INDIRECT_HL_n:
 			{
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Perform the loading operation
-				(*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)] = (*mRam)[ProgramCounter + 1];
+				(*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] = (*mRam)[ProgramCounter + 1];
 		
 				// Increment the PC
 				ProgramCounter += 2;
@@ -559,10 +559,10 @@ namespace nne
 			case LD_SP_HL:
 			{
 				// Perform the loading operation
-				LoadRegisterFromRegister<T16BitRegister>(TRegisterType::SP, TRegisterType::HL);
+				loadRegisterFromRegister<T16BitRegister>(TRegisterType::SP, TRegisterType::HL);
 		
 				// Increment PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 		#pragma endregion
@@ -586,10 +586,10 @@ namespace nne
 				}
 		
 				// Perform the push operation
-				PushMemory(DestinationRegister);
+				pushMemory(DestinationRegister);
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// POP QQ
@@ -610,10 +610,10 @@ namespace nne
 				}
 		
 				// Perform the push operation
-				PopMemory(DestinationRegister);
+				popMemory(DestinationRegister);
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 		#pragma endregion
@@ -622,32 +622,32 @@ namespace nne
 			// EX AF,AF'
 			case EX_AF_AF:
 			{
-				std::swap(mRegisters.GetRegister<T16BitRegister>(TRegisterType::AF), mRegisters.GetRegister<T16BitRegister>(TRegisterType::ALTAF));
-				mRegisters.ProgramCounter() += 1;
+				std::swap(mRegisters.getRegister<T16BitRegister>(TRegisterType::AF), mRegisters.getRegister<T16BitRegister>(TRegisterType::ALTAF));
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// EXX
 			case EXX:
 			{
-				std::swap(mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC), mRegisters.GetRegister<T16BitRegister>(TRegisterType::ALTBC));
-				std::swap(mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE), mRegisters.GetRegister<T16BitRegister>(TRegisterType::ALTDE));
-				std::swap(mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL), mRegisters.GetRegister<T16BitRegister>(TRegisterType::ALTHL));
-				mRegisters.ProgramCounter() += 1;
+				std::swap(mRegisters.getRegister<T16BitRegister>(TRegisterType::BC), mRegisters.getRegister<T16BitRegister>(TRegisterType::ALTBC));
+				std::swap(mRegisters.getRegister<T16BitRegister>(TRegisterType::DE), mRegisters.getRegister<T16BitRegister>(TRegisterType::ALTDE));
+				std::swap(mRegisters.getRegister<T16BitRegister>(TRegisterType::HL), mRegisters.getRegister<T16BitRegister>(TRegisterType::ALTHL));
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// EX (SP),HL
 			case EX_INDIRECT_SP_HL:
 			{
-				mRegisters.GetRegister<T8BitRegister>(TRegisterType::H) = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP) + 1];
-				mRegisters.GetRegister<T8BitRegister>(TRegisterType::L) = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP)];
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::H) = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::L) = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// EX DE,HL
 			case EX_DE_HL:
 			{
-				std::swap(mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE), mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL));
-				mRegisters.ProgramCounter() += 1;
+				std::swap(mRegisters.getRegister<T16BitRegister>(TRegisterType::DE), mRegisters.getRegister<T16BitRegister>(TRegisterType::HL));
+				mRegisters.programCounter() += 1;
 			}break;
 		#pragma endregion
 				
@@ -677,30 +677,30 @@ namespace nne
 				}
 		
 				// Perform the addition
-				mAlu.AluAdd<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluAdd<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// ADD A,(HL)
 			case ADD_A_INDIRECT_HL:
 			{
 				// Perform the addition
-				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 			// ADD A,N
 			case ADD_A_n:
 			{
 				// Perform the addition
-				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
+				mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1]);
 		
 				// Increment the PC
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion
 		
@@ -728,30 +728,30 @@ namespace nne
 				}
 		
 				// Perform the addition
-				mAlu.AluAdd<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister) + mAlu.CheckFlag(TFlags::C));
+				mAlu.aluAdd<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister) + mAlu.checkFlag(TFlags::C));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// ADC A,(HL)
 			case ADC_A_INDIRECT_HL:
 			{
 				// Perform the addition
-				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)] + mAlu.CheckFlag(TFlags::C));
+				mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] + mAlu.checkFlag(TFlags::C));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		
 			// ADC A,N
 			case ADC_A_n:
 			{
 				// Perform the addition
-				mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1] + mAlu.CheckFlag(TFlags::C));
+				mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1] + mAlu.checkFlag(TFlags::C));
 		
 				// Increment the PC
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion
 		
@@ -779,26 +779,26 @@ namespace nne
 				}
 		
 				// Perform the subtraction
-				mAlu.AluSub<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister) - mAlu.CheckFlag(TFlags::C));
+				mAlu.aluSub<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister) - mAlu.checkFlag(TFlags::C));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// SBC A,(HL)
 			case SBC_A_INDIRECT_HL:
 			{
-				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)] - mAlu.CheckFlag(TFlags::C));
+				mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] - mAlu.checkFlag(TFlags::C));
 		
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// SBC A,N
 			case SBC_A_n:
 			{
-				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1] - mAlu.CheckFlag(TFlags::C));
+				mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1] - mAlu.checkFlag(TFlags::C));
 		
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion
 		
@@ -826,26 +826,26 @@ namespace nne
 				}
 		
 				// Perform the subtraction
-				mAlu.AluSub<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluSub<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// SUB (HL)
 			case SUB_INDIRECT_HL:
 			{
-				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// SUB N
 			case SUB_n:
 			{
-				mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
+				mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1]);
 		
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion		
 		
@@ -873,20 +873,20 @@ namespace nne
 				}
 		
 				// Perform the increment
-				mAlu.AluInc<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluInc<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// INC (HL)
 			case INC_INDIRECT_HL:
 			{
 				// Perform the increment
-				mAlu.AluInc<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluInc<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		#pragma endregion
 		
@@ -914,20 +914,20 @@ namespace nne
 				}
 		
 				// Perform the decrement
-				mAlu.AluDec<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluDec<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// DEC (HL)
 			case DEC_INDIRECT_HL:
 			{
 				// Perform the increment
-				mAlu.AluDec<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluDec<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			}break;
 		#pragma endregion
 		
@@ -955,26 +955,26 @@ namespace nne
 				}
 		
 				// Perform the subtraction
-				mAlu.AluAnd<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluAnd<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// AND (HL)
 			case AND_INDIRECT_HL:
 			{
-				mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluAnd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// AND N
 			case AND_n:
 			{
-				mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
+				mAlu.aluAnd<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1]);
 		
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion
 		
@@ -1002,26 +1002,26 @@ namespace nne
 				}
 		
 				// Perform the subtraction
-				mAlu.AluOr<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluOr<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// OR (HL)
 			case OR_INDIRECT_HL:
 			{
-				mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluOr<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// OR N
 			case OR_n:
 			{
-				mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
+				mAlu.aluOr<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1]);
 		
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion			
 		
@@ -1049,26 +1049,26 @@ namespace nne
 				}
 		
 				// Perform the subtraction
-				mAlu.AluXor<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluXor<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// XOR (HL)
 			case XOR_INDIRECT_HL:
 			{
-				mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluXor<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// XOR N
 			case XOR_n:
 			{
-				mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
+				mAlu.aluXor<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1]);
 		
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion			
 		
@@ -1096,26 +1096,26 @@ namespace nne
 				}
 		
 				// Perform the subtraction
-				mAlu.AluCp<TU8BitValue>(mRegisters.GetRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluCp<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// CP (HL)
 			case CP_INDIRECT_HL:
 			{
-				mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluCp<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
-				mRegisters.ProgramCounter() += 1;
+				mRegisters.programCounter() += 1;
 			}break;
 		
 			// CP N
 			case CP_n:
 			{
-				mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.ProgramCounter() + 1]);
+				mAlu.aluCp<TU8BitValue>((*mRam)[mRegisters.programCounter() + 1]);
 		
-				mRegisters.ProgramCounter() += 2;
+				mRegisters.programCounter() += 2;
 			}break;
 		#pragma endregion
 		
@@ -1126,108 +1126,108 @@ namespace nne
 			case DAA:
 			{
 				// Get a ref to the accumulator
-				auto& Accumulator = mRegisters.Accumulator();
-				auto AccLowNibble = TUtility::GetLowerNible(Accumulator);
-				auto AccHighNibble = TUtility::GetUpperNible(Accumulator);
+				auto& Accumulator = mRegisters.accumulator();
+				auto AccLowNibble = TUtility::getLowerNible(Accumulator);
+				auto AccHighNibble = TUtility::getUpperNible(Accumulator);
 		
 		
-				if ((TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0, 8) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0xA, 0xF)) ||
-					(TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0, 9) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0, 3) && mAlu.CheckFlag(TFlags::H)))
+				if ((TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0, 8) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0xA, 0xF)) ||
+					(TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0, 9) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0, 3) && mAlu.checkFlag(TFlags::H)))
 				{
 					Accumulator += 6;
 				}
 				else
-					if ((TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0xA, 0xF) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0, 9)) ||
-						(TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0, 2) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0, 9) && mAlu.CheckFlag(TFlags::C)))
+					if ((TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0xA, 0xF) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0, 9)) ||
+						(TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0, 2) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0, 9) && mAlu.checkFlag(TFlags::C)))
 					{
 						Accumulator += 60;
 		
-						mAlu.SetFlag(TFlags::C);
+						mAlu.setFlag(TFlags::C);
 					}
 					else
-						if ((TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 9, 0xF) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0xA, 0xF)) ||
-							(TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0xA, 0xF) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0, 3) && mAlu.CheckFlag(TFlags::H)) ||
-							(TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0, 2) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0xA, 0xF) && mAlu.CheckFlag(TFlags::C)) ||
-							(TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0, 3) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0, 3) && mAlu.CheckFlag(TFlags::C) && mAlu.CheckFlag(TFlags::H)))
+						if ((TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 9, 0xF) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0xA, 0xF)) ||
+							(TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0xA, 0xF) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0, 3) && mAlu.checkFlag(TFlags::H)) ||
+							(TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0, 2) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0xA, 0xF) && mAlu.checkFlag(TFlags::C)) ||
+							(TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0, 3) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0, 3) && mAlu.checkFlag(TFlags::C) && mAlu.checkFlag(TFlags::H)))
 						{
 							Accumulator += 66;
 		
-							mAlu.SetFlag(TFlags::C);
+							mAlu.setFlag(TFlags::C);
 						}
 						else
-							if ((TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 0, 8) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 6, 0xF)) && mAlu.CheckFlag(TFlags::H))
+							if ((TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 0, 8) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 6, 0xF)) && mAlu.checkFlag(TFlags::H))
 							{
 								Accumulator += 0xFA;
 							}
 							else
-								if ((TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 7, 0xF) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 0, 9)) && mAlu.CheckFlag(TFlags::C))
+								if ((TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 7, 0xF) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 0, 9)) && mAlu.checkFlag(TFlags::C))
 								{
 									Accumulator += 0xA0;
 		
-									mAlu.SetFlag(TFlags::C);
+									mAlu.setFlag(TFlags::C);
 								}
 								else
-									if ((TUtility::ValueIsBetween<TU8BitValue>(AccHighNibble, 6, 7) && TUtility::ValueIsBetween<TU8BitValue>(AccLowNibble, 6, 0xF)) && mAlu.CheckFlag(TFlags::C) && mAlu.CheckFlag(TFlags::H))
+									if ((TUtility::valueIsBetween<TU8BitValue>(AccHighNibble, 6, 7) && TUtility::valueIsBetween<TU8BitValue>(AccLowNibble, 6, 0xF)) && mAlu.checkFlag(TFlags::C) && mAlu.checkFlag(TFlags::H))
 									{
 										Accumulator += 0x9A;
 		
-										mAlu.SetFlag(TFlags::C);
+										mAlu.setFlag(TFlags::C);
 									}
 		
 				// Set flags
 		
 				// S is set if most - significant bit of the Accumulator is 1 after an operation; otherwise, it is reset.
-				TUtility::GetBit<TU8BitValue>(Accumulator, 7) == 1 ? mAlu.SetFlag(TFlags::S) : mAlu.SetFlag(TFlags::S);
+				TUtility::getBit<TU8BitValue>(Accumulator, 7) == 1 ? mAlu.setFlag(TFlags::S) : mAlu.setFlag(TFlags::S);
 		
 				// Z is set if the Accumulator is 0 after an operation; otherwise, it is reset.
-				Accumulator == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.SetFlag(TFlags::Z);
+				Accumulator == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.setFlag(TFlags::Z);
 		
 				// P/V is set if the Accumulator is at even parity after an operation; otherwise, it is reset.
-				TUtility::CheckParity(Accumulator) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+				TUtility::checkParity(Accumulator) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 			} break;
 		
 			// CPL
 			case CPL:
 			{
-				mRegisters.Accumulator() = ~mRegisters.Accumulator();
+				mRegisters.accumulator() = ~mRegisters.accumulator();
 		
-				mAlu.SetFlag(TFlags::H | TFlags::S);
+				mAlu.setFlag(TFlags::H | TFlags::S);
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// CCF
 			case CCF:
 			{
 				// H, previous carry is copied.
-				mAlu.CheckFlag(TFlags::C) ? mAlu.SetFlag(TFlags::H) : mAlu.ResetFlag(TFlags::H);
+				mAlu.checkFlag(TFlags::C) ? mAlu.setFlag(TFlags::H) : mAlu.resetFlag(TFlags::H);
 		
 				// N is reset.
-				mAlu.ResetFlag(TFlags::N);
+				mAlu.resetFlag(TFlags::N);
 		
 				// Flip the carry bit
-				mAlu.CheckFlag(TFlags::C) ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+				mAlu.checkFlag(TFlags::C) ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// SCF
 			case SCF:
 			{
 				// N and H is reset.
-				mAlu.ResetFlag(TFlags::N | TFlags::H);
+				mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 				// Set the carry bit
-				mAlu.SetFlag(TFlags::C);
+				mAlu.setFlag(TFlags::C);
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// NOP
 			case NOP:
 			{
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// Halt
@@ -1235,7 +1235,7 @@ namespace nne
 			{
 				mIsHalted = true;
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// DI
@@ -1243,7 +1243,7 @@ namespace nne
 			{
 				mMaskableInterrupt = false;
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// EI
@@ -1251,7 +1251,7 @@ namespace nne
 			{
 				mMaskableInterrupt = true;
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 		#pragma endregion
@@ -1276,10 +1276,10 @@ namespace nne
 				}
 		
 				// Perform the addition
-				mAlu.AluAdd<TU16BitValue>(mRegisters.GetRegister<T16BitRegister>(SourceRegister));
+				mAlu.aluAdd<TU16BitValue>(mRegisters.getRegister<T16BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -1301,10 +1301,10 @@ namespace nne
 				}
 		
 				// Perform the addition
-				mAlu.AluInc<TU16BitValue>(mRegisters.GetRegister<T16BitRegister>(SourceRegister));
+				mAlu.aluInc<TU16BitValue>(mRegisters.getRegister<T16BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -1326,10 +1326,10 @@ namespace nne
 				}
 		
 				// Perform the addition
-				mAlu.AluDec<TU16BitValue>(mRegisters.GetRegister<T16BitRegister>(SourceRegister));
+				mAlu.aluDec<TU16BitValue>(mRegisters.getRegister<T16BitRegister>(SourceRegister));
 		
 				// Increment the PC
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -1340,36 +1340,36 @@ namespace nne
 			case RLCA:
 			{
 				// Get a reference to the accumulator
-				auto& Accumulator = mRegisters.Accumulator();
+				auto& Accumulator = mRegisters.accumulator();
 		
 				// Rotate left the accumulator
-				mAlu.RotateLeft(Accumulator);
+				mAlu.rotateLeft(Accumulator);
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// RLA
 			case RLA:
 			{
-				mAlu.RotateLeft(mRegisters.Accumulator());
+				mAlu.rotateLeft(mRegisters.accumulator());
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// RRCA
 			case RRCA:
 			{
-				mAlu.RotateRight(mRegisters.Accumulator(), true);
+				mAlu.rotateRight(mRegisters.accumulator(), true);
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		
 			// RRA
 			case RRA:
 			{
-				mAlu.RotateRight(mRegisters.Accumulator(), true);
+				mAlu.rotateRight(mRegisters.accumulator(), true);
 		
-				++mRegisters.ProgramCounter();
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 				
@@ -1378,7 +1378,7 @@ namespace nne
 			case BITS:
 			{
 				// Get the instruction
-				auto BitInstruction = static_cast<TOpCodesBitInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
+				auto BitInstruction = static_cast<TOpCodesBitInstructions>(fetchInstruction(++mRegisters.programCounter()));
 		
 				// Get the register to test by looking at the first 3 bit
 				TRegisterType RegisterToTest;
@@ -1408,50 +1408,50 @@ namespace nne
 				case RLC_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Perform the operation
-					mAlu.RotateLeft(Register, false);
+					mAlu.rotateLeft(Register, false);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// RLC (HL)
 				case RLC_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
-					mAlu.RotateLeft(Register, false);
+					mAlu.rotateLeft(Register, false);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1466,50 +1466,50 @@ namespace nne
 				case RL_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Perform the operation
-					mAlu.RotateLeft(Register);
+					mAlu.rotateLeft(Register);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// RL (HL)
 				case RL_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
-					mAlu.RotateLeft(Register);
+					mAlu.rotateLeft(Register);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1524,54 +1524,54 @@ namespace nne
 				case SLA_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
-					TUtility::RotateLeft(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TUtility::rotateLeft(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 					// Set flags
-					mAlu.ResetFlag(TFlags::N | TFlags::H);
+					mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// SLA (HL)
 				case SLA_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
-					TUtility::RotateLeft(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TUtility::rotateLeft(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 					// Set flags
-					mAlu.ResetFlag(TFlags::N | TFlags::H);
+					mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1586,66 +1586,66 @@ namespace nne
 				case SRA_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Get the 7th bit for preservation purpose
-					bool Bit = TUtility::GetBit(Register, 7);
+					bool Bit = TUtility::getBit(Register, 7);
 		
-					TUtility::RotateRight(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TUtility::rotateRight(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 					// Put the old 7th bit in the new 7th bit slot
-					TUtility::SetBit(Register, 7, Bit);
+					TUtility::setBit(Register, 7, Bit);
 		
 					// Set flags
-					mAlu.ResetFlag(TFlags::N | TFlags::H);
+					mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// SRA (HL)
 				case SRA_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Get the 7th bit for preservation purpose
-					bool Bit = TUtility::GetBit(Register, 7);
+					bool Bit = TUtility::getBit(Register, 7);
 		
-					TUtility::RotateRight(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TUtility::rotateRight(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 					// Put the old 7th bit in the new 7th bit slot
-					TUtility::SetBit(Register, 7, Bit);
+					TUtility::setBit(Register, 7, Bit);
 		
 					// Set flags
-					mAlu.ResetFlag(TFlags::N | TFlags::H);
+					mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1660,54 +1660,54 @@ namespace nne
 				case SRL_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
-					TUtility::RotateRight(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TUtility::rotateRight(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 					// Set flags
-					mAlu.ResetFlag(TFlags::N | TFlags::H);
+					mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// SRA (HL)
 				case SRL_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto& Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
-					TUtility::RotateRight(Register) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+					TUtility::rotateRight(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 					// Set flags
-					mAlu.ResetFlag(TFlags::N | TFlags::H);
+					mAlu.resetFlag(TFlags::N | TFlags::H);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1773,19 +1773,19 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TUtility::GetBit(Register, BitPosition) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TUtility::getBit(Register, BitPosition) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set.
-					mAlu.SetFlag(TFlags::H);
+					mAlu.setFlag(TFlags::H);
 		
 					// N is set.
-					mAlu.ResetFlag(TFlags::N);
+					mAlu.resetFlag(TFlags::N);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				case BIT_0_INDIRECT_HL & 0xFF:
@@ -1801,19 +1801,19 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Z is set if specified bit is 0; otherwise, it is reset.
-					TUtility::GetBit(Register, BitPosition) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					TUtility::getBit(Register, BitPosition) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set.
-					mAlu.SetFlag(TFlags::H);
+					mAlu.setFlag(TFlags::H);
 		
 					// N is set.
-					mAlu.ResetFlag(TFlags::N);
+					mAlu.resetFlag(TFlags::N);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1879,13 +1879,13 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Set the specified bit
-					TUtility::SetBit(Register, BitPosition, 1);
+					TUtility::setBit(Register, BitPosition, 1);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				case SET_0_INDIRECT_HL & 0xFF:
@@ -1901,13 +1901,13 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Set the specified bit
-					TUtility::SetBit(Register, BitPosition, 1);
+					TUtility::setBit(Register, BitPosition, 1);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -1973,13 +1973,13 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Reset the specified bit
-					TUtility::SetBit(Register, BitPosition, 0);
+					TUtility::setBit(Register, BitPosition, 0);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				case RES_0_INDIRECT_HL & 0xFF:
@@ -1995,13 +1995,13 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Reset the specified bit
-					TUtility::SetBit(Register, BitPosition, 0);
+					TUtility::setBit(Register, BitPosition, 0);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -2016,50 +2016,50 @@ namespace nne
 				case RC_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Perform the operation
-					mAlu.RotateRight(Register, false);
+					mAlu.rotateRight(Register, false);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// RRC (HL)
 				case RC_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
-					mAlu.RotateRight(Register, false);
+					mAlu.rotateRight(Register, false);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -2074,50 +2074,50 @@ namespace nne
 				case R_A & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = mRegisters.GetRegister<T8BitRegister>(RegisterToTest);
+					auto& Register = mRegisters.getRegister<T8BitRegister>(RegisterToTest);
 		
 					// Perform the operation
-					mAlu.RotateRight(Register);
+					mAlu.rotateRight(Register);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// RR (HL)
 				case R_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
-					mAlu.RotateRight(Register);
+					mAlu.rotateRight(Register);
 		
 					// Set flags
 					// the N, H, C flags are set in the rotation functions
 		
 					// S register
-					Register > 0x7F /*(0111 1111)*/ ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Register > 0x7F /*(0111 1111)*/ ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z register
-					Register == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Register == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P/V register
-					mAlu.CheckParity(Register) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Register) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 				}
@@ -2137,22 +2137,22 @@ namespace nne
 			case JP_M_ADR:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Destination address
-				auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 				// See what flag we have to check and base the jump based on the flag condition
 				switch (static_cast<TU8BitValue>(OpCode) >> 3 & 7)
 				{
-				case 0: !mAlu.CheckFlag(TFlags::Z) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 1: mAlu.CheckFlag(TFlags::Z) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 2: !mAlu.CheckFlag(TFlags::C) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 3: mAlu.CheckFlag(TFlags::C) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 4: !mAlu.CheckFlag(TFlags::P_V) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 5: mAlu.CheckFlag(TFlags::P_V) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 6: !mAlu.CheckFlag(TFlags::S) ? ProgramCounter = Address : ProgramCounter += 3; break;
-				case 7: mAlu.CheckFlag(TFlags::S) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 0: !mAlu.checkFlag(TFlags::Z) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 1: mAlu.checkFlag(TFlags::Z) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 2: !mAlu.checkFlag(TFlags::C) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 3: mAlu.checkFlag(TFlags::C) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 4: !mAlu.checkFlag(TFlags::P_V) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 5: mAlu.checkFlag(TFlags::P_V) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 6: !mAlu.checkFlag(TFlags::S) ? ProgramCounter = Address : ProgramCounter += 3; break;
+				case 7: mAlu.checkFlag(TFlags::S) ? ProgramCounter = Address : ProgramCounter += 3; break;
 				}
 			} break;
 		#pragma endregion
@@ -2161,22 +2161,22 @@ namespace nne
 			case JP_ADR:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
-				ProgramCounter = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				ProgramCounter = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 			} break;
 		
 			// JP (HL)
 			case JP_INDIRECT_HL:
 			{
-				LoadRegisterFromRegister<T16BitRegister>(TRegisterType::PC, TRegisterType::HL);
+				loadRegisterFromRegister<T16BitRegister>(TRegisterType::PC, TRegisterType::HL);
 			} break;
 		
 			// JR E
 			case JR_dis:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				ProgramCounter += (*mRam)[ProgramCounter + 1] + 2;
 			} break;
@@ -2188,26 +2188,26 @@ namespace nne
 			case JR_C_dis:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Destination address
-				auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 				// See what flag we have to check
 				bool Flag;
 				switch (static_cast<TU8BitValue>(OpCode) >> 3 & 3)
 				{
-				case 0: Flag = !mAlu.CheckFlag(TFlags::Z); break;
-				case 1: Flag = mAlu.CheckFlag(TFlags::Z); break;
-				case 2: Flag = !mAlu.CheckFlag(TFlags::C); break;
-				case 3: Flag = mAlu.CheckFlag(TFlags::C); break;
+				case 0: Flag = !mAlu.checkFlag(TFlags::Z); break;
+				case 1: Flag = mAlu.checkFlag(TFlags::Z); break;
+				case 2: Flag = !mAlu.checkFlag(TFlags::C); break;
+				case 3: Flag = mAlu.checkFlag(TFlags::C); break;
 				}
 		
 				// Displacement
 				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1] + 2;
 		
 				// Base the jump based on the flag condition
-				Flag ? ProgramCounter.GetInternalValue() += Displacement : ProgramCounter += 2;
+				Flag ? ProgramCounter.getInternalValue() += Displacement : ProgramCounter += 2;
 			} break;
 		#pragma endregion
 		
@@ -2215,12 +2215,12 @@ namespace nne
 			case DJNZ_dis:
 			{
 				// Get a reference to the B and PC registers
-				auto& Register = mRegisters.GetRegister<T8BitRegister>(TRegisterType::B);
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& Register = mRegisters.getRegister<T8BitRegister>(TRegisterType::B);
+				auto& ProgramCounter = mRegisters.programCounter();
 				const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1] + 2;
 		
 				// Decrement the B register, if B > 0 add an offset to the PC otherwise goes to the next instruction
-				--Register > 0 ? ProgramCounter.GetInternalValue() += Displacement : ProgramCounter += 2;
+				--Register > 0 ? ProgramCounter.getInternalValue() += Displacement : ProgramCounter += 2;
 			} break;
 		
 		#pragma endregion
@@ -2238,27 +2238,27 @@ namespace nne
 			case CALL_M_ADR:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Destination address
-				auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 				// See what flag we have to check
 				bool Flag;
 				switch (static_cast<TU8BitValue>(OpCode) >> 3 & 7)
 				{
-				case 0: Flag = !mAlu.CheckFlag(TFlags::Z); break;
-				case 1: Flag = mAlu.CheckFlag(TFlags::Z); break;
-				case 2: Flag = !mAlu.CheckFlag(TFlags::C); break;
-				case 3: Flag = mAlu.CheckFlag(TFlags::C); break;
-				case 4: Flag = !mAlu.CheckFlag(TFlags::P_V); break;
-				case 5: Flag = mAlu.CheckFlag(TFlags::P_V); break;
-				case 6: Flag = !mAlu.CheckFlag(TFlags::S); break;
-				case 7: Flag = mAlu.CheckFlag(TFlags::S); break;
+				case 0: Flag = !mAlu.checkFlag(TFlags::Z); break;
+				case 1: Flag = mAlu.checkFlag(TFlags::Z); break;
+				case 2: Flag = !mAlu.checkFlag(TFlags::C); break;
+				case 3: Flag = mAlu.checkFlag(TFlags::C); break;
+				case 4: Flag = !mAlu.checkFlag(TFlags::P_V); break;
+				case 5: Flag = mAlu.checkFlag(TFlags::P_V); break;
+				case 6: Flag = !mAlu.checkFlag(TFlags::S); break;
+				case 7: Flag = mAlu.checkFlag(TFlags::S); break;
 				}
 		
 				// Base the jump based on the flag condition
-				Flag ? Call(Address) : ProgramCounter += 3;
+				Flag ? call(Address) : ProgramCounter += 3;
 			} break;
 		#pragma endregion
 		
@@ -2266,10 +2266,10 @@ namespace nne
 			case CALL_ADR:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Put the PC on the stack on goes to the memory location specified by the CALL instruction
-				Call(TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
+				call(TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]));
 			} break;
 		
 		#pragma region RET CC
@@ -2283,31 +2283,31 @@ namespace nne
 			case RET_M:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// See what flag we have to check
 				bool Flag;
 				switch (static_cast<TU8BitValue>(OpCode) >> 3 & 7)
 				{
-				case 0: Flag = !mAlu.CheckFlag(TFlags::Z); break;
-				case 1: Flag = mAlu.CheckFlag(TFlags::Z); break;
-				case 2: Flag = !mAlu.CheckFlag(TFlags::C); break;
-				case 3: Flag = mAlu.CheckFlag(TFlags::C); break;
-				case 4: Flag = !mAlu.CheckFlag(TFlags::P_V); break;
-				case 5: Flag = mAlu.CheckFlag(TFlags::P_V); break;
-				case 6: Flag = !mAlu.CheckFlag(TFlags::S); break;
-				case 7: Flag = mAlu.CheckFlag(TFlags::S); break;
+				case 0: Flag = !mAlu.checkFlag(TFlags::Z); break;
+				case 1: Flag = mAlu.checkFlag(TFlags::Z); break;
+				case 2: Flag = !mAlu.checkFlag(TFlags::C); break;
+				case 3: Flag = mAlu.checkFlag(TFlags::C); break;
+				case 4: Flag = !mAlu.checkFlag(TFlags::P_V); break;
+				case 5: Flag = mAlu.checkFlag(TFlags::P_V); break;
+				case 6: Flag = !mAlu.checkFlag(TFlags::S); break;
+				case 7: Flag = mAlu.checkFlag(TFlags::S); break;
 				}
 		
 				// If the check is true execute the return function otherwise goes to the next instruction
-				Flag ? Return() : ++mRegisters.ProgramCounter();
+				Flag ? returnFromCall() : ++mRegisters.programCounter();
 			} break;
 		#pragma endregion			
 		
 			// RET
 			case RET:
 			{
-				Return();
+				returnFromCall();
 			} break;
 		
 		#pragma region RST P
@@ -2321,7 +2321,7 @@ namespace nne
 			case RST_38H:
 			{
 				// Get a reference to the PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// See what flag we have to check
 				TMemoryAddress Address;
@@ -2338,10 +2338,10 @@ namespace nne
 				}
 		
 				// Push the content of PC in the stack
-				PushMemory(TRegisterType::PC);
+				pushMemory(TRegisterType::PC);
 		
 				// Move the PC to the desired location
-				mRegisters.ProgramCounter() = Address;
+				mRegisters.programCounter() = Address;
 			} break;
 		#pragma endregion
 		
@@ -2351,16 +2351,16 @@ namespace nne
 				case IN_A_INDIRECT_port:
 				{
 				// Get a ref to the accumulator
-				auto& Accumulator = mRegisters.Accumulator();
+				auto& Accumulator = mRegisters.accumulator();
 	
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 	
 				// Get the address of the port
 				auto Port = (*mRam)[ProgramCounter + 1];
 	
 				// Put the data from the data bus to the accumulator
-				Accumulator = GetDataFromDataBus();
+				Accumulator = getDataFromDataBus();
 	
 				// Increment the PC
 				ProgramCounter += 2;
@@ -2370,16 +2370,16 @@ namespace nne
 				case OUT_INDIRECT_port_A:
 				{
 				// Get a ref to the accumulator
-				auto& Accumulator = mRegisters.Accumulator();
+				auto& Accumulator = mRegisters.accumulator();
 	
 				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.ProgramCounter();
+				auto& ProgramCounter = mRegisters.programCounter();
 	
 				// Get the address of the port
 				auto Port = (*mRam)[ProgramCounter + 1];
 	
 				// Put the data from the data bus to the accumulator
-				PushDataToDataBus(Accumulator);
+				pushDataToDataBus(Accumulator);
 	
 				// Increment the PC
 				ProgramCounter += 2;
@@ -2390,236 +2390,236 @@ namespace nne
 			case IX_INSTRUCTIONS:
 			{
 				// Cast the bit instruction as an 8 bit value
-				auto IXInstruction = static_cast<TOpCodesIXInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
+				auto IXInstruction = static_cast<TOpCodesIXInstructions>(fetchInstruction(++mRegisters.programCounter()));
 		
 				switch (IXInstruction)
 				{
 					// PUSH IX
 				case PUSH_IX:
 				{
-					PushMemory(TRegisterType::IX);
+					pushMemory(TRegisterType::IX);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// POP IX
 				case POP_IX:
 				{
-					PopMemory(TRegisterType::IX);
+					popMemory(TRegisterType::IX);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// EX (SP), IX
 				case EX_INDIRECT_SP_IX:
 				{
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
-					IXRegister.GetHighOrderRegister() = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP) + 1];
-					IXRegister.GetLowOrderRegister() = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP)];
-					mRegisters.ProgramCounter() += 1;
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
+					IXRegister.getHighOrderRegister() = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
+					IXRegister.getLowOrderRegister() = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
+					mRegisters.programCounter() += 1;
 				} break;
 		
 				// AND (IX + DIS)
 				case AND_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluAnd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// OR (IX + DIS)
 				case OR_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluOr<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// XOR (IX + DIS)
 				case XOR_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluXor<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// CP (IX + DIS)
 				case CP_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluCp<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// ADD IX, BC
 				case ADD_IX_BC:
 				{
 					// Get a ref to IX and a temp copy of it
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					auto CopyRegister = IXRegister;
 		
 					// Add the content of BC to IX
-					IXRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					IXRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IXRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IXRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD IX, DE
 				case ADD_IX_DE:
 				{
 					// Get a ref to IX and a temp copy of it
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					auto CopyRegister = IXRegister;
 		
 					// Add the content of BC to IX
-					IXRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
+					IXRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IXRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IXRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD IX, IX
 				case ADD_IX_IX:
 				{
 					// Get a ref to IX and a temp copy of it
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					auto CopyRegister = IXRegister;
 		
 					// Add the content of BC to IX
-					IXRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					IXRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IXRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IXRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD IX, SP
 				case ADD_IX_SP:
 				{
 					// Get a ref to IX and a temp copy of it
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					auto CopyRegister = IXRegister;
 		
 					// Add the content of BC to IX
-					IXRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP);
+					IXRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::SP);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IXRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IXRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IXRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD A, (IX + DIS)
 				case ADD_A_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// ADC A, (IX + DIS)
 				case ADC_A_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement] + mAlu.CheckFlag(TFlags::C));
+					mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement] + mAlu.checkFlag(TFlags::C));
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// SBC A, (IX + DIS)
 				case SBC_A_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement] - mAlu.CheckFlag(TFlags::C));
+					mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement] - mAlu.checkFlag(TFlags::C));
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// INC IX
 				case INC_IX:
 				{
-					++mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					++mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// INC (IX + DIS)
 				case INC_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluInc<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluInc<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// DEX IX
 				case DEC_IX:
 				{
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// DEC (IX + DIS)
 				case DEC_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluDec<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluDec<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 		#pragma region IX Bit instruction
@@ -2627,7 +2627,7 @@ namespace nne
 				case IX_BIT_INSTRUCTIONS:
 				{
 					// Get the instruction
-					auto IXBitInstruction = static_cast<TOpCodesIXBitInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
+					auto IXBitInstruction = static_cast<TOpCodesIXBitInstructions>(fetchInstruction(++mRegisters.programCounter()));
 		
 					switch (IXBitInstruction)
 					{
@@ -2635,11 +2635,11 @@ namespace nne
 					case RLC_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
+						mAlu.rotateLeft<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 		#pragma region Check Bit
@@ -2647,128 +2647,128 @@ namespace nne
 					case BIT_0_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 1, (IX + DIS)
 					case BIT_1_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 2, (IX + DIS)
 					case BIT_2_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 3, (IX + DIS)
 					case BIT_3_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 4, (IX + DIS)
 					case BIT_4_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 5, (IX + DIS)
 					case BIT_5_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 6, (IX + DIS)
 					case BIT_6_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 7, (IX + DIS)
 					case BIT_7_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		#pragma endregion
 		
@@ -2777,80 +2777,80 @@ namespace nne
 					case SET_0_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 1);
 					} break;
 		
 					// SET 1, (IX + DIS)
 					case SET_1_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 1);
 					} break;
 		
 					// SET 2, (IX + DIS)
 					case SET_2_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 1);
 					} break;
 		
 					// SET 3, (IX + DIS)
 					case SET_3_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 1);
 					} break;
 		
 					// SET 4, (IX + DIS)
 					case SET_4_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 1);
 					} break;
 		
 					// SET 5, (IX + DIS)
 					case SET_5_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 1);
 					} break;
 		
 					// SET 6, (IX + DIS)
 					case SET_6_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 1);
 					} break;
 		
 					// SET 7, (IX + DIS)
 					case SET_7_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 1);
 					} break;
 		#pragma endregion
 		
@@ -2859,80 +2859,80 @@ namespace nne
 					case RES_0_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 0);
 					} break;
 		
 					// SET 1, (IX + DIS)
 					case RES_1_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 0);
 					} break;
 		
 					// SET 2, (IX + DIS)
 					case RES_2_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 0);
 					} break;
 		
 					// SET 3, (IX + DIS)
 					case RES_3_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 0);
 					} break;
 		
 					// SET 4, (IX + DIS)
 					case RES_4_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 0);
 					} break;
 		
 					// SET 5, (IX + DIS)
 					case RES_5_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 0);
 					} break;
 		
 					// SET 6, (IX + DIS)
 					case RES_6_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 0);
 					} break;
 		
 					// SET 7, (IX + DIS)
 					case RES_7_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 0);
 					} break;
 		#pragma endregion
 		
@@ -2940,75 +2940,75 @@ namespace nne
 					case RL_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+						mAlu.rotateLeft<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// RR (IX + DIS)
 					case R_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateRight((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+						mAlu.rotateRight((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// RRC (IX + DIS)
 					case RC_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateRight((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
+						mAlu.rotateRight((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// SLA (IX + DIS)
 					case SLA_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						TUtility::RotateLeft((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+						TUtility::rotateLeft((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Set flags
-						mAlu.ResetFlag(TFlags::N | TFlags::H);
+						mAlu.resetFlag(TFlags::N | TFlags::H);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// SRA (IX + DIS)
 					case SRA_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
-						auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
+						auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 		
 						// Get the 7th bit for preservation purpose
-						bool Bit = TUtility::GetBit(IXRegister, 7);
+						bool Bit = TUtility::getBit(IXRegister, 7);
 		
-						TUtility::RotateRight(IXRegister) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+						TUtility::rotateRight(IXRegister) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Put the old 7th bit in the new 7th bit slot
-						TUtility::SetBit(IXRegister, 7, Bit);
+						TUtility::setBit(IXRegister, 7, Bit);
 		
 						// Set flags
-						mAlu.ResetFlag(TFlags::N | TFlags::H);
+						mAlu.resetFlag(TFlags::N | TFlags::H);
 					} break;
 		
 					// SRL (IX + DIS)
 					case SRL_INDIRECT_IX_dis:
 					{
-						TUtility::RotateRight(mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX)) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+						TUtility::rotateRight(mRegisters.getRegister<T16BitRegister>(TRegisterType::IX)) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Set flags
-						mAlu.ResetFlag(TFlags::N | TFlags::H);
+						mAlu.resetFlag(TFlags::N | TFlags::H);
 					} break;
 					}
 				} break;
@@ -3017,7 +3017,7 @@ namespace nne
 				// JP (IX)
 				case JP_INDIRECT_IX:
 				{
-					LoadRegisterFromRegister<T16BitRegister>(TRegisterType::PC, TRegisterType::IX);
+					loadRegisterFromRegister<T16BitRegister>(TRegisterType::PC, TRegisterType::IX);
 				} break;
 		
 		#pragma region Load Instruction
@@ -3025,9 +3025,9 @@ namespace nne
 				case LD_IX_n:
 				{
 					// Get a ref to the PC
-					auto& ProgramCounter = mRegisters.ProgramCounter();
+					auto& ProgramCounter = mRegisters.programCounter();
 		
-					mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -3036,12 +3036,12 @@ namespace nne
 				case LD_INDIRECT_ADR_IX:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
-					const auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
+					const auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
-					(*mRam)[Address + 1] = IXRegister.GetHighOrderRegister();
-					(*mRam)[Address] = IXRegister.GetLowOrderRegister();
+					(*mRam)[Address + 1] = IXRegister.getHighOrderRegister();
+					(*mRam)[Address] = IXRegister.getLowOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3050,11 +3050,11 @@ namespace nne
 				case LD_IX_INDIRECT_ADR:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
-					const auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
+					const auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
-					IXRegister = TUtility::To16BitValue((*mRam)[Address + 1], (*mRam)[Address]);
+					IXRegister = TUtility::to16BitValue((*mRam)[Address + 1], (*mRam)[Address]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -3063,8 +3063,8 @@ namespace nne
 				case LD_INDIRECT_IX_dis_n:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 					const auto Number = (*mRam)[ProgramCounter + 2];
 		
@@ -3077,11 +3077,11 @@ namespace nne
 				case LD_B_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3090,11 +3090,11 @@ namespace nne
 				case LD_C_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3103,11 +3103,11 @@ namespace nne
 				case LD_D_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3116,11 +3116,11 @@ namespace nne
 				case LD_E_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3129,11 +3129,11 @@ namespace nne
 				case LD_H_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3142,11 +3142,11 @@ namespace nne
 				case LD_L_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3155,11 +3155,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_B:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3168,11 +3168,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_C:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3181,11 +3181,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_D:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3194,11 +3194,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_E:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3207,11 +3207,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_H:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3220,11 +3220,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_L:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3233,11 +3233,11 @@ namespace nne
 				case LD_INDIRECT_IX_dis_A:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3246,11 +3246,11 @@ namespace nne
 				case LD_A_INDIRECT_IX_dis:
 				{
 					// Get a ref to the PC and IX and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IXRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -3261,19 +3261,19 @@ namespace nne
 				case SUB_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// LD SP, IX
 				case LD_SP_IX:
 				{
-					LoadRegisterFromRegister<T16BitRegister>(TRegisterType::SP, TRegisterType::IX);
+					loadRegisterFromRegister<T16BitRegister>(TRegisterType::SP, TRegisterType::IX);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 				}
 			} break;
@@ -3284,7 +3284,7 @@ namespace nne
 			case EXTENDED_INSTRUCTIONS:
 			{
 				// Cast the bit instruction as an 8 bit value
-				auto ExtendedInstruction = static_cast<TOpCodesExtendedInstruction>(FetchInstruction(++mRegisters.ProgramCounter()));
+				auto ExtendedInstruction = static_cast<TOpCodesExtendedInstruction>(fetchInstruction(++mRegisters.programCounter()));
 		
 				switch (ExtendedInstruction)
 				{
@@ -3292,65 +3292,65 @@ namespace nne
 					// LDI
 				case LDI:
 				{
-					(*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
-					++mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
-					++mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					(*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					++mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
+					++mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Reset the H and N flags
-					mAlu.ResetFlag(TFlags::H | TFlags::N);
+					mAlu.resetFlag(TFlags::H | TFlags::N);
 		
 					// P/V is set if BC – 1 != 0; otherwise, it is reset
-					mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC) - 1 != 0 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::BC) - 1 != 0 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				}break;
 		
 				// LDIR
 				case LDIR:
 				{
-					(*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
-					++mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
-					++mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					(*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					++mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
+					++mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Reset the H and N and P/V flags
-					mAlu.ResetFlag(TFlags::H | TFlags::N | TFlags::P_V);
+					mAlu.resetFlag(TFlags::H | TFlags::N | TFlags::P_V);
 		
 					// If BC is 0 than terminates the operation bu allowing the program to go further otherwise decrement the PC by 2 to allows the operation to be executed again
-					mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC) == 0 ? ++mRegisters.ProgramCounter() : mRegisters.ProgramCounter() -= 2;
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::BC) == 0 ? ++mRegisters.programCounter() : mRegisters.programCounter() -= 2;
 				}break;
 		
 				// LDD
 				case LDD:
 				{
-					(*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					(*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Reset the H and N flags
-					mAlu.ResetFlag(TFlags::H | TFlags::N);
+					mAlu.resetFlag(TFlags::H | TFlags::N);
 		
 					// P/V is set if BC – 1 != 0; otherwise, it is reset
-					mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC) - 1 != 0 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::BC) - 1 != 0 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// LDDR
 				case LDDR:
 				{
-					(*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					(*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Reset the H and N flags
-					mAlu.ResetFlag(TFlags::H | TFlags::N | TFlags::P_V);
+					mAlu.resetFlag(TFlags::H | TFlags::N | TFlags::P_V);
 		
 					// If BC is 0 than terminates the operation bu allowing the program to go further otherwise decrement the PC by 2 to allows the operation to be executed again
-					mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC) == 0 ? ++mRegisters.ProgramCounter() : mRegisters.ProgramCounter() -= 2;
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::BC) == 0 ? ++mRegisters.programCounter() : mRegisters.programCounter() -= 2;
 				} break;
 		#pragma endregion
 		
@@ -3359,11 +3359,11 @@ namespace nne
 				case CPI:
 				{
 					// Get a ref to BC and HL
-					auto& HLRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					auto& BCRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					auto& HLRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
+					bool Result = mRegisters.accumulator() == (*mRam)[HLRegister];
 		
 					// Increment HL and decrement BC
 					++HLRegister;
@@ -3372,31 +3372,31 @@ namespace nne
 					// S is set if result is negative; otherwise, it is reset.
 		
 					// Z is set if A is(HL); otherwise, it is reset.
-					Result ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Result ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set if borrow from bit 4; otherwise, it is reset.
 		
 					// P / V is set if BC – 1 is not 0; otherwise, it is reset.
-					BCRegister - 1 != 0 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					BCRegister - 1 != 0 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// N is set.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is not affected.
 		
 					// Increment PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// CPIR
 				case CPIR:
 				{
 					// Get a ref to BC and HL
-					auto& HLRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					auto& BCRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					auto& HLRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
+					bool Result = mRegisters.accumulator() == (*mRam)[HLRegister];
 		
 					// Increment HL and decrement BC
 					++HLRegister;
@@ -3405,31 +3405,31 @@ namespace nne
 					// S is set if result is negative; otherwise, it is reset.
 		
 					// Z is set if A is(HL); otherwise, it is reset.
-					Result ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Result ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set if borrow from bit 4; otherwise, it is reset.
 		
 					// P / V is set if BC – 1 is not 0; otherwise, it is reset.
-					BCRegister - 1 != 0 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					BCRegister - 1 != 0 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// N is set.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is not affected.
 		
 					// If decrementing causes BC to go to 0 or if A = (HL), the instruction is terminated.If BC is not 0 and A != (HL), the program counter is decremented by two and the instruction is repeated.
-					Result == true || BCRegister == 0 ? ++mRegisters.ProgramCounter() : mRegisters.ProgramCounter();
+					Result == true || BCRegister == 0 ? ++mRegisters.programCounter() : mRegisters.programCounter();
 				} break;
 		
 				// CPD
 				case CPD:
 				{
 					// Get a ref to BC and HL
-					auto& HLRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					auto& BCRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					auto& HLRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
+					bool Result = mRegisters.accumulator() == (*mRam)[HLRegister];
 		
 					// Decrement BC and HL
 					--HLRegister;
@@ -3438,31 +3438,31 @@ namespace nne
 					// S is set if result is negative; otherwise, it is reset.
 		
 					// Z is set if A is(HL); otherwise, it is reset.
-					Result ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Result ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set if borrow from bit 4; otherwise, it is reset.
 		
 					// P / V is set if BC – 1 is not 0; otherwise, it is reset.
-					BCRegister - 1 != 0 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					BCRegister - 1 != 0 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// N is set.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is not affected.
 		
 					// Increment PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// CPDR
 				case CPDR:
 				{
 					// Get a ref to BC and HL
-					auto& HLRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL);
-					auto& BCRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					auto& HLRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
+					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.Accumulator() == (*mRam)[HLRegister];
+					bool Result = mRegisters.accumulator() == (*mRam)[HLRegister];
 		
 					// Decrement BC and HL
 					--HLRegister;
@@ -3471,20 +3471,20 @@ namespace nne
 					// S is set if result is negative; otherwise, it is reset.
 		
 					// Z is set if A is(HL); otherwise, it is reset.
-					Result ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Result ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set if borrow from bit 4; otherwise, it is reset.
 		
 					// P / V is set if BC – 1 is not 0; otherwise, it is reset.
-					BCRegister - 1 != 0 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					BCRegister - 1 != 0 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// N is set.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is not affected.
 		
 					// If decrementing causes BC to go to 0 or if A = (HL), the instruction is terminated.If BC is not 0 and A != (HL), the program counter is decremented by two and the instruction is repeated.
-					Result == true || BCRegister == 0 ? ++mRegisters.ProgramCounter() : mRegisters.ProgramCounter();
+					Result == true || BCRegister == 0 ? ++mRegisters.programCounter() : mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -3492,29 +3492,29 @@ namespace nne
 				case NEG:
 				{
 					// Get a ref to the aaccumulator
-					auto& Accumulator = mRegisters.Accumulator();
+					auto& Accumulator = mRegisters.accumulator();
 		
 					// Bitwise complement of the accumulator
 					Accumulator = ~Accumulator;
 		
 					// S is set if result is negative; otherwise, it is reset.
-					Accumulator > 0x7f ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Accumulator > 0x7f ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z is set if result is 0; otherwise, it is reset.
-					Accumulator == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Accumulator == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// H is set if borrow from bit 4; otherwise, it is reset.
 					// H register
-					mAlu.CheckBorrowFromBit<TU8BitValue>(4, Accumulator, ~Accumulator) ? mAlu.SetFlag(TFlags::H) : mAlu.ResetFlag(TFlags::H);
+					mAlu.checkBorrowFromBit<TU8BitValue>(4, Accumulator, ~Accumulator) ? mAlu.setFlag(TFlags::H) : mAlu.resetFlag(TFlags::H);
 		
 					// P / V is set if Accumulator was 80h before operation; otherwise, it is reset.
-					~Accumulator == 0x80 ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					~Accumulator == 0x80 ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// N is set.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if Accumulator was not 00h before operation; otherwise, it is reset.
-					~Accumulator != 0 ? mAlu.SetFlag(TFlags::C) : mAlu.ResetFlag(TFlags::C);
+					~Accumulator != 0 ? mAlu.setFlag(TFlags::C) : mAlu.resetFlag(TFlags::C);
 		
 				} break;
 		
@@ -3523,7 +3523,7 @@ namespace nne
 				{
 					mInterruptMode = TInterruptMode::MODE_0;
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// IM 1
@@ -3531,7 +3531,7 @@ namespace nne
 				{
 					mInterruptMode = TInterruptMode::MODE_0;
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// IM 2
@@ -3539,7 +3539,7 @@ namespace nne
 				{
 					mInterruptMode = TInterruptMode::MODE_0;
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 		#pragma region 16-Bit Arithmetic Group
@@ -3562,10 +3562,10 @@ namespace nne
 					}
 		
 					// Perform the addition
-					mAlu.AluAdd<TU16BitValue>(mRegisters.GetRegister<T16BitRegister>(SourceRegister) + mAlu.CheckFlag(TFlags::C));
+					mAlu.aluAdd<TU16BitValue>(mRegisters.getRegister<T16BitRegister>(SourceRegister) + mAlu.checkFlag(TFlags::C));
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -3587,10 +3587,10 @@ namespace nne
 					}
 		
 					// Perform the addition
-					mAlu.AluSub<TU16BitValue>(mRegisters.GetRegister<T16BitRegister>(SourceRegister) - mAlu.CheckFlag(TFlags::C));
+					mAlu.aluSub<TU16BitValue>(mRegisters.getRegister<T16BitRegister>(SourceRegister) - mAlu.checkFlag(TFlags::C));
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		#pragma endregion
 		
@@ -3601,13 +3601,13 @@ namespace nne
 				case RLD:
 				{
 					// Get a ref to the accumulator and HL
-					auto& Accumulator = mRegisters.Accumulator();
-					auto& IndirectMemory = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto& Accumulator = mRegisters.accumulator();
+					auto& IndirectMemory = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Swap low nibble of (HL) with high nibble of (HL)
 					{
-						auto LowerNibble = TUtility::GetLowerNible(IndirectMemory);
-						auto UpperNibble = TUtility::GetUpperNible(IndirectMemory);
+						auto LowerNibble = TUtility::getLowerNible(IndirectMemory);
+						auto UpperNibble = TUtility::getUpperNible(IndirectMemory);
 						auto Temp = UpperNibble;
 		
 						UpperNibble = (UpperNibble & 0b00001111) | (LowerNibble << 4);
@@ -3616,8 +3616,8 @@ namespace nne
 		
 					// Swap low nibble of (HL) with low nibble of Accumulator
 					{
-						auto LowerAccumulatorNibble = TUtility::GetLowerNible(Accumulator);
-						auto LowerIndirMemoryNibble = TUtility::GetLowerNible(IndirectMemory);
+						auto LowerAccumulatorNibble = TUtility::getLowerNible(Accumulator);
+						auto LowerIndirMemoryNibble = TUtility::getLowerNible(IndirectMemory);
 						auto Temp = LowerAccumulatorNibble;
 		
 						LowerAccumulatorNibble = (LowerAccumulatorNibble & 0b11110000) | LowerIndirMemoryNibble;
@@ -3625,34 +3625,34 @@ namespace nne
 					}
 		
 					// S is set if the Accumulator is negative after an operation; otherwise, it is reset.
-					Accumulator > 0x7F ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Accumulator > 0x7F ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z is set if the Accumulator is 0 after an operation; otherwise, it is reset.
-					Accumulator == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Accumulator == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P / V is set if the parity of the Accumulator is even after an operation; otherwise, it is reset.
-					mAlu.CheckParity(Accumulator) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Accumulator) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// H and N is reset.
-					mAlu.ResetFlag(TFlags::H | TFlags::N);
+					mAlu.resetFlag(TFlags::H | TFlags::N);
 		
 					// C is not affected.
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// RRD
 				case RRD:
 				{
 					// Get a ref to the accumulator and HL
-					auto& Accumulator = mRegisters.Accumulator();
-					auto& IndirectMemory = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::HL)];
+					auto& Accumulator = mRegisters.accumulator();
+					auto& IndirectMemory = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Swap low nibble of (HL) with low nibble of Accumulator
 					{
-						auto LowerAccumulatorNibble = TUtility::GetLowerNible(Accumulator);
-						auto LowerIndirMemoryNibble = TUtility::GetLowerNible(IndirectMemory);
+						auto LowerAccumulatorNibble = TUtility::getLowerNible(Accumulator);
+						auto LowerIndirMemoryNibble = TUtility::getLowerNible(IndirectMemory);
 						auto Temp = LowerAccumulatorNibble;
 		
 						LowerAccumulatorNibble = (LowerAccumulatorNibble & 0b11110000) | LowerIndirMemoryNibble;
@@ -3661,8 +3661,8 @@ namespace nne
 		
 					// Swap low nibble of (HL) with high nibble of (HL)
 					{
-						auto LowerNibble = TUtility::GetLowerNible(IndirectMemory);
-						auto UpperNibble = TUtility::GetUpperNible(IndirectMemory);
+						auto LowerNibble = TUtility::getLowerNible(IndirectMemory);
+						auto UpperNibble = TUtility::getUpperNible(IndirectMemory);
 						auto Temp = UpperNibble;
 		
 						UpperNibble = (UpperNibble & 0b00001111) | (LowerNibble << 4);
@@ -3670,21 +3670,21 @@ namespace nne
 					}
 		
 					// S is set if the Accumulator is negative after an operation; otherwise, it is reset.
-					Accumulator > 0x7F ? mAlu.SetFlag(TFlags::S) : mAlu.ResetFlag(TFlags::S);
+					Accumulator > 0x7F ? mAlu.setFlag(TFlags::S) : mAlu.resetFlag(TFlags::S);
 		
 					// Z is set if the Accumulator is 0 after an operation; otherwise, it is reset.
-					Accumulator == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+					Accumulator == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 					// P / V is set if the parity of the Accumulator is even after an operation; otherwise, it is reset.
-					mAlu.CheckParity(Accumulator) ? mAlu.SetFlag(TFlags::P_V) : mAlu.ResetFlag(TFlags::P_V);
+					mAlu.checkParity(Accumulator) ? mAlu.setFlag(TFlags::P_V) : mAlu.resetFlag(TFlags::P_V);
 		
 					// H and N is reset.
-					mAlu.ResetFlag(TFlags::H | TFlags::N);
+					mAlu.resetFlag(TFlags::H | TFlags::N);
 		
 					// C is not affected.
 		
 					// Increment the PC
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 		#pragma endregion
@@ -3751,14 +3751,14 @@ namespace nne
 				case LD_INDIRECT_ADR_BC:
 				{
 					// get a ref to the PC and BC
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& SourceRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& SourceRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Get the address destination
-					auto Address = TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
+					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					(*mRam)[Address] = SourceRegister.GetLowOrderRegister();
-					(*mRam)[Address + 1] = SourceRegister.GetHighOrderRegister();
+					(*mRam)[Address] = SourceRegister.getLowOrderRegister();
+					(*mRam)[Address + 1] = SourceRegister.getHighOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3770,14 +3770,14 @@ namespace nne
 				case LD_BC_INDIRECT_ADR:
 				{
 					// get a ref to the PC and BC
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& DestinationRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& DestinationRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Get the address source
-					auto Address = TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
+					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					DestinationRegister.GetLowOrderRegister() = (*mRam)[Address];
-					DestinationRegister.GetHighOrderRegister() = (*mRam)[Address + 1];
+					DestinationRegister.getLowOrderRegister() = (*mRam)[Address];
+					DestinationRegister.getHighOrderRegister() = (*mRam)[Address + 1];
 		
 					ProgramCounter += 3;
 				} break;
@@ -3789,14 +3789,14 @@ namespace nne
 				case LD_INDIRECT_ADR_DE:
 				{
 					// get a ref to the PC and DE
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& SourceRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& SourceRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 		
 					// Get the address destination
-					auto Address = TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
+					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					(*mRam)[Address] = SourceRegister.GetLowOrderRegister();
-					(*mRam)[Address + 1] = SourceRegister.GetHighOrderRegister();
+					(*mRam)[Address] = SourceRegister.getLowOrderRegister();
+					(*mRam)[Address + 1] = SourceRegister.getHighOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3808,14 +3808,14 @@ namespace nne
 				case LD_DE_INDIRECT_ADR:
 				{
 					// get a ref to the PC and DE
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& DestinationRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& DestinationRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 		
 					// Get the address source
-					auto Address = TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
+					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					DestinationRegister.GetLowOrderRegister() = (*mRam)[Address];
-					DestinationRegister.GetHighOrderRegister() = (*mRam)[Address + 1];
+					DestinationRegister.getLowOrderRegister() = (*mRam)[Address];
+					DestinationRegister.getHighOrderRegister() = (*mRam)[Address + 1];
 		
 					ProgramCounter += 3;
 				} break;
@@ -3827,14 +3827,14 @@ namespace nne
 				case LD_INDIRECT_ADR_SP:
 				{
 					// get a ref to the PC and SP
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& SourceRegister = mRegisters.StackPointer();
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& SourceRegister = mRegisters.stackPointer();
 		
 					// Get the address destination
-					auto Address = TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
+					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					(*mRam)[Address] = SourceRegister.GetLowOrderRegister();
-					(*mRam)[Address + 1] = SourceRegister.GetHighOrderRegister();
+					(*mRam)[Address] = SourceRegister.getLowOrderRegister();
+					(*mRam)[Address + 1] = SourceRegister.getHighOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3843,14 +3843,14 @@ namespace nne
 				case LD_SP_INDIRECT_ADR:
 				{
 					// get a ref to the PC and SP
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& DestinationRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& DestinationRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::SP);
 		
 					// Get the address source
-					auto Address = TUtility::To16BitValue(ProgramCounter + 2, ProgramCounter + 1);
+					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					DestinationRegister.GetLowOrderRegister() = (*mRam)[Address];
-					DestinationRegister.GetHighOrderRegister() = (*mRam)[Address + 1];
+					DestinationRegister.getLowOrderRegister() = (*mRam)[Address];
+					DestinationRegister.getHighOrderRegister() = (*mRam)[Address + 1];
 		
 					ProgramCounter += 3;
 				} break;
@@ -3864,236 +3864,236 @@ namespace nne
 			case IY_INSTRUCTIONS:
 			{
 				// Cast the bit instruction as an 8 bit value
-				auto IYInstruction = static_cast<TOpCodesIYInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
+				auto IYInstruction = static_cast<TOpCodesIYInstructions>(fetchInstruction(++mRegisters.programCounter()));
 		
 				switch (IYInstruction)
 				{
 					// PUSH IY
 				case PUSH_IY:
 				{
-					PushMemory(TRegisterType::IY);
+					pushMemory(TRegisterType::IY);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// POP IY
 				case POP_IY:
 				{
-					PopMemory(TRegisterType::IY);
+					popMemory(TRegisterType::IY);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// EX (SP), IY
 				case EX_INDIRECT_SP_IY:
 				{
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
-					IYRegister.GetHighOrderRegister() = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP) + 1];
-					IYRegister.GetLowOrderRegister() = (*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP)];
-					mRegisters.ProgramCounter() += 1;
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
+					IYRegister.getHighOrderRegister() = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
+					IYRegister.getLowOrderRegister() = (*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
+					mRegisters.programCounter() += 1;
 				} break;
 		
 				// AND (IY + DIS)
 				case AND_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluAnd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluAnd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// OR (IY + DIS)
 				case OR_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluOr<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluOr<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// XOR (IY + DIS)
 				case XOR_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluXor<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluXor<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// CP (IY + DIS)
 				case CP_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluCp<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluCp<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// ADD IY, BC
 				case ADD_IY_BC:
 				{
 					// Get a ref to IY and a temp copy of it
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					auto CopyRegister = IYRegister;
 		
 					// Add the content of BC to IY
-					IYRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::BC);
+					IYRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IYRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IYRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD IY, DE
 				case ADD_IY_DE:
 				{
 					// Get a ref to IY and a temp copy of it
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					auto CopyRegister = IYRegister;
 		
 					// Add the content of BC to IY
-					IYRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::DE);
+					IYRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IYRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IYRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD IY, IY
 				case ADD_IY_IY:
 				{
 					// Get a ref to IY and a temp copy of it
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					auto CopyRegister = IYRegister;
 		
 					// Add the content of BC to IY
-					IYRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					IYRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IYRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IYRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD IY, SP
 				case ADD_IY_SP:
 				{
 					// Get a ref to IY and a temp copy of it
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					auto CopyRegister = IYRegister;
 		
 					// Add the content of BC to IY
-					IYRegister += mRegisters.GetRegister<T16BitRegister>(TRegisterType::SP);
+					IYRegister += mRegisters.getRegister<T16BitRegister>(TRegisterType::SP);
 		
 					// H is set if carry from bit 11; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(11, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(11, CopyRegister, IYRegister);
 		
 					// N is reset.
-					mAlu.SetFlag(TFlags::N);
+					mAlu.setFlag(TFlags::N);
 		
 					// C is set if carry from bit 15; otherwise, it is reset.
-					mAlu.CheckCarryFromBit(15, CopyRegister, IYRegister);
+					mAlu.checkCarryFromBit(15, CopyRegister, IYRegister);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// ADD A, (IY + DIS)
 				case ADD_A_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// ADC A, (IY + DIS)
 				case ADC_A_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluAdd<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement] + mAlu.CheckFlag(TFlags::C));
+					mAlu.aluAdd<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement] + mAlu.checkFlag(TFlags::C));
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// SBC A, (IY + DIS)
 				case SBC_A_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement] - mAlu.CheckFlag(TFlags::C));
+					mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement] - mAlu.checkFlag(TFlags::C));
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// INC IY
 				case INC_IY:
 				{
-					++mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					++mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// INC (IY + DIS)
 				case INC_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluInc<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluInc<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// DEX IY
 				case DEC_IY:
 				{
-					--mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					--mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 		
 				// DEC (IY + DIS)
 				case DEC_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluDec<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluDec<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 		#pragma region IY Bit instruction
@@ -4101,7 +4101,7 @@ namespace nne
 				case IY_BIT_INSTRUCTIONS:
 				{
 					// Get the instruction
-					auto IYBitInstruction = static_cast<TOpCodesIYBitInstructions>(FetchInstruction(++mRegisters.ProgramCounter()));
+					auto IYBitInstruction = static_cast<TOpCodesIYBitInstructions>(fetchInstruction(++mRegisters.programCounter()));
 		
 					switch (IYBitInstruction)
 					{
@@ -4109,11 +4109,11 @@ namespace nne
 					case RLC_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
+						mAlu.rotateLeft<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 		#pragma region Check Bit
@@ -4121,128 +4121,128 @@ namespace nne
 					case BIT_0_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 1, (IY + DIS)
 					case BIT_1_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 2, (IY + DIS)
 					case BIT_2_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 3, (IY + DIS)
 					case BIT_3_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 4, (IY + DIS)
 					case BIT_4_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 5, (IY + DIS)
 					case BIT_5_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 6, (IY + DIS)
 					case BIT_6_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		
 					// BIT 7, (IY + DIS)
 					case BIT_7_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::GetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7) == 0 ? mAlu.SetFlag(TFlags::Z) : mAlu.ResetFlag(TFlags::Z);
+						TUtility::getBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
-						mAlu.SetFlag(TFlags::H);
+						mAlu.setFlag(TFlags::H);
 		
 						// N is set.
-						mAlu.ResetFlag(TFlags::N);
+						mAlu.resetFlag(TFlags::N);
 					} break;
 		#pragma endregion
 		
@@ -4251,80 +4251,80 @@ namespace nne
 					case SET_0_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 1);
 					} break;
 		
 					// SET 1, (IY + DIS)
 					case SET_1_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 1);
 					} break;
 		
 					// SET 2, (IY + DIS)
 					case SET_2_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 1);
 					} break;
 		
 					// SET 3, (IY + DIS)
 					case SET_3_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 1);
 					} break;
 		
 					// SET 4, (IY + DIS)
 					case SET_4_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 1);
 					} break;
 		
 					// SET 5, (IY + DIS)
 					case SET_5_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 1);
 					} break;
 		
 					// SET 6, (IY + DIS)
 					case SET_6_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 1);
 					} break;
 		
 					// SET 7, (IY + DIS)
 					case SET_7_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 1);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 1);
 					} break;
 		#pragma endregion
 		
@@ -4333,80 +4333,80 @@ namespace nne
 					case RES_0_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 0);
 					} break;
 		
 					// SET 1, (IY + DIS)
 					case RES_1_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 0);
 					} break;
 		
 					// SET 2, (IY + DIS)
 					case RES_2_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 0);
 					} break;
 		
 					// SET 3, (IY + DIS)
 					case RES_3_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 0);
 					} break;
 		
 					// SET 4, (IY + DIS)
 					case RES_4_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 0);
 					} break;
 		
 					// SET 5, (IY + DIS)
 					case RES_5_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 0);
 					} break;
 		
 					// SET 6, (IY + DIS)
 					case RES_6_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 0);
 					} break;
 		
 					// SET 7, (IY + DIS)
 					case RES_7_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::SetBit((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 0);
+						TUtility::setBit((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 0);
 					} break;
 		#pragma endregion
 		
@@ -4414,75 +4414,75 @@ namespace nne
 					case RL_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateLeft<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+						mAlu.rotateLeft<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// RR (IY + DIS)
 					case R_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateRight((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+						mAlu.rotateRight((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// RRC (IY + DIS)
 					case RC_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						mAlu.RotateRight((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
+						mAlu.rotateRight((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// SLA (IY + DIS)
 					case SLA_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
 		
-						TUtility::RotateLeft((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+						TUtility::rotateLeft((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Set flags
-						mAlu.ResetFlag(TFlags::N | TFlags::H);
+						mAlu.resetFlag(TFlags::N | TFlags::H);
 		
-						mRegisters.ProgramCounter() += 2;
+						mRegisters.programCounter() += 2;
 					} break;
 		
 					// SRA (IY + DIS)
 					case SRA_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter()];;
-						auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+						TS8BitValue Displacement = (*mRam)[mRegisters.programCounter()];;
+						auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 		
 						// Get the 7th bit for preservation purpose
-						bool Bit = TUtility::GetBit(IYRegister, 7);
+						bool Bit = TUtility::getBit(IYRegister, 7);
 		
-						TUtility::RotateRight(IYRegister) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+						TUtility::rotateRight(IYRegister) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Put the old 7th bit in the new 7th bit slot
-						TUtility::SetBit(IYRegister, 7, Bit);
+						TUtility::setBit(IYRegister, 7, Bit);
 		
 						// Set flags
-						mAlu.ResetFlag(TFlags::N | TFlags::H);
+						mAlu.resetFlag(TFlags::N | TFlags::H);
 					} break;
 		
 					// SRL (IY + DIS)
 					case SRL_INDIRECT_IY_dis:
 					{
-						TUtility::RotateRight(mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY)) == 0 ? mAlu.ResetFlag(TFlags::C) : mAlu.SetFlag(TFlags::C);
+						TUtility::rotateRight(mRegisters.getRegister<T16BitRegister>(TRegisterType::IY)) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Set flags
-						mAlu.ResetFlag(TFlags::N | TFlags::H);
+						mAlu.resetFlag(TFlags::N | TFlags::H);
 					} break;
 					}
 				} break;
@@ -4491,7 +4491,7 @@ namespace nne
 				// JP (IY)
 				case JP_INDIRECT_IY:
 				{
-					LoadRegisterFromRegister<T16BitRegister>(TRegisterType::PC, TRegisterType::IY);
+					loadRegisterFromRegister<T16BitRegister>(TRegisterType::PC, TRegisterType::IY);
 				} break;
 		
 		#pragma region Load Instruction
@@ -4499,9 +4499,9 @@ namespace nne
 				case LD_IY_n:
 				{
 					// Get a ref to the PC
-					auto& ProgramCounter = mRegisters.ProgramCounter();
+					auto& ProgramCounter = mRegisters.programCounter();
 		
-					mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -4510,12 +4510,12 @@ namespace nne
 				case LD_INDIRECT_ADR_IY:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
-					const auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
+					const auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
-					(*mRam)[Address + 1] = IYRegister.GetHighOrderRegister();
-					(*mRam)[Address] = IYRegister.GetLowOrderRegister();
+					(*mRam)[Address + 1] = IYRegister.getHighOrderRegister();
+					(*mRam)[Address] = IYRegister.getLowOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -4524,11 +4524,11 @@ namespace nne
 				case LD_IY_INDIRECT_ADR:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
-					const auto Address = TUtility::To16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
+					const auto Address = TUtility::to16BitValue((*mRam)[ProgramCounter + 2], (*mRam)[ProgramCounter + 1]);
 		
-					IYRegister = TUtility::To16BitValue((*mRam)[Address + 1], (*mRam)[Address]);
+					IYRegister = TUtility::to16BitValue((*mRam)[Address + 1], (*mRam)[Address]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -4537,8 +4537,8 @@ namespace nne
 				case LD_INDIRECT_IY_dis_n:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 					const auto Number = (*mRam)[ProgramCounter + 2];
 		
@@ -4551,11 +4551,11 @@ namespace nne
 				case LD_B_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4564,11 +4564,11 @@ namespace nne
 				case LD_C_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4577,11 +4577,11 @@ namespace nne
 				case LD_D_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4590,11 +4590,11 @@ namespace nne
 				case LD_E_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4603,11 +4603,11 @@ namespace nne
 				case LD_H_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4616,11 +4616,11 @@ namespace nne
 				case LD_L_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4629,11 +4629,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_B:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4642,11 +4642,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_C:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4655,11 +4655,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_D:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4668,11 +4668,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_E:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4681,11 +4681,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_H:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4694,11 +4694,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_L:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4707,11 +4707,11 @@ namespace nne
 				case LD_INDIRECT_IY_dis_A:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadMemoryFromRegister<T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
+					loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4720,11 +4720,11 @@ namespace nne
 				case LD_A_INDIRECT_IY_dis:
 				{
 					// Get a ref to the PC and IY and the address of destination
-					auto& ProgramCounter = mRegisters.ProgramCounter();
-					const auto& IYRegister = mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY);
+					auto& ProgramCounter = mRegisters.programCounter();
+					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 					const TS8BitValue Displacement = (*mRam)[ProgramCounter + 1];
 		
-					LoadRegisterFromMemory<T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
+					loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
 		
 					ProgramCounter += 2;
 				} break;
@@ -4735,19 +4735,19 @@ namespace nne
 				case SUB_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = (*mRam)[mRegisters.ProgramCounter() + 1];;
+					TS8BitValue Displacement = (*mRam)[mRegisters.programCounter() + 1];;
 		
-					mAlu.AluSub<TU8BitValue>((*mRam)[mRegisters.GetRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluSub<TU8BitValue>((*mRam)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
-					mRegisters.ProgramCounter() += 2;
+					mRegisters.programCounter() += 2;
 				} break;
 		
 				// LD SP, IY
 				case LD_SP_IY:
 				{
-					LoadRegisterFromRegister<T16BitRegister>(TRegisterType::SP, TRegisterType::IY);
+					loadRegisterFromRegister<T16BitRegister>(TRegisterType::SP, TRegisterType::IY);
 		
-					++mRegisters.ProgramCounter();
+					++mRegisters.programCounter();
 				} break;
 				}
 			} break;
@@ -4758,83 +4758,83 @@ namespace nne
 			return 0;
 		}
 	
-		TU8BitValue TZ80::GetDataFromDataBus()
+		TU8BitValue TZ80::getDataFromDataBus()
 		{
-			mDataBus = GetComponentAsPtr<tcomponents::TPinComponent>()->PinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
+			mDataBus = getComponentAsPtr<tcomponents::TPinComponent>()->pinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
 	
 			return mDataBus;
 		}
 	
-		void TZ80::PushDataToDataBus(const TU8BitValue & Value)
+		void TZ80::pushDataToDataBus(const TU8BitValue & Value)
 		{
 			mDataBus = Value;
 	
-			GetComponentAsPtr<tcomponents::TPinComponent>()->ValueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
+			getComponentAsPtr<tcomponents::TPinComponent>()->valueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
 		}
 		
-		void TZ80::PushDataToAddressBus(const TU16BitValue& Value)
+		void TZ80::pushDataToAddressBus(const TU16BitValue& Value)
 		{
 			mAddressBus = Value;
 	
-			GetComponentAsPtr<tcomponents::TPinComponent>()->ValueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
+			getComponentAsPtr<tcomponents::TPinComponent>()->valueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
 		}
 	
-		TU16BitValue TZ80::GetDataFromAddressBus()
+		TU16BitValue TZ80::getDataFromAddressBus()
 		{
-			mAddressBus = GetComponentAsPtr<tcomponents::TPinComponent>()->PinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
+			mAddressBus = getComponentAsPtr<tcomponents::TPinComponent>()->pinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
 	
 			return mAddressBus;
 		}
 	
-		void TZ80::PushMemory(const TRegisterType& Register)
+		void TZ80::pushMemory(const TRegisterType& Register)
 		{
 			// Get the SP reference
-			auto& StackPointer = mRegisters.StackPointer();
+			auto& StackPointer = mRegisters.stackPointer();
 		
 			// Get a reference to the register
-			const T16BitRegister& RegisterReference = mRegisters.GetRegister<T16BitRegister>(Register);
+			const T16BitRegister& RegisterReference = mRegisters.getRegister<T16BitRegister>(Register);
 		
 			// First decrement PC and load the high order register
-			(*mRam)[--StackPointer] = TUtility::GetUpper8Bit(RegisterReference);
+			(*mRam)[--StackPointer] = TUtility::getUpper8Bit(RegisterReference);
 		
 			// Than decrement PC again and load the low order register
-			(*mRam)[--StackPointer] = TUtility::GetLower8Bit(RegisterReference);
+			(*mRam)[--StackPointer] = TUtility::getLower8Bit(RegisterReference);
 		}
 		
-		void TZ80::PopMemory(const TRegisterType& Register)
+		void TZ80::popMemory(const TRegisterType& Register)
 		{
 			// Get the SP reference
-			auto& StackPointer = mRegisters.StackPointer();
+			auto& StackPointer = mRegisters.stackPointer();
 		
 			// Get a reference to the register
-			T16BitRegister& RegisterReference = mRegisters.GetRegister<T16BitRegister>(Register);
+			T16BitRegister& RegisterReference = mRegisters.getRegister<T16BitRegister>(Register);
 		
 			// Load the content pointed bu the SP in the register specified in the argument
-			RegisterReference = TUtility::To16BitValue((*mRam)[StackPointer + 1], (*mRam)[StackPointer]);
+			RegisterReference = TUtility::to16BitValue((*mRam)[StackPointer + 1], (*mRam)[StackPointer]);
 		
 			// Increment the stack pointer by 2
 			StackPointer += 2;
 		}
 		
-		void TZ80::Call(const TU16BitValue& Address)
+		void TZ80::call(const TU16BitValue& Address)
 		{
 			// Get a reference to the PC
-			auto& ProgramCounter = mRegisters.ProgramCounter();
+			auto& ProgramCounter = mRegisters.programCounter();
 		
 			// Increment the PC by 3 to make sure that when we return from the function it goes to the next instruction
 			ProgramCounter += 3;
 		
 			// Push the content of the PC in the stack
-			PushMemory(TRegisterType::PC);
+			pushMemory(TRegisterType::PC);
 		
 			// Goes to the location specified by the argument
 			ProgramCounter = Address;
 		}
 		
-		void TZ80::Return()
+		void TZ80::returnFromCall()
 		{
 			// Pop the old PC value from the SP
-			PopMemory(TRegisterType::PC);
+			popMemory(TRegisterType::PC);
 		}
 	}
 }

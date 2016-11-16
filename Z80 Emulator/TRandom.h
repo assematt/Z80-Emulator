@@ -13,7 +13,7 @@ namespace nne
 		template <class T, class D, class G, class S>
 		struct TRandomGenerator
 		{
-			static T GenerateNumber(T Min, T Max)
+			static T generateNumber(T Min, T Max)
 			{
 				// Return a random number
 				return D()(G(S()()), D::param_type(Min, Max));

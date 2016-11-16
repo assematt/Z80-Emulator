@@ -7,10 +7,10 @@ namespace nne
 	class TLogicEntity
 	{
 	public:
-		/// Update function
-		virtual void Update(const sf::Time& ElapsedTime) = 0;
+		/// update function
+		virtual void update(const sf::Time& ElapsedTime) = 0;
 
-		/// Update function
-		virtual void Refresh(const sf::Time& ElapsedTime) = 0;
+		/// update function
+		virtual void refresh(const sf::Time& ElapsedTime) = 0;
 	};
 }

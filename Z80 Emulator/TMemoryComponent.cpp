@@ -15,13 +15,13 @@ namespace nne
 			mInternalMemory->resize(MemorySize);
 		}
 
-		void TMemoryComponent::Init()
-		{
+		void TMemoryComponent::init()
+{
 			
 		}
 
-		void TMemoryComponent::Update()
-		{
+		void TMemoryComponent::update()
+{
 
 		}
 
@@ -35,12 +35,12 @@ namespace nne
 			return (*mInternalMemory)[Index];
 		}
 
-		TMemory& TMemoryComponent::GetInternalMemory()
+		TMemory& TMemoryComponent::getInternalMemory()
 		{
 			return *mInternalMemory;
 		}
 
-		const TMemory& TMemoryComponent::GetInternalMemory() const
+		const TMemory& TMemoryComponent::getInternalMemory() const
 		{
 			return *mInternalMemory;
 		}

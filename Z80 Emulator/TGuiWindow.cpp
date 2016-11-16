@@ -8,25 +8,25 @@ namespace nne
 
 	}
 
-	sf::RenderWindow& TGuiWindow::GetInstance()
+	sf::RenderWindow& TGuiWindow::getInstance()
 	{
 		static sf::RenderWindow Instance;
 		return Instance;
 	}
 
-	void TGuiWindow::Clear()
+	void TGuiWindow::clear()
 	{
 		mRenderSurface.clear();
 	}
 
-	void TGuiWindow::Display()
+	void TGuiWindow::display()
 	{
 		mRenderSurface.display();
 	}
 
-	void TGuiWindow::Draw(const sf::Drawable &Drawable, const sf::RenderStates &States /*= sf::RenderStates::Default*/)
+	void TGuiWindow::draw(const sf::Drawable &drawable, const sf::RenderStates &States /*= sf::RenderStates::Default*/)
 	{
-		mRenderSurface.draw(Drawable, States);
+		mRenderSurface.draw(drawable, States);
 	}
 
 }

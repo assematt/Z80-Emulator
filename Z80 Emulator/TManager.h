@@ -15,16 +15,16 @@ namespace nne
 		TManager();
 
 		/// Singleton Access
-		static TManager& GetInstance();
+		static TManager& getInstance();
 	
-		/// Updates every entity in the container
-		void Update(const sf::Time& ElapsedTime);
+		/// updates every entity in the container
+		void update(const sf::Time& ElapsedTime);
 	
-		/// Refreshes every entity in the container
-		void Refresh(const sf::Time& ElapsedTime);
+		/// refreshes every entity in the container
+		void refresh(const sf::Time& ElapsedTime);
 
-		/// Draw all the entities in the container
-		void Draw();
+		/// draw all the entities in the container
+		void draw();
 
 		/// Helper function for c++11 foreach use
 		std::vector<TEntity::TEntityPtr>::iterator begin();
@@ -36,10 +36,10 @@ namespace nne
 	
 	private:
 		/// Get the number of alive entities
-		void ComputeAliveEntities();
+		void computeAliveEntities();
 
 		/// Sort the entity container by putting the dead entity at the back of the array end the alive one at the beginning
-		void SortEntityContainer();
+		void sortEntityContainer();
 	
 	private:
 		int mAliveElement;

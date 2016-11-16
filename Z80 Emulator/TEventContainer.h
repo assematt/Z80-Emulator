@@ -15,11 +15,11 @@ namespace nne
 		TEventContainer() = default;
 		TEventContainer(const TEventContainer& Right) = default;
 	
-		void PushEvent(_Event Func);
+		void pushEvent(_Event Func);
 	
-		_Event& PopEvent();
+		_Event& popEvent();
 	
-		void ProcessEvent();
+		void processEvent();
 	
 	private:
 		std::vector<_EventPtr> mEventList;

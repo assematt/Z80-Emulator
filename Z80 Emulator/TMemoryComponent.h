@@ -15,17 +15,17 @@ namespace nne
 			TMemoryComponent();
 			explicit TMemoryComponent(const TU16BitValue& MemorySize);
 
-			void Init() override;
+			void init() override;
 
-			void Update() override;
+			void update() override;
 
-			void Refresh() override {}
+			void refresh() override {}
 
 			TU8BitValue& operator[] (const std::size_t Index);
 			const TU8BitValue& operator[] (const std::size_t Index) const;
 
-			TMemory& GetInternalMemory();
-			const TMemory& GetInternalMemory() const;
+			TMemory& getInternalMemory();
+			const TMemory& getInternalMemory() const;
 
 		private:
 			std::shared_ptr<TMemory> mInternalMemory;

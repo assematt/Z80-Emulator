@@ -9,40 +9,40 @@ namespace nne
 	{
 	}
 
-	TManager & TManager::GetInstance()
+	TManager & TManager::getInstance()
 	{
 		static TManager Instance;
 		return Instance;
 	}
 	
-	void TManager::Update(const sf::Time& ElapsedTime)
+	void TManager::update(const sf::Time& ElapsedTime)
 	{
 		for (int Counter = 0; Counter < mAliveElement; ++Counter)
 		{
-			mComponents[Counter]->Update();
+			mComponents[Counter]->update();
 		}
 	}
 	
-	void TManager::Refresh(const sf::Time& ElapsedTime)
+	void TManager::refresh(const sf::Time& ElapsedTime)
 	{
-		ComputeAliveEntities();
+		computeAliveEntities();
 
 		// Call the function that sort the entity container
-		SortEntityContainer();
+		sortEntityContainer();
 
 	
-		// Refresh the alive entities
+		// refresh the alive entities
 		for (int Counter = 0; Counter < mAliveElement; ++Counter)
 		{
-			mComponents[Counter]->Refresh();
+			mComponents[Counter]->refresh();
 		}
 	}
 	
-	void TManager::Draw()
+	void TManager::draw()
 	{
 		for (int Counter = 0; Counter < mAliveElement; ++Counter)
 		{			
-			TGuiWindow::GetInstance().draw(*(dynamic_cast<TGraphicEntity*>(mComponents[Counter].get())));
+			TGuiWindow::getInstance().draw(*(dynamic_cast<TGraphicEntity*>(mComponents[Counter].get())));
 		}
 	}
 
@@ -66,23 +66,23 @@ namespace nne
 		return mComponents[Index];
 	}
 
-	void TManager::ComputeAliveEntities()
+	void TManager::computeAliveEntities()
 	{
 		mAliveElement = 0;
 
 		for (auto& Entity : mComponents)
 		{
-			if (Entity->IsAlive())
+			if (Entity->isAlive())
 			{
 				++mAliveElement;
 			}
 		}
 	}
 
-	void TManager::SortEntityContainer()
+	void TManager::sortEntityContainer()
 	{
 		std::sort(mComponents.begin(), mComponents.end(), [](const TEntity::TEntityPtr& Left, const TEntity::TEntityPtr& Right) {
-			return (Left->IsAlive() && !Right->IsAlive());
+			return (Left->isAlive() && !Right->isAlive());
 		});
 	}
 	

@@ -8,25 +8,25 @@ namespace nne
 	{
 	}
 
-	bool TGameApp::Init()
+	bool TGameApp::init()
 	{
 		// Load the resources
-		auto& CacheManager = TCacheManager::GetInstance();
-		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_effect.png"), "monitor_effect"));
-		CacheManager.AddResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_shadow.png"), "monitor_shadow"));
-		CacheManager.AddResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
+		auto& CacheManager = TCacheManager::getInstance();
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_effect.png"), "monitor_effect"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_shadow.png"), "monitor_shadow"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
 
 		// Create a Z80 and RAM entity
-		mLogicEntity.AddComponent<nne::tmodules::TZ80>();
-		mLogicEntity.AddComponent<nne::tmodules::TRam>();
-		mLogicEntity.InitComponents();
+		mLogicEntity.addComponent<nne::tmodules::TZ80>();
+		mLogicEntity.addComponent<nne::tmodules::TRam>();
+		mLogicEntity.initComponents();
 
 		// Get the Z80 and the ram entity
-		auto& Z80 = mLogicEntity.GetComponentAsPtr<nne::tmodules::TZ80>();
-		auto& Ram = mLogicEntity.GetComponentAsPtr<nne::tmodules::TRam>();
+		auto& Z80 = mLogicEntity.getComponentAsPtr<nne::tmodules::TZ80>();
+		auto& Ram = mLogicEntity.getComponentAsPtr<nne::tmodules::TRam>();
 
-		Z80->ConnectRam(Ram);
-		if (!Z80->LoadProgram("resources/programs/DJ.A01"))
+		Z80->connectRam(Ram);
+		if (!Z80->loadProgram("resources/programs/DJ.A01"))
 		{
 			std::cout << "Error! Could not open the file" << std::endl;
 
@@ -35,96 +35,96 @@ namespace nne
 		}
 
 		// Create a temp value the z80 and the ram
-		auto& Z80Chip = TFactory::MakeChip(Z80.get());
-		auto& RamChip = TFactory::MakeChip(Ram.get());
-		auto& ConductiveRack = TFactory::MakeConductiveTrack();
+		auto& Z80Chip = TFactory::makeChip(Z80.get());
+		auto& RamChip = TFactory::makeChip(Ram.get());
+		auto& ConductiveRack = TFactory::makeConductiveTrack();
 
-		Z80Chip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
-		Z80Chip->GetComponentAsPtr<TTransformable>()->SetPosition(500.f, 300.f);
+		//Z80Chip->getComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
+		Z80Chip->getComponentAsPtr<TTransformable>()->setPosition(250.f, 100.f);
 
-		RamChip->GetComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
-		RamChip->GetComponentAsPtr<TTransformable>()->SetPosition(1000.f, 350.f);
+		//RamChip->getComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
+		RamChip->getComponentAsPtr<TTransformable>()->setPosition(900.f, 100.f);
 
-		auto& Manager = TManager::GetInstance();
-		Manager.AddComponent<TGraphicEntity>(std::move(Z80Chip));
-		Manager.AddComponent<TGraphicEntity>(std::move(RamChip));
-		Manager.AddComponent<TGraphicEntity>(std::move(ConductiveRack));
+		auto& Manager = TManager::getInstance();
+		Manager.addComponent<TGraphicEntity>(std::move(Z80Chip));
+		Manager.addComponent<TGraphicEntity>(std::move(RamChip));
+		//Manager.addComponent<TGraphicEntity>(std::move(ConductiveRack));
 
 		// Create the window
-		TGuiWindow::GetInstance().create(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default);
+		TGuiWindow::getInstance().create(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default);
 
 		// Initialize the GUI
-		mAppGui.Setup();
+		mAppGui.setup();
 
 		return true;
 	}
 
-	bool TGameApp::LoadConfiguration(const std::string& ConfigFile)
+	bool TGameApp::loadConfiguration(const std::string& ConfigFile)
 	{
 		return true;
 	}
 
-	int TGameApp::Run()
+	int TGameApp::run()
 	{
 		mAppClock.restart();
 
-		while (TGuiWindow::GetInstance().isOpen())
+		while (TGuiWindow::getInstance().isOpen())
 		{
 			sf::Time ElapsedTime = mAppClock.restart();
 
-			EventLoop();
+			eventLoop();
 
-			Refresh(ElapsedTime);
+			refresh(ElapsedTime);
 
-			Update(ElapsedTime);
+			update(ElapsedTime);
 
-			Draw();
+			draw();
 		}
 
 		return 0;
 	}
 
-	void TGameApp::EventLoop()
+	void TGameApp::eventLoop()
 	{
-		while (TGuiWindow::GetInstance().pollEvent(mAppEvent))
+		while (TGuiWindow::getInstance().pollEvent(mAppEvent))
 		{
-			mAppGui.ProcessEvents(mAppEvent);
+			mAppGui.processEvents(mAppEvent);
 
 			if (mAppEvent.type == sf::Event::Closed)
-				TGuiWindow::GetInstance().close();
+				TGuiWindow::getInstance().close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
-				TGuiWindow::GetInstance().close();
+				TGuiWindow::getInstance().close();
 		}
 	}
 
-	void TGameApp::Refresh(sf::Time ElapsedTime)
+	void TGameApp::refresh(sf::Time ElapsedTime)
 	{
-		mAppGui.Refresh(ElapsedTime);
+		mAppGui.refresh(ElapsedTime);
 
-		nne::TManager::GetInstance().Refresh(ElapsedTime);
+		nne::TManager::getInstance().refresh(ElapsedTime);
 	}
 
-	void TGameApp::Update(sf::Time ElapsedTime)
+	void TGameApp::update(sf::Time ElapsedTime)
 	{
-		mAppGui.Update(ElapsedTime);
+		mAppGui.update(ElapsedTime);
 
-		nne::TManager::GetInstance().Update(ElapsedTime);
+		nne::TManager::getInstance().update(ElapsedTime);
 	}
 
-	void TGameApp::Draw()
+	void TGameApp::draw()
 	{
 		// Clear the back buffered window
-		TGuiWindow::GetInstance().clear();
+		TGuiWindow::getInstance().clear();
 		
 		// Render all the entity in the the entity manager
-		nne::TManager::GetInstance().Draw();
+		nne::TManager::getInstance().draw();
 
 		// Render the GUI
-		mAppGui.Draw();
+		mAppGui.draw();
 					
 		// Display the back buffered window
-		TGuiWindow::GetInstance().display();
+		TGuiWindow::getInstance().display();
 	}
 
 }

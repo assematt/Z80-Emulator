@@ -2,8 +2,6 @@
 
 #include "TGuiWidget.h"
 #include "IComponent.h"
-#include "TTransformable.h"
-#include "TText.h"
 
 namespace nne
 {

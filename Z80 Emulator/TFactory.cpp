@@ -9,10 +9,8 @@ namespace nne
 		{
 			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
 
-			TempPtr->addComponent<TSprite>();
-			TempPtr->addComponent<TTransformable>();
-			TempPtr->addComponent<TdrawableVector>();
-			TempPtr->addComponent<TChip>(ChipToRender);
+			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TChipComponent>(ChipToRender);
 			TempPtr->initComponents();
 
 			return std::move(TempPtr);
@@ -22,9 +20,7 @@ namespace nne
 		{
 			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
 
-			TempPtr->addComponent<TSprite>();
-			TempPtr->addComponent<TTransformable>();
-			TempPtr->addComponent<TdrawableVector>();
+			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TConductiveTracks>();
 			TempPtr->initComponents();
 
@@ -35,13 +31,13 @@ namespace nne
 		{
 			std::shared_ptr<TGraphicEntity> TempPtr = std::make_shared<TGraphicEntity>();
 
-			TempPtr->addComponent<TSprite>();
-			TempPtr->addComponent<TTransformable>();
-			TempPtr->addComponent<TdrawableVector>();
+			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->initComponents();
 
 			return std::move(TempPtr);
 		}
+
+		
 
 	}
 }

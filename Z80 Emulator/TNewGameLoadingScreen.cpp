@@ -3,8 +3,10 @@
 namespace nne
 {
 
-	void tgui::TNewGameLoadingScreen::setup()
+	void tgui::TNewGameLoadingScreen::setup(nne::tgui::TGuiManager* GuiManager)
 	{
+		mParentManager = GuiManager;
+
 		tgui::TGuiImage::UniquePtr BackgroundColor = std::make_unique<tgui::TGuiImage>();
 		sf::Image TempImage;
 		TempImage.create(1920, 1080, sf::Color(0, 0, 170));

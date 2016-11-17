@@ -23,8 +23,9 @@ namespace nne
 		{
 		public:
 			TGuiManager();
+			virtual ~TGuiManager() = default;
 
-			void setup();
+			void setup(std::shared_ptr<sf::RenderWindow> RenderWindow);
 
 			void processEvents(sf::Event& EventToProcess);
 
@@ -38,16 +39,17 @@ namespace nne
 
 			void draw();
 
-		private:
-			void ExecuteLoadingScreen();
+			/// Get a ref to the window in which we are rendering the GUI
+			sf::RenderWindow& getRenderingWindow() const;
 
 		private:
-			bool mIsRunning;
-			std::atomic_bool mIsloading;
-			std::future<void> mLoadingStatus;
-			std::size_t mCurrentViewIndex;
-			std::size_t mPreviousViewIndex;
-			std::thread mLoadingThread;
+			bool								mIsRunning;
+			std::size_t							mCurrentViewIndex;
+			std::size_t							mPreviousViewIndex;
+			std::thread							mLoadingThread;
+			std::atomic_bool					mIsloading;
+			std::future<void>					mLoadingStatus;
+			std::shared_ptr<sf::RenderWindow>	mRenderWindow;
 			std::vector<IScreenView::UniquePtr> mScreens;
 		};
 	}

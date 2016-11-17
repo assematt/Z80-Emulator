@@ -2,9 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "TEntity.h"
-#include "TTransformable.h"
-#include "TdrawableVector.h"
-#include "TSprite.h"
+#include "TDrawableComponent.h"
 
 namespace nne
 {

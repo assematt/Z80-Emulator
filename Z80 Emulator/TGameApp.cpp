@@ -4,18 +4,19 @@ namespace nne
 {
 
 	TGameApp::TGameApp() :
-		mAppName(PROGRAM_NAME)
+		mAppName(PROGRAM_NAME),
+		mAppWindow(std::make_shared<sf::RenderWindow>(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default))
 	{
 	}
 
 	bool TGameApp::init()
-	{
+	{		
 		// Load the resources
 		auto& CacheManager = TCacheManager::getInstance();
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_effect.png"), "monitor_effect"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_shadow.png"), "monitor_shadow"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
-
+				
 		// Create a Z80 and RAM entity
 		mLogicEntity.addComponent<nne::tmodules::TZ80>();
 		mLogicEntity.addComponent<nne::tmodules::TRam>();
@@ -39,22 +40,15 @@ namespace nne
 		auto& RamChip = TFactory::makeChip(Ram.get());
 		auto& ConductiveRack = TFactory::makeConductiveTrack();
 
-		//Z80Chip->getComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
-		Z80Chip->getComponentAsPtr<TTransformable>()->setPosition(250.f, 100.f);
+		Z80Chip->getComponentAsPtr<TDrawableComponent>()->setPosition(250.f, 100.f);
+		RamChip->getComponentAsPtr<TDrawableComponent>()->setPosition(900.f, 100.f);
 
-		//RamChip->getComponentAsPtr<TTransformable>()->SetScale(.5f, .5f);
-		RamChip->getComponentAsPtr<TTransformable>()->setPosition(900.f, 100.f);
-
-		auto& Manager = TManager::getInstance();
-		Manager.addComponent<TGraphicEntity>(std::move(Z80Chip));
-		Manager.addComponent<TGraphicEntity>(std::move(RamChip));
-		//Manager.addComponent<TGraphicEntity>(std::move(ConductiveRack));
-
-		// Create the window
-		TGuiWindow::getInstance().create(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default);
+		mGraphicEntity.addComponent<TGraphicEntity>(std::move(Z80Chip));
+		mGraphicEntity.addComponent<TGraphicEntity>(std::move(RamChip));
+		mGraphicEntity.initComponents();
 
 		// Initialize the GUI
-		mAppGui.setup();
+		mAppGui.setup(mAppWindow);
 
 		return true;
 	}
@@ -67,8 +61,8 @@ namespace nne
 	int TGameApp::run()
 	{
 		mAppClock.restart();
-
-		while (TGuiWindow::getInstance().isOpen())
+		
+		while (mAppWindow->isOpen())
 		{
 			sf::Time ElapsedTime = mAppClock.restart();
 
@@ -86,15 +80,15 @@ namespace nne
 
 	void TGameApp::eventLoop()
 	{
-		while (TGuiWindow::getInstance().pollEvent(mAppEvent))
+		while (mAppWindow->pollEvent(mAppEvent))
 		{
 			mAppGui.processEvents(mAppEvent);
 
 			if (mAppEvent.type == sf::Event::Closed)
-				TGuiWindow::getInstance().close();
+				mAppWindow->close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
-				TGuiWindow::getInstance().close();
+				mAppWindow->close();
 		}
 	}
 
@@ -102,29 +96,29 @@ namespace nne
 	{
 		mAppGui.refresh(ElapsedTime);
 
-		nne::TManager::getInstance().refresh(ElapsedTime);
+		mGraphicEntity.refresh(ElapsedTime);
 	}
 
 	void TGameApp::update(sf::Time ElapsedTime)
 	{
 		mAppGui.update(ElapsedTime);
 
-		nne::TManager::getInstance().update(ElapsedTime);
+		mGraphicEntity.update(ElapsedTime);
 	}
 
 	void TGameApp::draw()
 	{
 		// Clear the back buffered window
-		TGuiWindow::getInstance().clear();
-		
+		mAppWindow->clear();
+
 		// Render all the entity in the the entity manager
-		nne::TManager::getInstance().draw();
+		//mGraphicEntity.draw(*mAppWindow);
 
 		// Render the GUI
 		mAppGui.draw();
-					
+
 		// Display the back buffered window
-		TGuiWindow::getInstance().display();
+		mAppWindow->display();
 	}
 
 }

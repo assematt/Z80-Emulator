@@ -2,11 +2,9 @@
 
 #include <memory>
 
-#include "TChip.h"
-#include "TSprite.h"
-#include "TdrawableVector.h"
+#include "TChipComponent.h"
+#include "TDrawableComponent.h"
 #include "TConductiveTracks.h"
-#include "TTransformable.h"
 #include "TGraphicEntity.h"
 
 namespace nne
@@ -18,6 +16,5 @@ namespace nne
 		std::shared_ptr<TGraphicEntity> makeConductiveTrack();
 
 		std::shared_ptr<TGraphicEntity> makeGuiWidget();
-
 	};
 }

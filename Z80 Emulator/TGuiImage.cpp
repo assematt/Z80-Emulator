@@ -11,9 +11,7 @@ namespace nne
 
 		void tgui::TGuiImage::init()
 		{
-			addComponent<TTransformable>();
-			addComponent<TdrawableVector>();
-			addComponent<TSprite>();
+			addComponent<TDrawableComponent>();
 			initComponents();
 		}
 
@@ -29,35 +27,27 @@ namespace nne
 
 		void tgui::TGuiImage::SetImage(const sf::Texture& Image)
 		{
-			getComponentAsPtr<TSprite>()->setTexture(Image);
+			getComponentAsPtr<TDrawableComponent>()->setTexture(Image);
 		}
 
 		const sf::Texture& tgui::TGuiImage::GetImage() const
 		{
-			return getComponentAsPtr<TSprite>()->getTexture();
+			return getComponentAsPtr<TDrawableComponent>()->getTexture();
 		}
 
 		void TGuiImage::setSize(const sf::Vector2u& Size)
 		{
-			getComponentAsPtr<TSprite>()->setSize(Size);
+			getComponentAsPtr<TDrawableComponent>()->setSize(Size);
 		}
 
 		const sf::Vector2u& TGuiImage::getSize() const
 		{
-			return getComponentAsPtr<TSprite>()->getSize();
+			return getComponentAsPtr<TDrawableComponent>()->getSize();
 		}
 
 		void TGuiImage::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
-			states.transform *= this->getComponentAsPtr<TTransformable>()->getTransform();
-
-			auto& drawablesComponent = *getComponentAsPtr<TdrawableVector>();
-
-			for (std::size_t Index = 0; Index < drawablesComponent.getVectorSize(); ++Index)
-			{
-				states.texture = drawablesComponent[Index].getTexture();
-				target.draw(drawablesComponent[Index].getVertexArray(), states);
-			}
+			target.draw(*getComponentAsPtr<TDrawableComponent>(), states);
 		}
 	}
 }

@@ -12,12 +12,12 @@
 #include <vector>
 
 #include "IComponent.h"
-#include "TTransformable.h"
 #include "TEntity.h"
+#include "TDrawableComponent.h"
 
 namespace nne
 {
-	class TText : public IComponent//, public sf::Drawable
+	class TTextComponent : public IComponent
 	{
 	public:
 
@@ -33,8 +33,8 @@ namespace nne
 		using TVertexArrayPtr = std::shared_ptr<sf::VertexArray>;
 
 		
-		TText();
-		TText(const sf::String& String, const sf::Font& Font, unsigned int characterSize = 30);
+		TTextComponent();
+		TTextComponent(const sf::String& String, const sf::Font& Font, unsigned int characterSize = 30);
 
 		void setString(const sf::String& String);
 
@@ -76,10 +76,6 @@ namespace nne
 
 		virtual void init() override;
 
-		const sf::VertexArray& getVertexArray() const;
-
-		const sf::Texture* getTexture() const;
-
 	private:
 		void ensureGeometryupdate() const;
 
@@ -91,10 +87,10 @@ namespace nne
 		sf::Color               mFillColor;          ///< Text fill color
 		sf::Color               mOutlineColor;       ///< Text outline color
 		float					mOutlineThickness;   ///< Thickness of the text's outline
-		mutable TVertexArrayPtr	mVertices;           ///< Vertex array containing the fill geometry
-		mutable TVertexArrayPtr	mOutlineVertices;    ///< Vertex array containing the outline geometry
 		mutable sf::FloatRect   mBounds;             ///< Bounding rectangle of the text (in local coordinates)
 		mutable bool			mGeometryNeedupdate; ///< Does the geometry need to be recomputed?
+
+		std::shared_ptr<TDrawableComponent>	mDrawableComponent;
 	};
 
 }

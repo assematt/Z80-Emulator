@@ -39,14 +39,16 @@ namespace nne
 		void update(sf::Time ElapsedTime);
 
 		void draw();
-		
+
 	private:
-		std::string mAppName;
-		sf::Event	mAppEvent;
-		sf::Clock	mAppClock;
-		tgui::TGuiManager mAppGui;
+ 		sf::Clock			mAppClock;
+		sf::Event			mAppEvent;
+ 		std::string			mAppName;
+		TGameWindowPtr		mAppWindow;
+		tgui::TGuiManager	mAppGui;
 
 		TManager mLogicEntity;
 		TManager mGraphicEntity;
+
 	};
 }

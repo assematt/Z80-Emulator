@@ -272,13 +272,10 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="IComponent.cpp" />
     <ClCompile Include="IScreenView.cpp" />
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="TCharStruct.cpp" />
-    <ClCompile Include="TChip.cpp" />
-    <ClCompile Include="TChipPin.cpp" />
+    <ClCompile Include="TChipComponent.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TConductiveTracks.cpp" />
     <ClCompile Include="TDebugger.cpp" />
-    <ClCompile Include="TDrawableVector.cpp" />
     <ClCompile Include="TEntity.cpp" />
     <ClCompile Include="TEventContainer.cpp" />
     <ClCompile Include="TFactory.cpp" />
@@ -301,22 +298,18 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TPinComponent.cpp" />
     <ClCompile Include="TRam.cpp" />
     <ClCompile Include="TRegister.cpp" />
-    <ClCompile Include="TSprite.cpp" />
-    <ClCompile Include="TTransformable.cpp" />
+    <ClCompile Include="TDrawableComponent.cpp" />
     <ClCompile Include="TZ80.cpp" />
-    <ClCompile Include="TText.cpp" />
+    <ClCompile Include="TTextComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IScreenView.h" />
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="TCacheManager.h" />
-    <ClInclude Include="TChip.h" />
-    <ClInclude Include="TChipPin.h" />
+    <ClInclude Include="TChipComponent.h" />
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TConductiveTracks.h" />
-    <ClInclude Include="TDrawableComponent.h" />
-    <ClInclude Include="TDrawableVector.h" />
     <ClInclude Include="TGuiImage.h" />
     <ClInclude Include="TNewGameLoadingScreen.h" />
     <ClInclude Include="TResource.h" />
@@ -324,7 +317,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TResourceVector.h" />
     <ClInclude Include="TLoaders.h" />
     <ClInclude Include="_GenericVector.h" />
-    <ClInclude Include="TCharStruct.h" />
     <ClInclude Include="TFactory.h" />
     <ClInclude Include="TGameApp.h" />
     <ClInclude Include="TGraphicEntity.h" />
@@ -353,12 +345,11 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TRegisterContainer.h" />
     <ClInclude Include="TRegister.h" />
     <ClInclude Include="TSourceParser.h" />
-    <ClInclude Include="TSprite.h" />
-    <ClInclude Include="TTransformable.h" />
+    <ClInclude Include="TDrawableComponent.h" />
     <ClInclude Include="TUtility.h" />
     <ClInclude Include="TValues.h" />
     <ClInclude Include="TZ80.h" />
-    <ClInclude Include="TText.h" />
+    <ClInclude Include="TTextComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

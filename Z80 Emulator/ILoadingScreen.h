@@ -6,18 +6,20 @@
 
 namespace nne
 {
-
-	struct ILoadingScreen
+	namespace tgui
 	{
-		/// Function to setup the files to load
-		virtual void setup() = 0;
+		class TGuiManager;
 
-		/// Function that execute the loading
-		virtual void loading(std::atomic_bool& IsDone) = 0;
+		struct ILoadingScreen
+		{
+			/// Function to setup the files to load
+			virtual void setup(nne::tgui::TGuiManager* GuiManager) = 0;
 
-	protected:
-		std::vector<std::string> mFiles;
-	};
+			/// Function that execute the loading
+			virtual void loading(std::atomic_bool& IsDone) = 0;
 
-	
+		protected:
+			std::vector<std::string> mFiles;
+		};
+	}	
 }

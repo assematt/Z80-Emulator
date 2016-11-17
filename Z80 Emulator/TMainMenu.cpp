@@ -1,14 +1,17 @@
 #include "TMainMenu.h"
+#include "TGuiManager.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		void TMainMenu::setup()
+		void TMainMenu::setup(nne::tgui::TGuiManager* GuiManager)
 		{
+			mParentManager = GuiManager;
+
 			// get a ref to the cache manager and the rendering window
 			auto& CacheManager = TCacheManager::getInstance();
-			auto& RenderingWindow = TGuiWindow::getInstance();
+			auto& RenderingWindow = mParentManager->getRenderingWindow();
 
 			tgui::TGuiImage::UniquePtr BackgroundColor = std::make_unique<tgui::TGuiImage>();
 			sf::Image TempImage;

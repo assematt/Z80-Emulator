@@ -3,10 +3,9 @@
 #include <memory>
 #include <vector>
 
-#include "TdrawableVector.h"
 #include "TPinComponent.h"
 #include "IComponent.h"
-#include "TSprite.h"
+#include "TDrawableComponent.h"
 #include "TEntity.h"
 
 namespace nne

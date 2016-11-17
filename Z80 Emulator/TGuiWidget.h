@@ -8,10 +8,9 @@
 #include <memory>
 #include <windows.h>
 
-#include "TTransformable.h"
 #include "TLogicEntity.h"
 #include "TEntity.h"
-#include "TSprite.h"
+#include "TDrawableComponent.h"
 
 namespace nne
 {
@@ -69,7 +68,7 @@ namespace nne
 
 			/// Functions to get/set the widget visibility
 			void setVisibility(bool Show = true);
-			bool IsVisible();
+			bool isVisible();
 
 			/// Functions to get/set the widget ability to accept input
 			void enableInput();
@@ -87,7 +86,8 @@ namespace nne
 			}
 
 			/// Get the widget bound
-			const sf::FloatRect& getWidgetBound() const;
+			sf::FloatRect getLocalBounds();
+			sf::FloatRect getGlobalBounds();
 		
 		private:
 			void makeVirtual() override {};

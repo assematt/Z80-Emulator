@@ -8,12 +8,6 @@ namespace nne
 		TComponentArray(this)
 	{
 	}
-
-	TManager & TManager::getInstance()
-	{
-		static TManager Instance;
-		return Instance;
-	}
 	
 	void TManager::update(const sf::Time& ElapsedTime)
 	{
@@ -38,11 +32,11 @@ namespace nne
 		}
 	}
 	
-	void TManager::draw()
-	{
+	void TManager::draw(sf::RenderTarget& Target)
+{
 		for (int Counter = 0; Counter < mAliveElement; ++Counter)
 		{			
-			TGuiWindow::getInstance().draw(*(dynamic_cast<TGraphicEntity*>(mComponents[Counter].get())));
+			Target.draw(*(dynamic_cast<TGraphicEntity*>(mComponents[Counter].get())));
 		}
 	}
 

@@ -6,10 +6,9 @@
 #include <future>
 #include <vector>
 
-#include "TGuiWindow.h"
 #include "TGuiWidget.h"
 #include "ILoadingScreen.h"
-#include "TRandom.h"
+#include "TDrawableComponent.h"
 
 namespace nne
 {
@@ -29,7 +28,7 @@ namespace nne
 			CENTER_BOTTOM,
 			RIGHT_BOTTOM,
 		};
-		
+
 		class TGuiManager;
 
 		class IScreenView
@@ -96,7 +95,7 @@ namespace nne
 			IScreenView();
 			virtual ~IScreenView() = default;
 
-			virtual void setup() = 0;
+			virtual void setup(TGuiManager* GuiManager) = 0;
 
 			void handleEvent(const sf::Event& Event);
 			
@@ -111,12 +110,6 @@ namespace nne
 
 			const TGuiWidget::UniquePtr& getWidget(const std::size_t Index) const;
 
-			/// Function to set a loading screen
-			void setLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen);
-
-			/// Function to get the loading screen
-			std::unique_ptr<ILoadingScreen>& getLoadingScreen();
-
 			/// updates every widget in the container
 			void update(const sf::Time& ElapsedTime);
 
@@ -125,6 +118,12 @@ namespace nne
 
 			/// draw all the widgets in the container
 			void draw();
+
+			/// Function to set a loading screen
+			void addLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen);
+
+			/// Function to get the loading screen
+			std::unique_ptr<tgui::ILoadingScreen>& getLoadingScreen();
 			
 			/// Helper function for c++11 foreach use
 			std::vector<TWdigetRenderStrcut>::iterator begin();
@@ -144,10 +143,11 @@ namespace nne
 			void insertWidget(T& Widget, const TZIndex& WidgetZIndex = 0);
 
 		protected:
-			std::vector<TWdigetRenderStrcut> mWidgetsContainer;
-			std::unique_ptr<ILoadingScreen> mLoadingScreen;
-			sf::Vector2f mPosition;
-			TGuiManager* mParentManager;
+
+			TGuiManager*							mParentManager;
+			sf::Vector2f							mPosition;
+			std::vector<TWdigetRenderStrcut>		mWidgetsContainer;
+			std::unique_ptr<tgui::ILoadingScreen>	mLoadingScreen;
 
 			friend class TGuiManager;
 		};

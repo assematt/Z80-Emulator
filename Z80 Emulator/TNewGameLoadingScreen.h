@@ -9,16 +9,16 @@ namespace nne
 {
 	namespace tgui
 	{
-		class TNewGameLoadingScreen : public ILoadingScreen, public tgui::IScreenView
+		class TNewGameLoadingScreen : public tgui::ILoadingScreen, public tgui::IScreenView
 		{
 		public:
 
-			void setup() final;
+			virtual void setup(nne::tgui::TGuiManager* GuiManager) override;
 
 			virtual void loading(std::atomic_bool& IsLoading) override;
 
 			virtual void handleEvent(sf::Event& Event);
-			
+
 		private:
 		};
 	}

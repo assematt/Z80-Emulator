@@ -5,7 +5,6 @@
 #include <array>
 #include "TEntity.h"
 #include "TGraphicEntity.h"
-#include "TGuiWindow.h"
 
 namespace nne
 {
@@ -13,9 +12,6 @@ namespace nne
 	{
 	public:	
 		TManager();
-
-		/// Singleton Access
-		static TManager& getInstance();
 	
 		/// updates every entity in the container
 		void update(const sf::Time& ElapsedTime);
@@ -24,7 +20,7 @@ namespace nne
 		void refresh(const sf::Time& ElapsedTime);
 
 		/// draw all the entities in the container
-		void draw();
+		void draw(sf::RenderTarget& Target);
 
 		/// Helper function for c++11 foreach use
 		std::vector<TEntity::TEntityPtr>::iterator begin();
@@ -45,4 +41,7 @@ namespace nne
 		int mAliveElement;
 		int mNewElement;
 	};
+
+// 	using TGraphicManager = TManager<TGraphicEntity>;
+// 	using TLogicManager = TManager<TLogicEntity>;
 }

@@ -5,21 +5,23 @@ namespace nne
 	namespace tgui
 	{
 		TGuiManager::TGuiManager() :
-			mCurrentViewIndex(1),
+			mCurrentViewIndex(0),
 			mIsloading(false)
 		{
 		}
 
-		void TGuiManager::setup()
+		void TGuiManager::setup(std::shared_ptr<sf::RenderWindow> RenderWindow)
 		{
+			mRenderWindow = RenderWindow;
+
 			// Create a main menu
-			TMainMenu::UniquePtr MainMenuMenu = std::make_unique<TMainMenu>();
-			MainMenuMenu->setup();
+			tgui::TMainMenu::UniquePtr MainMenuMenu = std::make_unique<tgui::TMainMenu>();
+			MainMenuMenu->setup(this);
 			addMenu(MainMenuMenu);
 
 			// Create an info menu
-			TNewGameMenu::UniquePtr InfoMenu = std::make_unique<TNewGameMenu>();
-			InfoMenu->setup();
+			tgui::TNewGameMenu::UniquePtr InfoMenu = std::make_unique<tgui::TNewGameMenu>();
+			InfoMenu->setup(this);
 			addMenu(InfoMenu);
 		}
 
@@ -37,9 +39,7 @@ namespace nne
 				mLoadingStatus = std::async(std::launch::async, &TNewGameLoadingScreen::loading, dynamic_cast<TNewGameLoadingScreen*>(mScreens[mCurrentViewIndex]->getLoadingScreen().get()), std::ref(mIsloading));
 
 				mIsloading = true;
-				//ExecuteLoadingScreen();
-			}				
-			
+			}
 		}
 
 		void TGuiManager::refresh(const sf::Time& ElapsedTime)
@@ -52,7 +52,6 @@ namespace nne
 				LoadingScreen.refresh(ElapsedTime);
 				return;
 			}
-
 
 			mScreens[mCurrentViewIndex]->refresh(ElapsedTime);
 		}
@@ -76,7 +75,6 @@ namespace nne
 			/// Skip the draw cycle if we are loading something
 			if (mIsloading)
 			{
-
 				auto& LoadingScreen = *dynamic_cast<TNewGameLoadingScreen*>(mScreens[mCurrentViewIndex]->getLoadingScreen().get());
 
 				LoadingScreen.draw();
@@ -86,24 +84,18 @@ namespace nne
 			mScreens[mCurrentViewIndex]->draw();
 		}
 
-		void TGuiManager::ExecuteLoadingScreen()
+		sf::RenderWindow& TGuiManager::getRenderingWindow() const
 		{
-			std::async(std::launch::async, &TNewGameLoadingScreen::loading, dynamic_cast<TNewGameLoadingScreen*>(mScreens[mCurrentViewIndex]->getLoadingScreen().get()), std::ref(mIsloading));
+			return *mRenderWindow;
 		}
 
 		void TGuiManager::processEvents(sf::Event& EventToProcess)
 		{
 			mScreens[mCurrentViewIndex]->handleEvent(EventToProcess);
-
-			/*if (EventToProcess.type == sf::Event::MouseButtonPressed)
-			{
-			ChangeMenu(TODO);
-			}*/
 		}
 
 		void TGuiManager::addMenu(IScreenView::UniquePtr& Menu)
 		{
-			Menu->mParentManager = this;
 			mScreens.push_back(std::move(Menu));
 		}
 

@@ -1,4 +1,5 @@
 #include "IScreenView.h"
+#include "TGuiManager.h"
 
 namespace nne
 {
@@ -6,7 +7,6 @@ namespace nne
 	{
 
 		IScreenView::IScreenView() :
-			mLoadingScreen(nullptr),
 			mParentManager(nullptr),
 			mPosition({.0f, .0f})
 		{
@@ -23,7 +23,7 @@ namespace nne
 				// Get a ref to the widget the widget from the render struct
 				auto& Widget = WidgetIterator->GetWidget();
 
-				if (Event.type == sf::Event::MouseButtonPressed && Widget->isInputEnabled() && checkMouseClick(Widget->getWidgetBound(), { Event.mouseButton.x, Event.mouseButton.y }))
+				if (Event.type == sf::Event::MouseButtonPressed && Widget->isInputEnabled() && checkMouseClick(Widget->getGlobalBounds(), { Event.mouseButton.x, Event.mouseButton.y }))
 				{
 					// Raise the signal
 					Widget->raiseSignal(tevent::_OnMouseClick, Event.mouseButton);
@@ -44,16 +44,6 @@ namespace nne
 			return mWidgetsContainer[Index].mWidget;
 		}
 
-		void IScreenView::setLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen)
-		{
-			mLoadingScreen = std::move(LoadingScreen);
-		}
-
-		std::unique_ptr<nne::ILoadingScreen>& IScreenView::getLoadingScreen()
-{
-			return mLoadingScreen;
-		}
-
 		void IScreenView::update(const sf::Time& ElapsedTime)
 		{
 			for (auto& Widget : mWidgetsContainer)
@@ -72,10 +62,15 @@ namespace nne
 
 		void IScreenView::draw()
 		{
-			for (auto& Widget : mWidgetsContainer)
+			for (auto& WidgetIterator : mWidgetsContainer)
 			{
-				TGuiWindow::getInstance().draw(*Widget.mWidget);
+				mParentManager->getRenderingWindow().draw(*WidgetIterator.GetWidget()->getComponentAsPtr<TDrawableComponent>());
 			}
+		}
+
+		void IScreenView::addLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen)
+		{
+			mLoadingScreen = std::move(LoadingScreen);
 		}
 
 		std::vector<IScreenView::TWdigetRenderStrcut>::iterator IScreenView::begin()
@@ -100,7 +95,7 @@ namespace nne
 
 		const sf::Vector2f IScreenView::getReferencePointPosition(TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
 		{
-			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(TGuiWindow::getInstance().getSize());
+			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(mParentManager->getRenderingWindow().getSize());
 
 			switch (RefPoint)
 			{
@@ -130,6 +125,11 @@ namespace nne
 		bool IScreenView::checkMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse)
 		{
 			return WidgetBound.contains(static_cast<sf::Vector2f>(Mouse));
+		}
+
+		std::unique_ptr<nne::tgui::ILoadingScreen>& IScreenView::getLoadingScreen()
+		{
+			return mLoadingScreen;
 		}
 
 	}

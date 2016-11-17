@@ -13,7 +13,7 @@ namespace nne
 		static sf::RenderWindow Instance;
 		return Instance;
 	}
-
+	
 	void TGuiWindow::clear()
 	{
 		mRenderSurface.clear();

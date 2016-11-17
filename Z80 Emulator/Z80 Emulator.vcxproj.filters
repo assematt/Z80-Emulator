@@ -141,17 +141,11 @@
     <ClCompile Include="TMainMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TTransformable.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TGuiWindow.cpp">
       <Filter>Source Files\src\gui</Filter>
     </ClCompile>
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
-    </ClCompile>
-    <ClCompile Include="TCharStruct.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
     <ClCompile Include="TGuiButton.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
@@ -162,32 +156,26 @@
     <ClCompile Include="TGraphicEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="TChip.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TNewGameLoadingScreen.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
-    </ClCompile>
-    <ClCompile Include="TSprite.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
     <ClCompile Include="TGuiImage.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
-    <ClCompile Include="TText.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TConductiveTracks.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
-    <ClCompile Include="TDrawableVector.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
-    <ClCompile Include="TChipPin.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
     <ClCompile Include="TFactory.cpp">
       <Filter>Source Files\src\internals</Filter>
+    </ClCompile>
+    <ClCompile Include="TDrawableComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TChipComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TTextComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -269,9 +257,6 @@
     <ClInclude Include="TMainMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
-    <ClInclude Include="TTransformable.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TRandom.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
@@ -289,9 +274,6 @@
     </ClInclude>
     <ClInclude Include="TGuiButton.h">
       <Filter>Header Files\include\gui\widgets</Filter>
-    </ClInclude>
-    <ClInclude Include="TCharStruct.h">
-      <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
     <ClInclude Include="TNewGameMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
@@ -311,9 +293,6 @@
     <ClInclude Include="TCacheManager.h">
       <Filter>Header Files\include\resources</Filter>
     </ClInclude>
-    <ClInclude Include="TChip.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TGraphicEntity.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
@@ -323,28 +302,22 @@
     <ClInclude Include="TConductiveTracks.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
-    <ClInclude Include="TDrawableVector.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="ILoadingScreen.h">
       <Filter>Header Files\include\gui</Filter>
     </ClInclude>
     <ClInclude Include="TLoaders.h">
       <Filter>Header Files\include\resources</Filter>
     </ClInclude>
-    <ClInclude Include="TSprite.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TGuiImage.h">
       <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
-    <ClInclude Include="TText.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
-    <ClInclude Include="TChipPin.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="TDrawableComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TChipComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TTextComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>

@@ -62,7 +62,7 @@ namespace nne
 
 		void TGuiWidget::setPosition(const sf::Vector2f& WidgetSize)
 		{
-			getComponentAsPtr<TTransformable>()->setPosition(WidgetSize);
+			getComponentAsPtr<TDrawableComponent>()->setPosition(WidgetSize);
 			mPosition = WidgetSize;
 		}
 
@@ -76,7 +76,7 @@ namespace nne
 			mVisible = Show;
 		}
 
-		bool TGuiWidget::IsVisible()
+		bool TGuiWidget::isVisible()
 		{
 			return mVisible;
 		}
@@ -101,9 +101,14 @@ namespace nne
 			mSignals[SignalToConnect] = Function;
 		}
 
-		const sf::FloatRect& TGuiWidget::getWidgetBound() const
+		sf::FloatRect TGuiWidget::getLocalBounds()
 		{
-			return getComponentAsPtr<TTransformable>()->getBounds();
+			return getComponentAsPtr<TDrawableComponent>()->getLocalBounds();
+		}
+
+		sf::FloatRect TGuiWidget::getGlobalBounds()
+		{
+			return getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getLocalBounds());
 		}
 
 		void TGuiWidget::refresh(const sf::Time& ElapsedTime)

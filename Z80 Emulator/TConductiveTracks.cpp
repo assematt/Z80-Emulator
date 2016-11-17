@@ -10,19 +10,19 @@ namespace nne
 	}
 
 	void TConductiveTracks::update()
-{
+	{
 
 	}
 
 	void TConductiveTracks::refresh()
-{
+	{
 
 	}
 
 	void TConductiveTracks::init()
-{
+	{
 		mVertexArray = std::make_shared<sf::VertexArray>(sf::Quads);
-		mParent->getComponentAsPtr<TdrawableVector>()->pushdrawableObject({ mVertexArray });
+		//mParent->getComponentAsPtr<TDrawableVector>()->pushdrawableObject({ mVertexArray });
 
 		auto& VertexArray = *mVertexArray;
 

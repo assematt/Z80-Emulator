@@ -12,13 +12,12 @@ namespace nne
 
 		void TGuiButton::init()
 		{
-			addComponent<TTransformable>();
-			addComponent<TdrawableVector>();
-			addComponent<TText>();
+			addComponent<TDrawableComponent>();
+			addComponent<TTextComponent>();
 			initComponents();
 			
-			getComponentAsPtr<TText>()->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
-			getComponentAsPtr<TText>()->setString(getName());
+			getComponentAsPtr<TTextComponent>()->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
+			getComponentAsPtr<TTextComponent>()->setString(getName());
 		}
 
 		void TGuiButton::refresh(const sf::Time& ElapsedTime)
@@ -33,26 +32,17 @@ namespace nne
 
 		void TGuiButton::SetCaption(const std::string& WidgetName)
 		{
-			getComponentAsPtr<TText>()->setString(WidgetName);
+			getComponentAsPtr<TTextComponent>()->setString(WidgetName);
 		}
 
 		const std::string& TGuiButton::GetCaption() const
 		{
-			return getComponentAsPtr<TText>()->getString();
+			return getComponentAsPtr<TTextComponent>()->getString();
 		}
 
 		void TGuiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
-			states.transform *= this->getComponentAsPtr<TTransformable>()->getTransform();
-
-			auto& drawablesComponent = *getComponentAsPtr<TdrawableVector>();
-			auto& TextComponent = *getComponentAsPtr<TText>();
-
-			for (std::size_t Index = 0; Index < drawablesComponent.getVectorSize(); ++Index)
-			{
-				states.texture = TextComponent.getTexture();
-				target.draw(drawablesComponent[Index].getVertexArray(), states);
-			}
+			target.draw(*getComponentAsPtr<TDrawableComponent>(), states);
 		}
 
 	}

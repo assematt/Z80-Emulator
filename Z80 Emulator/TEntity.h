@@ -1,15 +1,34 @@
 #pragma once
 
+#include <iostream>
+#include <string>
+#include <memory>
+#include <map>
+
 #include "IComponent.h"
 #include "TComponentArray.h"
 #include "TEventContainer.h"
-#include <memory>
-#include <iostream>
 
 
 namespace nne
 {
 	class TManager;
+
+	namespace idgenerator
+	{
+		using GlobalID = std::size_t;
+
+		struct GenerateByString
+		{
+			static GlobalID getUniqueID(const std::string& IDKey)
+			{
+				static std::map<std::string, GlobalID> mIDMap;
+				static GlobalID mLastID;
+
+				return mIDMap.count(IDKey) == 1 ? mIDMap[IDKey] : mIDMap[IDKey] = mLastID++;
+			}
+		};
+	}
 	
 	class TEntity : public TComponentArray<IComponent, TEntity, TComponentID>//, public TEventContainer
 	{
@@ -34,24 +53,24 @@ namespace nne
 		void kill();
 
 		/// update function
-		virtual void update();
+		virtual void update(const sf::Time& ElapsedTime);
 
 		/// update function
-		virtual void refresh();
+		virtual void refresh(const sf::Time& ElapsedTime);
 
 		/// Init function
 		virtual void init();
 
 		/// Get entity ID
 		const TEntityID& getEntityID() const;
-
+		
 		/// 
-		virtual void makeVirtual() = 0;
+		//virtual void makeVirtual() = 0;
 	private:
-		bool mAlive;
-		TManager* mParent;
-		TEntityID mID;
+		bool		mAlive;
+		TEntityID	mID;
+		TManager*	mParent;
 
-		friend class TComponentArray<TEntity, TManager, TEntity::TEntityID>;
+		friend class TManager;
 	};
 }

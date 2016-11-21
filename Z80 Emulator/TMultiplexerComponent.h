@@ -19,9 +19,9 @@ namespace nne
 
 			void init() override;
 
-			void update() override;
+			void update(const sf::Time& ElapsedTime) override;
 
-			void refresh() override {}
+			void refresh(const sf::Time& ElapsedTime) override {}
 
 		private:
 			std::shared_ptr<TPinComponent> mPinComponent;

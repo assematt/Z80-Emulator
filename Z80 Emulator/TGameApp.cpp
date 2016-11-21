@@ -18,16 +18,16 @@ namespace nne
 		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
 				
 		// Create a Z80 and RAM entity
-		mLogicEntity.addComponent<nne::tmodules::TZ80>();
-		mLogicEntity.addComponent<nne::tmodules::TRam>();
-		mLogicEntity.initComponents();
+		mLogicEntity.addEntity(TFactory::makeZ80(), "Z80");
+		mLogicEntity.addEntity(TFactory::makeRam(), "Ram");
+		mLogicEntity.initEntities();
 
 		// Get the Z80 and the ram entity
-		auto& Z80 = mLogicEntity.getComponentAsPtr<nne::tmodules::TZ80>();
-		auto& Ram = mLogicEntity.getComponentAsPtr<nne::tmodules::TRam>();
+		auto Z80 = mLogicEntity.getEntityByKey("Z80");
+		auto Ram = mLogicEntity.getEntityByKey("Ram");
 
-		Z80->connectRam(Ram);
-		if (!Z80->loadProgram("resources/programs/DJ.A01"))
+		Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
+		if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/DJ.A01"))
 		{
 			std::cout << "Error! Could not open the file" << std::endl;
 
@@ -43,9 +43,9 @@ namespace nne
 		Z80Chip->getComponentAsPtr<TDrawableComponent>()->setPosition(250.f, 100.f);
 		RamChip->getComponentAsPtr<TDrawableComponent>()->setPosition(900.f, 100.f);
 
-		mGraphicEntity.addComponent<TGraphicEntity>(std::move(Z80Chip));
-		mGraphicEntity.addComponent<TGraphicEntity>(std::move(RamChip));
-		mGraphicEntity.initComponents();
+		mGraphicEntity.addEntity(Z80Chip, "Z80Chip");
+		mGraphicEntity.addEntity(RamChip, "RamChip");
+		mGraphicEntity.initEntities();
 
 		// Initialize the GUI
 		mAppGui.setup(mAppWindow);
@@ -112,7 +112,7 @@ namespace nne
 		mAppWindow->clear();
 
 		// Render all the entity in the the entity manager
-		//mGraphicEntity.draw(*mAppWindow);
+		mGraphicEntity.draw(*mAppWindow);
 
 		// Render the GUI
 		mAppGui.draw();

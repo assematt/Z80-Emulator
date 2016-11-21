@@ -18,11 +18,11 @@ namespace nne
 		mAlive = false;
 	}
 
-	void TEntity::update()
-	{
+	void TEntity::update(const sf::Time& ElapsedTime)
+{
 		for (auto& Component : mComponents)
 		{
-			Component->update();
+			Component->update(ElapsedTime);
 		}
 	}
 
@@ -30,11 +30,11 @@ namespace nne
 	{
 	}
 
-	void TEntity::refresh()
-	{
+	void TEntity::refresh(const sf::Time& ElapsedTime)
+{
 		for (auto& Component : mComponents)
 		{
-			Component->refresh();
+			Component->refresh(ElapsedTime);
 		}
 	}
 

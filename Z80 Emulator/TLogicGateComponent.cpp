@@ -20,12 +20,12 @@ namespace nne
 		}
 
 		void TLogicGateComponent::init()
-{
+		{
 
 		}
 
-		void TLogicGateComponent::update()
-{
+		void TLogicGateComponent::update(const sf::Time& ElapsedTime)
+		{
 			
 		}
 

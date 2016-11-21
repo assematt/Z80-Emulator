@@ -9,13 +9,13 @@ namespace nne
 
 	}
 
-	void TConductiveTracks::update()
+	void TConductiveTracks::update(const sf::Time& ElapsedTime)
 	{
 
 	}
 
-	void TConductiveTracks::refresh()
-	{
+	void TConductiveTracks::refresh(const sf::Time& ElapsedTime)
+{
 
 	}
 

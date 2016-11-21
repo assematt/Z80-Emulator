@@ -5,13 +5,11 @@
 #include <memory>
 #include <string>
 
+#include "TManager.h"
 #include "TLoaders.h"
 #include "TCacheManager.h"
 #include "TGuiManager.h"
 #include "TFactory.h"
-
-#include "TZ80.h"
-#include "TRam.h"
 
 namespace nne
 {
@@ -49,6 +47,5 @@ namespace nne
 
 		TManager mLogicEntity;
 		TManager mGraphicEntity;
-
 	};
 }

@@ -70,9 +70,9 @@ namespace nne
 
 		sf::FloatRect getGlobalBounds() const;
 
-		virtual void update() override;
+		virtual void update(const sf::Time& ElapsedTime) override;
 
-		virtual void refresh() override;
+		virtual void refresh(const sf::Time& ElapsedTime) override;
 
 		virtual void init() override;
 

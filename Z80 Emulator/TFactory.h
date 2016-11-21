@@ -5,16 +5,23 @@
 #include "TChipComponent.h"
 #include "TDrawableComponent.h"
 #include "TConductiveTracks.h"
-#include "TGraphicEntity.h"
+#include "TZ80Component.h"
+#include "TPinComponent.h"
+#include "TRamComponent.h"
+#include "TMemoryComponent.h"
 
 namespace nne
 {
 	namespace TFactory
 	{
-		std::shared_ptr<TGraphicEntity> makeChip(TEntity* ChipToRender);
+		std::shared_ptr<TEntity> makeChip(TEntity* ChipToRender);
 
-		std::shared_ptr<TGraphicEntity> makeConductiveTrack();
+		std::shared_ptr<TEntity> makeZ80();
 
-		std::shared_ptr<TGraphicEntity> makeGuiWidget();
+		std::shared_ptr<TEntity> makeRam();
+
+		std::shared_ptr<TEntity> makeConductiveTrack();
+
+		std::shared_ptr<TEntity> makeGuiWidget();
 	};
 }

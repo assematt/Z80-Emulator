@@ -34,11 +34,11 @@ namespace nne
 			
 		}
 
-		void TGuiWidget::update(const sf::Time& ElapsedTime)
-		{
-			for (auto& Component : mComponents)
-				Component->update();
-		}
+// 		void TGuiWidget::update(const sf::Time& ElapsedTime)
+// 		{
+// 			for (auto& Component : mComponents)
+// 				Component->update();
+// 		}
 
 		void TGuiWidget::setName(const std::string& WidgetName)
 		{
@@ -111,11 +111,11 @@ namespace nne
 			return getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getLocalBounds());
 		}
 
-		void TGuiWidget::refresh(const sf::Time& ElapsedTime)
-		{
-			for (auto& Component : mComponents)
-				Component->refresh();
-		}
+// 		void TGuiWidget::refresh(const sf::Time& ElapsedTime)
+// 		{
+// 			for (auto& Component : mComponents)
+// 				Component->refresh();
+// 		}
 
 	}
 }

@@ -8,7 +8,6 @@
 #include <memory>
 #include <windows.h>
 
-#include "TLogicEntity.h"
 #include "TEntity.h"
 #include "TDrawableComponent.h"
 
@@ -35,25 +34,18 @@ namespace nne
 			using EventID		= std::size_t;
 		}
 
-		class TGuiWidget : public nne::TLogicEntity, public nne::TEntity, public sf::Drawable
+		class TGuiWidget : public nne::TEntity//, public sf::Drawable
 		{
 		public:
 			using UniquePtr = std::unique_ptr<TGuiWidget>;
 			using SharedPtr = std::shared_ptr<TGuiWidget>;
 			
-			using nne::TLogicEntity::update;
-			using nne::TLogicEntity::refresh;
-
 			TGuiWidget();
 			TGuiWidget(const std::string WidgetName);
 			virtual ~TGuiWidget();
 
 			virtual void init();
-
-			virtual void refresh(const sf::Time& ElapsedTime) override;
-
-			virtual void update(const sf::Time& ElapsedTime) override;
-
+			
 			/// Functions to get/set the widget name
 			void setName(const std::string& WidgetName);
 			const std::string& getName() const;
@@ -90,8 +82,8 @@ namespace nne
 			sf::FloatRect getGlobalBounds();
 		
 		private:
-			void makeVirtual() override {};
-			virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
+			//void makeVirtual() override {};
+			//virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
 
 		private:
 			std::string mName;

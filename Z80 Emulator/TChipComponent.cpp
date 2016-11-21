@@ -25,7 +25,7 @@ namespace nne
 		renderDipChip();
 	}
 
-	void TChipComponent::update()
+	void TChipComponent::update(const sf::Time& ElapsedTime)
 	{
 		// Set the color of the hover pin appropriately
 		if (mOverPin != None)
@@ -51,8 +51,8 @@ namespace nne
 		}
 	}
 
-	void TChipComponent::refresh()
-	{
+	void TChipComponent::refresh(const sf::Time& ElapsedTime)
+{
 		// Iterates 
 		bool PinFound = false;
 		bool PinSelectedFound = false;

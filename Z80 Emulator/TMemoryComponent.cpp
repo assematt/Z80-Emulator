@@ -4,45 +4,45 @@ namespace nne
 {
 	namespace tcomponents
 	{
-		TMemoryComponent::TMemoryComponent()
-		{
-			mInternalMemory = std::make_shared<TMemory>();
-		}
 
 		TMemoryComponent::TMemoryComponent(const TU16BitValue& MemorySize)
 		{
-			mInternalMemory = std::make_shared<TMemory>();
-			mInternalMemory->resize(MemorySize);
+			mInternalMemory.resize(MemorySize);
 		}
 
 		void TMemoryComponent::init()
-{
+		{
 			
 		}
 
-		void TMemoryComponent::update()
-{
+		void TMemoryComponent::update(const sf::Time& ElapsedTime)
+		{
 
 		}
 
 		TU8BitValue & TMemoryComponent::operator[](const std::size_t Index)
 		{
-			return (*mInternalMemory)[Index];
+			return mInternalMemory[Index];
 		}
 
 		const TU8BitValue & TMemoryComponent::operator[](const std::size_t Index) const
 		{
-			return (*mInternalMemory)[Index];
+			return mInternalMemory[Index];
+		}
+
+		void TMemoryComponent::resize(const TU16BitValue& MemorySize)
+		{
+			mInternalMemory.resize(MemorySize);
 		}
 
 		TMemory& TMemoryComponent::getInternalMemory()
 		{
-			return *mInternalMemory;
+			return mInternalMemory;
 		}
 
 		const TMemory& TMemoryComponent::getInternalMemory() const
 		{
-			return *mInternalMemory;
+			return mInternalMemory;
 		}
 	}
 }

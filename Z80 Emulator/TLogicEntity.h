@@ -2,15 +2,17 @@
 
 #include <SFML/System/Time.hpp>
 
+#include "TEntity.h"
+
 namespace nne
 {
-	class TLogicEntity
-	{
-	public:
-		/// update function
-		virtual void update(const sf::Time& ElapsedTime) = 0;
-
-		/// update function
-		virtual void refresh(const sf::Time& ElapsedTime) = 0;
-	};
+// 	class TLogicEntity 
+// 	{
+// 	public:
+// 		/// update function
+// 		virtual void update(const sf::Time& ElapsedTime) = 0;
+// 
+// 		/// update function
+// 		virtual void refresh(const sf::Time& ElapsedTime) = 0;
+// 	};
 }

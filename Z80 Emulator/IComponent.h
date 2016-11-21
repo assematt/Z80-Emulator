@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/System/Time.hpp>
+
 #include "TEventContainer.h"
 #include "TUtility.h"
 
@@ -15,9 +17,9 @@ namespace nne
 	class IComponent
 	{
 	public:
-		virtual void update() = 0;
+		virtual void update(const sf::Time& ElapsedTime) = 0;
 
-		virtual void refresh() = 0;
+		virtual void refresh(const sf::Time& ElapsedTime) = 0;
 
 		virtual void init() = 0;
 

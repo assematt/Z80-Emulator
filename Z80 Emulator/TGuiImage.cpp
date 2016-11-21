@@ -15,16 +15,6 @@ namespace nne
 			initComponents();
 		}
 
-		void tgui::TGuiImage::refresh(const sf::Time& ElapsedTime)
-		{
-			TGuiWidget::refresh(ElapsedTime);
-		}
-
-		void tgui::TGuiImage::update(const sf::Time& ElapsedTime)
-		{
-			TGuiWidget::update(ElapsedTime);
-		}
-
 		void tgui::TGuiImage::SetImage(const sf::Texture& Image)
 		{
 			getComponentAsPtr<TDrawableComponent>()->setTexture(Image);

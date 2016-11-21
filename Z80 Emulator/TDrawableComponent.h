@@ -20,9 +20,9 @@ namespace nne
 
 		void init() override;
 
-		void update() override {}
+		void update(const sf::Time& ElapsedTime) override {}
 
-		void refresh() override {}
+		void refresh(const sf::Time& ElapsedTime) override {}
 		
 		/// Function to set/get the sprite texture
 		void setTexture(const sf::Texture& Texture);

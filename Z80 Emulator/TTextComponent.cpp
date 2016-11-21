@@ -238,12 +238,12 @@ namespace nne
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getLocalBounds());
 	}
 
-	void TTextComponent::update()
+	void TTextComponent::update(const sf::Time& ElapsedTime)
 	{
 	}
 
-	void TTextComponent::refresh()
-	{
+	void TTextComponent::refresh(const sf::Time& ElapsedTime)
+{
 		if (!mGeometryNeedupdate)
 			return;
 

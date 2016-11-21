@@ -17,11 +17,7 @@ namespace nne
 
 			/// Init function
 			void init();
-
-			virtual void refresh(const sf::Time& ElapsedTime) override;
-
-			virtual void update(const sf::Time& ElapsedTime) override;
-
+			
 			/// Functions to change the widget property
 			void SetImage(const sf::Texture& Image);
 			const sf::Texture& GetImage() const;

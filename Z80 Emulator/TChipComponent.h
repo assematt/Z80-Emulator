@@ -32,9 +32,9 @@ namespace nne
 
 		void init() override;
 
-		void update() override;
+		void update(const sf::Time& ElapsedTime) override;
 
-		void refresh() override;
+		void refresh(const sf::Time& ElapsedTime) override;
 
 		/// Function to set the color for all the pins in the chip
 		void setPinsColor(const sf::Color& Color);

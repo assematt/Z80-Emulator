@@ -20,16 +20,6 @@ namespace nne
 			getComponentAsPtr<TTextComponent>()->setString(getName());
 		}
 
-		void TGuiButton::refresh(const sf::Time& ElapsedTime)
-		{
-			TGuiWidget::refresh(ElapsedTime);
-		}
-
-		void TGuiButton::update(const sf::Time& ElapsedTime)
-		{
-			TGuiWidget::update(ElapsedTime);
-		}
-
 		void TGuiButton::SetCaption(const std::string& WidgetName)
 		{
 			getComponentAsPtr<TTextComponent>()->setString(WidgetName);

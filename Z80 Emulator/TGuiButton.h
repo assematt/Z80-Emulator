@@ -20,11 +20,7 @@ namespace nne
 
 			/// Init function
 			void init();
-
-			virtual void refresh(const sf::Time& ElapsedTime) override;
-
-			virtual void update(const sf::Time& ElapsedTime) override;
-
+			
 			/// Functions to change the widget property
 			void SetCaption(const std::string& WidgetName);
 			const std::string& GetCaption() const;

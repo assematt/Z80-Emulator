@@ -1,47 +1,58 @@
 #pragma once
 
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Time.hpp>
+#include <iostream>
 #include <vector>
-#include <array>
+#include <memory>
+
+#include "TUtility.h"
 #include "TEntity.h"
-#include "TGraphicEntity.h"
+#include "TDrawableComponent.h"
 
 namespace nne
 {
-	class TManager : public TComponentArray<TEntity, TManager, TEntity::TEntityID>
+	
+	class TManager
 	{
 	public:	
+
 		TManager();
-	
+
+		/// Function to add an entity to the manager
+		void addEntity(TEntity::TEntityPtr& Entity, const std::string& EntityKey);
+
+		/// Function to remove an entity to the manager
+		void removeEntity(const TEntity::TEntityID& IDToRemove);
+
+		/// Get an entity by ID, return nullptr if the entity isn't found
+		TEntity::TEntityPtr& getEntityByID(const TEntity::TEntityID& IDToSearch);
+
+		/// Get an entity by type, return nullptr if the entity isn't found
+		TEntity::TEntityPtr& getEntityByKey(const std::string& EntityKey);
+
+		void draw(sf::RenderTarget& Target);
+
+		/// Function to init all the entity in the array
+		void initEntities();
+
 		/// updates every entity in the container
 		void update(const sf::Time& ElapsedTime);
-	
+
 		/// refreshes every entity in the container
 		void refresh(const sf::Time& ElapsedTime);
 
-		/// draw all the entities in the container
-		void draw(sf::RenderTarget& Target);
+		/// Return an element specified by the Index
+		TEntity::TEntityPtr& operator[] (const std::size_t& Index);
+		const TEntity::TEntityPtr& operator[] (const std::size_t& Index) const;
 
-		/// Helper function for c++11 foreach use
-		std::vector<TEntity::TEntityPtr>::iterator begin();
-		std::vector<TEntity::TEntityPtr>::iterator end();
-
-		/// Subscript operator to access an entity by index
-		TEntity::TEntityPtr& operator[] (const int Index);
-		const TEntity::TEntityPtr& operator[] (const int Index) const;
-	
 	private:
-		/// Get the number of alive entities
-		void computeAliveEntities();
 
-		/// Sort the entity container by putting the dead entity at the back of the array end the alive one at the beginning
-		void sortEntityContainer();
-	
-	private:
-		int mAliveElement;
-		int mNewElement;
+		/// Return the position in the vector of the ID we specified, return the vector size if we don't find anything
+		std::size_t getEntityPos(const TEntity::TEntityID& IDToSearch);
+
+	protected:
+		std::vector<TEntity::TEntityPtr> mEntityVector;
+		std::size_t mAliveElement;
 	};
-
-// 	using TGraphicManager = TManager<TGraphicEntity>;
-// 	using TLogicManager = TManager<TLogicEntity>;
 }

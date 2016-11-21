@@ -2,11 +2,12 @@
 #include <iostream>
 #include <map>
 
-#include "TZ80.h"
+#include "TZ80Component.h"
 #include "TManager.h"
 #include "TGameApp.h"
 #include "TCacheManager.h"
 #include "TLoaders.h"
+#include "TFactory.h"
 
 using namespace std;
 
@@ -15,17 +16,17 @@ int main()
 // 	std::cout.sync_with_stdio(false);
 // 	cout << "Test Z80 Emulator" << endl;
 // 
-// 	nne::TManager EntitiesManager;
-// 	EntitiesManager.addComponent<nne::tmodules::TZ80>();
-// 	EntitiesManager.addComponent<nne::tmodules::TRam>();
-// 	EntitiesManager.initComponents();
+// 	nne::_TManager EntitiesManager;
+// 	EntitiesManager.addEntity(nne::TFactory::makeZ80(), "Z80");
+// 	EntitiesManager.addEntity(nne::TFactory::makeRam(), "Ram");
+// 	EntitiesManager.initEntities();
 // 
 // 	// Get the Z80 and the ram entity
-// 	auto& Z80 = EntitiesManager.getComponentAsPtr<nne::tmodules::TZ80>();
-// 	auto& Ram = EntitiesManager.getComponentAsPtr<nne::tmodules::TRam>();
+// 	auto Z80 = EntitiesManager.getEntityByKey("Z80");
+// 	auto Ram = EntitiesManager.getEntityByKey("Ram");
 // 
-// 	Z80->ConnectRam(Ram);
-// 	if (!Z80->LoadProgram("resources/programs/DJ.A01"))
+// 	Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->connectRam(Ram);
+// 	if (!Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->loadProgram("resources/programs/DJ.A01"))
 // 	{
 // 		std::cout << "Error! Could not open the file" << std::endl;
 // 
@@ -40,7 +41,7 @@ int main()
 // 
 // 		// update the entities
 // 		EntitiesManager.update(sf::Time::Zero);
-// 	} while (false)
+// 	} while (true);
 	
 	nne::TGameApp App;
 

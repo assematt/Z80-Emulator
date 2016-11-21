@@ -9,26 +9,28 @@ namespace nne
 	namespace tcomponents
 	{
 
-		struct TMemoryComponent : nne::IComponent
+		class TMemoryComponent : public nne::IComponent
 		{
 		public:
-			TMemoryComponent();
+			TMemoryComponent() = default;
 			explicit TMemoryComponent(const TU16BitValue& MemorySize);
 
 			void init() override;
 
-			void update() override;
+			void update(const sf::Time& ElapsedTime) override;
 
-			void refresh() override {}
+			void refresh(const sf::Time& ElapsedTime) override {}
 
 			TU8BitValue& operator[] (const std::size_t Index);
 			const TU8BitValue& operator[] (const std::size_t Index) const;
+
+			void resize(const TU16BitValue& MemorySize);
 
 			TMemory& getInternalMemory();
 			const TMemory& getInternalMemory() const;
 
 		private:
-			std::shared_ptr<TMemory> mInternalMemory;
+			TMemory mInternalMemory;
 		};
 	}
 }

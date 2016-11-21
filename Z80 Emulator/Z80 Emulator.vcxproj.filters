@@ -28,9 +28,6 @@
     <Filter Include="Header Files\include\internals">
       <UniqueIdentifier>{6ff890cc-e721-4410-950f-6420e1f44917}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\include\modules">
-      <UniqueIdentifier>{5e6df3c6-aad9-42c5-892a-c418dd80579c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\include\gui">
       <UniqueIdentifier>{df9b0471-4aee-497c-bcaf-ea3e9ea118cd}</UniqueIdentifier>
     </Filter>
@@ -45,9 +42,6 @@
     </Filter>
     <Filter Include="Source Files\src\internals">
       <UniqueIdentifier>{fd92e987-c103-4aab-9d70-7a0b7834179c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\modules">
-      <UniqueIdentifier>{90997ac9-c1e6-4a42-817c-6dfd0918d036}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\src\component_system">
       <UniqueIdentifier>{7367ff90-6380-4c5e-a945-f14a2b9a0aa5}</UniqueIdentifier>
@@ -105,9 +99,6 @@
     <ClCompile Include="TMemoryComponent.cpp">
       <Filter>Source Files\src\components</Filter>
     </ClCompile>
-    <ClCompile Include="TRam.cpp">
-      <Filter>Source Files\src\modules</Filter>
-    </ClCompile>
     <ClCompile Include="TMultiplexerComponent.cpp">
       <Filter>Source Files\src\components</Filter>
     </ClCompile>
@@ -116,9 +107,6 @@
     </ClCompile>
     <ClCompile Include="TGameApp.cpp">
       <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="TZ80.cpp">
-      <Filter>Source Files\src\modules</Filter>
     </ClCompile>
     <ClCompile Include="TManager.cpp">
       <Filter>Source Files\src\component_system</Filter>
@@ -153,9 +141,6 @@
     <ClCompile Include="TNewGameMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TGraphicEntity.cpp">
-      <Filter>Source Files\src\component_system</Filter>
-    </ClCompile>
     <ClCompile Include="TNewGameLoadingScreen.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
@@ -177,6 +162,12 @@
     <ClCompile Include="TTextComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
+    <ClCompile Include="TZ80Component.cpp">
+      <Filter>Source Files\src\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TRamComponent.cpp">
+      <Filter>Source Files\src\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -193,9 +184,6 @@
     </ClInclude>
     <ClInclude Include="TPinComponent.h">
       <Filter>Header Files\include\components</Filter>
-    </ClInclude>
-    <ClInclude Include="TRam.h">
-      <Filter>Header Files\include\modules</Filter>
     </ClInclude>
     <ClInclude Include="TClock.h">
       <Filter>Header Files\include\internals</Filter>
@@ -232,9 +220,6 @@
     </ClInclude>
     <ClInclude Include="TSourceParser.h">
       <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="TZ80.h">
-      <Filter>Header Files\include\modules</Filter>
     </ClInclude>
     <ClInclude Include="IComponent.h">
       <Filter>Header Files\include\component_system</Filter>
@@ -293,9 +278,6 @@
     <ClInclude Include="TCacheManager.h">
       <Filter>Header Files\include\resources</Filter>
     </ClInclude>
-    <ClInclude Include="TGraphicEntity.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
     <ClInclude Include="TNewGameLoadingScreen.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
@@ -319,6 +301,12 @@
     </ClInclude>
     <ClInclude Include="TTextComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TZ80Component.h">
+      <Filter>Header Files\include\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TRamComponent.h">
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -126,8 +126,8 @@ namespace nne
 
 		}
 
-		void TPinComponent::update()
-{
+		void TPinComponent::update(const sf::Time& ElapsedTime)
+		{
 			
 		}
 

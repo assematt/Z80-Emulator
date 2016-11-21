@@ -22,8 +22,8 @@ namespace nne
 			mPinComponent = mParent->getComponentAsPtr<TPinComponent>();
 		}
 
-		void TMultiplexerComponent::update()
-{
+		void TMultiplexerComponent::update(const sf::Time& ElapsedTime)
+		{
 
 		}
 

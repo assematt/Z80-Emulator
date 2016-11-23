@@ -11,6 +11,10 @@
 #include "TGuiManager.h"
 #include "TFactory.h"
 
+#include "TMainMenuScene.h"
+#include "TNewGameScene.h"
+#include "TSceneManager.h"
+
 namespace nne
 {
 	class TGameApp
@@ -30,22 +34,9 @@ namespace nne
 		int run();
 
 	private:
-		void eventLoop();
-
-		void refresh(sf::Time ElapsedTime);
-
-		void update(sf::Time ElapsedTime);
-
-		void draw();
-
-	private:
  		sf::Clock			mAppClock;
-		sf::Event			mAppEvent;
  		std::string			mAppName;
-		TGameWindowPtr		mAppWindow;
-		tgui::TGuiManager	mAppGui;
-
-		TManager mLogicEntity;
-		TManager mGraphicEntity;
+		TSceneManager		mSceneManager;
+		sf::RenderWindow	mAppWindow;
 	};
 }

@@ -40,7 +40,7 @@ namespace nne
 		}
 
 		std::shared_ptr<nne::TEntity> makeConductiveTrack()
-{
+		{
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
@@ -51,7 +51,7 @@ namespace nne
 		}
 
 		std::shared_ptr<nne::TEntity> makeGuiWidget()
-{
+		{
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();

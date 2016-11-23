@@ -20,16 +20,16 @@ namespace nne
 		TManager();
 
 		/// Function to add an entity to the manager
-		void addEntity(TEntity::TEntityPtr& Entity, const std::string& EntityKey);
+		void addEntity(TEntity::EntityPtr& Entity, const std::string& EntityKey, TSceneManager* SceneManager = nullptr);
 
 		/// Function to remove an entity to the manager
-		void removeEntity(const TEntity::TEntityID& IDToRemove);
+		void removeEntity(const TEntity::EntityID& IDToRemove);
 
 		/// Get an entity by ID, return nullptr if the entity isn't found
-		TEntity::TEntityPtr& getEntityByID(const TEntity::TEntityID& IDToSearch);
+		TEntity::EntityPtr& getEntityByID(const TEntity::EntityID& IDToSearch);
 
 		/// Get an entity by type, return nullptr if the entity isn't found
-		TEntity::TEntityPtr& getEntityByKey(const std::string& EntityKey);
+		TEntity::EntityPtr& getEntityByKey(const std::string& EntityKey);
 
 		void draw(sf::RenderTarget& Target);
 
@@ -43,16 +43,16 @@ namespace nne
 		void refresh(const sf::Time& ElapsedTime);
 
 		/// Return an element specified by the Index
-		TEntity::TEntityPtr& operator[] (const std::size_t& Index);
-		const TEntity::TEntityPtr& operator[] (const std::size_t& Index) const;
+		TEntity::EntityPtr& operator[] (const std::size_t& Index);
+		const TEntity::EntityPtr& operator[] (const std::size_t& Index) const;
 
 	private:
 
 		/// Return the position in the vector of the ID we specified, return the vector size if we don't find anything
-		std::size_t getEntityPos(const TEntity::TEntityID& IDToSearch);
+		std::size_t getEntityPos(const TEntity::EntityID& IDToSearch);
 
 	protected:
-		std::vector<TEntity::TEntityPtr> mEntityVector;
+		std::vector<TEntity::EntityPtr> mEntityVector;
 		std::size_t mAliveElement;
 	};
 }

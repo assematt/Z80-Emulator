@@ -68,11 +68,6 @@ namespace nne
 			}
 		}
 
-		void IScreenView::addLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen)
-		{
-			mLoadingScreen = std::move(LoadingScreen);
-		}
-
 		std::vector<IScreenView::TWdigetRenderStrcut>::iterator IScreenView::begin()
 		{
 			return mWidgetsContainer.begin();
@@ -93,43 +88,9 @@ namespace nne
 			return mWidgetsContainer[Index].mWidget;
 		}
 
-		const sf::Vector2f IScreenView::getReferencePointPosition(TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
-		{
-			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(mParentManager->getRenderingWindow().getSize());
-
-			switch (RefPoint)
-			{
-			case nne::tgui::TReferencePoint::LEFT_TOP:
-				return { 0.f, 0.f };
-			case nne::tgui::TReferencePoint::CENTER_TOP:
-				return { WindowSize.x / 2, 0.f };
-			case nne::tgui::TReferencePoint::RIGHT_TOP:
-				return { WindowSize.x, 0.f };
-
-			case nne::tgui::TReferencePoint::LEFT_CENTER:
-				return { 0.f, WindowSize.y / 2 };
-			case nne::tgui::TReferencePoint::CENTER:
-				return { WindowSize.x / 2, WindowSize.y / 2 };
-			case nne::tgui::TReferencePoint::RIGHT_CENTER:
-				return { 0.f, WindowSize.y / 2 };
-
-			case nne::tgui::TReferencePoint::LEFT_BOTTOM:
-				return { 0.f, WindowSize.y };
-			case nne::tgui::TReferencePoint::CENTER_BOTTOM:
-				return { WindowSize.x / 2, WindowSize.y };
-			case nne::tgui::TReferencePoint::RIGHT_BOTTOM:
-				return { WindowSize.x, WindowSize.y };
-			}
-		}
-
 		bool IScreenView::checkMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse)
 		{
 			return WidgetBound.contains(static_cast<sf::Vector2f>(Mouse));
-		}
-
-		std::unique_ptr<nne::tgui::ILoadingScreen>& IScreenView::getLoadingScreen()
-		{
-			return mLoadingScreen;
 		}
 
 	}

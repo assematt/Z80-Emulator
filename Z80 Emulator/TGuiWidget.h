@@ -34,7 +34,7 @@ namespace nne
 			using EventID		= std::size_t;
 		}
 
-		class TGuiWidget : public nne::TEntity//, public sf::Drawable
+		class TGuiWidget : public nne::TEntity
 		{
 		public:
 			using UniquePtr = std::unique_ptr<TGuiWidget>;
@@ -80,10 +80,6 @@ namespace nne
 			/// Get the widget bound
 			sf::FloatRect getLocalBounds();
 			sf::FloatRect getGlobalBounds();
-		
-		private:
-			//void makeVirtual() override {};
-			//virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const = 0;
 
 		private:
 			std::string mName;

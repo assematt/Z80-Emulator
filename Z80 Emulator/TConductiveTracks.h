@@ -29,7 +29,7 @@ namespace nne
 		void lineToRectangleShape(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd, const std::size_t SegmentNumber);
 
 	private:
-		std::shared_ptr<sf::VertexArray> mVertexArray;
+		std::shared_ptr<TDrawableComponent>	mDrawableComponent;
 		const float mTrackThickness;
 		std::vector<sf::Vertex> mPathJoints;
 	};

@@ -9,15 +9,16 @@ namespace nne
 
 	}
 
-	void TManager::addEntity(TEntity::TEntityPtr& Entity, const std::string& EntityKey)
+	void TManager::addEntity(TEntity::EntityPtr& Entity, const std::string& EntityKey, TSceneManager* SceneManager /*= nullptr*/)
 	{
 		Entity->mParent = this;
-		Entity->mID = static_cast<TEntity::TEntityID>(nne::idgenerator::GenerateByString::getUniqueID(EntityKey));
+		Entity->mID = static_cast<TEntity::EntityID>(nne::idgenerator::GenerateByString::getUniqueID(EntityKey));
+		Entity->mSceneManager = SceneManager;
 
 		mEntityVector.push_back({ Entity });
 	}
 
-	void TManager::removeEntity(const TEntity::TEntityID& IDToRemove)
+	void TManager::removeEntity(const TEntity::EntityID& IDToRemove)
 	{
 		// Get the position of the element to remove
 		auto EntityPos = getEntityPos(IDToRemove);
@@ -31,7 +32,7 @@ namespace nne
 		mEntityVector.pop_back();
 	}
 
-	TEntity::TEntityPtr& TManager::getEntityByID(const TEntity::TEntityID& IDToSearch)
+	TEntity::EntityPtr& TManager::getEntityByID(const TEntity::EntityID& IDToSearch)
 	{
 		// Get the position of the element to remove
 		auto EntityPos = getEntityPos(IDToSearch);
@@ -43,7 +44,7 @@ namespace nne
 		return mEntityVector[EntityPos];
 	}
 
-	TEntity::TEntityPtr& TManager::getEntityByKey(const std::string& EntityKey)
+	TEntity::EntityPtr& TManager::getEntityByKey(const std::string& EntityKey)
 	{
 		return getEntityByID(nne::idgenerator::GenerateByString::getUniqueID(EntityKey));
 	}
@@ -80,17 +81,17 @@ namespace nne
 		}
 	}
 
-	const TEntity::TEntityPtr& TManager::operator[](const std::size_t& Index) const
+	const TEntity::EntityPtr& TManager::operator[](const std::size_t& Index) const
 	{
 		return mEntityVector[Index];
 	}
 
-	TEntity::TEntityPtr& TManager::operator[](const std::size_t& Index)
+	TEntity::EntityPtr& TManager::operator[](const std::size_t& Index)
 	{
 		return mEntityVector[Index];
 	}
 
-	std::size_t TManager::getEntityPos(const TEntity::TEntityID& IDToSearch)
+	std::size_t TManager::getEntityPos(const TEntity::EntityID& IDToSearch)
 	{
 		auto VectorSize = mEntityVector.size();
 		std::size_t EntityPos = 0;

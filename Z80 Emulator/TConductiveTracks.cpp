@@ -15,25 +15,24 @@ namespace nne
 	}
 
 	void TConductiveTracks::refresh(const sf::Time& ElapsedTime)
-{
+	{
 
 	}
 
 	void TConductiveTracks::init()
 	{
-		mVertexArray = std::make_shared<sf::VertexArray>(sf::Quads);
-		//mParent->getComponentAsPtr<TDrawableVector>()->pushdrawableObject({ mVertexArray });
+		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
 
-		auto& VertexArray = *mVertexArray;
-
-		const std::size_t SegmentNumber = 3;
-
-		// The vertex array size is corrisponded to the number of segment * 4 (to make a rectangleshape)
-		VertexArray.resize(SegmentNumber * 4);
-
-		lineToRectangleShape({ 100.f, 50.f }, { 250.f, 50.f }, 0);
-		lineToRectangleShape({ 250.f, 50.f }, { 250.f, 500.f }, 1);
-		lineToRectangleShape({ 250.f, 500.f }, { 60.f, 500.f }, 2);
+// 		auto& VertexArray = mDrawableComponent->getVertexArray();
+// 
+// 		const std::size_t SegmentNumber = 3;
+// 
+// 		// The vertex array size is corrisponded to the number of segment * 4 (to make a rectangleshape)
+// 		VertexArray.resize(SegmentNumber * 4);
+// 
+// 		lineToRectangleShape({ 100.f, 50.f }, { 250.f, 50.f }, 0);
+// 		lineToRectangleShape({ 250.f, 50.f }, { 250.f, 500.f }, 1);
+// 		lineToRectangleShape({ 250.f, 500.f }, { 60.f, 500.f }, 2);
 	}
 
 	bool TConductiveTracks::checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd)
@@ -47,7 +46,7 @@ namespace nne
 
 	void TConductiveTracks::lineToRectangleShape(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd, const std::size_t SegmentNumber)
 	{
-		auto& VertexArray = *mVertexArray;
+		auto& VertexArray = mDrawableComponent->getVertexArray();
 
 		// In case of horizontal alignment
 		if (checkOrentation(LineBegin, LineEnd))

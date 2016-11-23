@@ -14,21 +14,6 @@ namespace nne
 {
 	namespace tgui
 	{
-		enum class TReferencePoint
-		{
-			LEFT_TOP,
-			CENTER_TOP,
-			RIGHT_TOP,
-
-			LEFT_CENTER,
-			CENTER,
-			RIGHT_CENTER,
-
-			LEFT_BOTTOM,
-			CENTER_BOTTOM,
-			RIGHT_BOTTOM,
-		};
-
 		class TGuiManager;
 
 		class IScreenView
@@ -37,6 +22,7 @@ namespace nne
 			using UniquePtr = std::unique_ptr<IScreenView>;
 			using SharedPtr = std::shared_ptr<IScreenView>;
 			using TZIndex = std::size_t;
+			using ScreenID = std::size_t;
 			
 			struct TWdigetRenderStrcut
 			{
@@ -95,7 +81,7 @@ namespace nne
 			IScreenView();
 			virtual ~IScreenView() = default;
 
-			virtual void setup(TGuiManager* GuiManager) = 0;
+			virtual void init() = 0;
 
 			void handleEvent(const sf::Event& Event);
 			
@@ -118,12 +104,6 @@ namespace nne
 
 			/// draw all the widgets in the container
 			void draw();
-
-			/// Function to set a loading screen
-			void addLoadingScreen(std::unique_ptr<ILoadingScreen>& LoadingScreen);
-
-			/// Function to get the loading screen
-			std::unique_ptr<tgui::ILoadingScreen>& getLoadingScreen();
 			
 			/// Helper function for c++11 foreach use
 			std::vector<TWdigetRenderStrcut>::iterator begin();
@@ -133,9 +113,6 @@ namespace nne
 			TGuiWidget::UniquePtr& operator[] (const int Index);
 			const TGuiWidget::UniquePtr& operator[] (const int Index) const;
 
-			/// Function to access a reference point position
-			const sf::Vector2f getReferencePointPosition(TReferencePoint RefPoint = TReferencePoint::CENTER);
-
 		protected:
 			bool checkMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse);
 
@@ -143,20 +120,12 @@ namespace nne
 			void insertWidget(T& Widget, const TZIndex& WidgetZIndex = 0);
 
 		protected:
-
 			TGuiManager*							mParentManager;
 			sf::Vector2f							mPosition;
 			std::vector<TWdigetRenderStrcut>		mWidgetsContainer;
-			std::unique_ptr<tgui::ILoadingScreen>	mLoadingScreen;
 
 			friend class TGuiManager;
 		};
-	
-		template <class T>
-		void IScreenView::addWidget(T& Widget, const TZIndex& WidgetZIndex /*= 0*/)
-		{
-			insertWidget(Widget, WidgetZIndex);
-		}
 
 		template <typename... TArgs>
 		void IScreenView::addWidget(TArgs&&... mArgs, const TZIndex& WidgetZIndex /*= 0*/)
@@ -165,6 +134,12 @@ namespace nne
 			TGuiWidget::UniquePtr TempPtr = std::make_unique<TGuiWidget>(std::forward<TArgs>(mArgs)...);
 
 			insertWidget(TempPtr, WidgetZIndex);
+		}
+
+		template <class T>
+		void IScreenView::addWidget(T& Widget, const TZIndex& WidgetZIndex /*= 0*/)
+		{
+			insertWidget(Widget, WidgetZIndex);
 		}
 
 		template <class T>

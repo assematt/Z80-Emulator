@@ -1,21 +1,18 @@
 #pragma once
 
+#include <SFML/Window/Event.hpp>
+
 #include "IScene.h"
-#include "ILoadingScreen.h"
 #include "TGuiManager.h"
 
 namespace nne
 {
-	class TNewGameLoadingScreen : public tgui::ILoadingScreen, public IScene
+	class TMainMenuScene : public IScene, public tgui::IScreenView
 	{
+		
 	public:
-
-		virtual void loading(std::atomic_bool& IsLoading) override;
-
 		virtual void init() override;
-
-		virtual ID& run(const sf::Time& ElapsedTime) override;
-
+		
 	protected:
 		virtual ID eventLoop() override;
 
@@ -26,7 +23,6 @@ namespace nne
 		virtual void draw() override;
 
 	private:
-		sf::Event			mAppEvent;
 		tgui::TGuiManager	mAppGui;
 	};
 }

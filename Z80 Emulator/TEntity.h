@@ -8,40 +8,25 @@
 #include "IComponent.h"
 #include "TComponentArray.h"
 #include "TEventContainer.h"
-
+#include "IDGenerator.h"
 
 namespace nne
 {
 	class TManager;
-
-	namespace idgenerator
-	{
-		using GlobalID = std::size_t;
-
-		struct GenerateByString
-		{
-			static GlobalID getUniqueID(const std::string& IDKey)
-			{
-				static std::map<std::string, GlobalID> mIDMap;
-				static GlobalID mLastID;
-
-				return mIDMap.count(IDKey) == 1 ? mIDMap[IDKey] : mIDMap[IDKey] = mLastID++;
-			}
-		};
-	}
+	class TSceneManager;
 	
 	class TEntity : public TComponentArray<IComponent, TEntity, TComponentID>//, public TEventContainer
 	{
 	public:
-		using TEntityPtr = std::shared_ptr<TEntity>;
-		using TEntityID = std::size_t;
+		using EntityPtr = std::shared_ptr<TEntity>;
+		using EntityID = std::size_t;
 
 		TEntity();
 		virtual ~TEntity() = default;
 
 		/// Helper function to make an entity
 		template <typename... TArgs>
-		static TEntityPtr makeEntity(TArgs&&... mArgs)
+		static EntityPtr makeEntity(TArgs&&... mArgs)
 		{
 			return std::make_unique<TEntity>(std::forward<TArgs>(mArgs)...);
 		}
@@ -62,14 +47,16 @@ namespace nne
 		virtual void init();
 
 		/// Get entity ID
-		const TEntityID& getEntityID() const;
-		
-		/// 
-		//virtual void makeVirtual() = 0;
+		const EntityID& getEntityID() const;
+
+		/// Get the scene manager
+		TSceneManager& getSceneManager();
+
 	private:
-		bool		mAlive;
-		TEntityID	mID;
-		TManager*	mParent;
+		bool			mAlive;
+		EntityID		mID;
+		TManager*		mParent;
+		TSceneManager*	mSceneManager;
 
 		friend class TManager;
 	};

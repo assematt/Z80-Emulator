@@ -38,8 +38,14 @@ namespace nne
 		}
 	}
 
-	const TEntity::TEntityID& TEntity::getEntityID() const
+	const TEntity::EntityID& TEntity::getEntityID() const
 	{
 		return mID;
 	}
+
+	nne::TSceneManager& TEntity::getSceneManager()
+	{
+		return *mSceneManager;
+	}
+
 }

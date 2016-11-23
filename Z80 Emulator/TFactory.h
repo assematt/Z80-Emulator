@@ -4,6 +4,7 @@
 
 #include "TChipComponent.h"
 #include "TDrawableComponent.h"
+#include "TTextComponent.h"
 #include "TConductiveTracks.h"
 #include "TZ80Component.h"
 #include "TPinComponent.h"

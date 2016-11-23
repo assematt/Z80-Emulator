@@ -12,7 +12,7 @@ namespace nne
 		class TMainMenu : public nne::tgui::IScreenView
 		{
 		public:
-			virtual void setup(nne::tgui::TGuiManager* GuiManager);
+			virtual void init();
 			
 			void onNewGameButtonClick(const sf::Event::MouseButtonEvent& Button);
 		};

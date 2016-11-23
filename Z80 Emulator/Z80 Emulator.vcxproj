@@ -270,6 +270,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="IComponent.cpp" />
+    <ClCompile Include="IScene.cpp" />
     <ClCompile Include="IScreenView.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TChipComponent.cpp" />
@@ -280,28 +281,31 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TEventContainer.cpp" />
     <ClCompile Include="TFactory.cpp" />
     <ClCompile Include="TGuiImage.cpp" />
-    <ClCompile Include="TNewGameLoadingScreen.cpp" />
+    <ClCompile Include="TMainMenuScene.cpp" />
     <ClCompile Include="TFrequency.cpp" />
     <ClCompile Include="TGameApp.cpp" />
     <ClCompile Include="TGuiButton.cpp" />
     <ClCompile Include="TGuiManager.cpp" />
     <ClCompile Include="TGuiWidget.cpp" />
-    <ClCompile Include="TGuiWindow.cpp" />
     <ClCompile Include="TNewGameMenu.cpp" />
     <ClCompile Include="TLogicGateComponent.cpp" />
     <ClCompile Include="TMainMenu.cpp" />
     <ClCompile Include="TManager.cpp" />
     <ClCompile Include="TMemoryComponent.cpp" />
     <ClCompile Include="TMultiplexerComponent.cpp" />
+    <ClCompile Include="TNewGameScene.cpp" />
     <ClCompile Include="TPin.cpp" />
     <ClCompile Include="TPinComponent.cpp" />
     <ClCompile Include="TRamComponent.cpp" />
     <ClCompile Include="TRegister.cpp" />
     <ClCompile Include="TDrawableComponent.cpp" />
+    <ClCompile Include="TSceneManager.cpp" />
     <ClCompile Include="TTextComponent.cpp" />
     <ClCompile Include="TZ80Component.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IDGenerator.h" />
+    <ClInclude Include="IScene.h" />
     <ClInclude Include="IScreenView.h" />
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
@@ -310,12 +314,14 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TConductiveTracks.h" />
     <ClInclude Include="TGuiImage.h" />
-    <ClInclude Include="TNewGameLoadingScreen.h" />
+    <ClInclude Include="TMainMenuScene.h" />
+    <ClInclude Include="TNewGameScene.h" />
     <ClInclude Include="TRamComponent.h" />
     <ClInclude Include="TResource.h" />
     <ClInclude Include="TResourceLoader.h" />
     <ClInclude Include="TResourceVector.h" />
     <ClInclude Include="TLoaders.h" />
+    <ClInclude Include="TSceneManager.h" />
     <ClInclude Include="TZ80Component.h" />
     <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TFactory.h" />
@@ -323,7 +329,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TGuiButton.h" />
     <ClInclude Include="TGuiManager.h" />
     <ClInclude Include="TGuiWidget.h" />
-    <ClInclude Include="TGuiWindow.h" />
     <ClInclude Include="TNewGameMenu.h" />
     <ClInclude Include="TLogicEntity.h" />
     <ClInclude Include="TLogicGateComponent.h" />

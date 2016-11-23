@@ -111,7 +111,7 @@ namespace nne
 				return;
 	
 			// Show the debug window
-			mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
+			//mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
 			
 			// Get the current instruction Opcode
 			//TOpCodesMainInstruction CurrentInstruction = FetchInstruction<TOpCodesMainInstruction>();
@@ -120,7 +120,7 @@ namespace nne
 			auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
 			executeInstruction(Instruction);
 	
-			mClock.wait();
+			//mClock.wait();
 		}
 	
 		bool TZ80Component::loadProgram(const std::string& Program)
@@ -216,7 +216,7 @@ namespace nne
 			pushDataToAddressBus(Address > 0 ? Address : PC);
 	
 			// refresh the memory logic			
-			//mRam->getComponentAsPtr<TRamComponent>()->refreshMemory();
+			mRam->getComponentAsPtr<TRamComponent>()->refreshMemory();
 	
 			// Get the instruction from the bus
 			mCurrentInstruction = getDataFromDataBus();

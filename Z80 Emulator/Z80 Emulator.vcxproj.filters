@@ -73,6 +73,18 @@
     <Filter Include="Header Files\include\resources">
       <UniqueIdentifier>{cce71831-d44e-41e7-a733-dbce0427e488}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\scenes">
+      <UniqueIdentifier>{5587f5b9-0c58-4306-9107-6bed98d5cabf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\scenes">
+      <UniqueIdentifier>{18556ccb-efda-40cf-8863-688a7056ca1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\scenes\list">
+      <UniqueIdentifier>{ff92e016-ae97-436e-9a5c-e9aaa483af24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\scenes\list">
+      <UniqueIdentifier>{61489c7b-4a24-41e5-b769-75280d2d39ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -129,9 +141,6 @@
     <ClCompile Include="TMainMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TGuiWindow.cpp">
-      <Filter>Source Files\src\gui</Filter>
-    </ClCompile>
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
@@ -139,9 +148,6 @@
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
     <ClCompile Include="TNewGameMenu.cpp">
-      <Filter>Source Files\src\gui\menus</Filter>
-    </ClCompile>
-    <ClCompile Include="TNewGameLoadingScreen.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
     <ClCompile Include="TGuiImage.cpp">
@@ -167,6 +173,18 @@
     </ClCompile>
     <ClCompile Include="TRamComponent.cpp">
       <Filter>Source Files\src\components</Filter>
+    </ClCompile>
+    <ClCompile Include="IScene.cpp">
+      <Filter>Source Files\src\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="TSceneManager.cpp">
+      <Filter>Source Files\src\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="TNewGameScene.cpp">
+      <Filter>Source Files\src\scenes\list</Filter>
+    </ClCompile>
+    <ClCompile Include="TMainMenuScene.cpp">
+      <Filter>Source Files\src\scenes\list</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -251,9 +269,6 @@
     <ClInclude Include="TLogicEntity.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiWindow.h">
-      <Filter>Header Files\include\gui</Filter>
-    </ClInclude>
     <ClInclude Include="TFactory.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
@@ -277,9 +292,6 @@
     </ClInclude>
     <ClInclude Include="TCacheManager.h">
       <Filter>Header Files\include\resources</Filter>
-    </ClInclude>
-    <ClInclude Include="TNewGameLoadingScreen.h">
-      <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
     <ClInclude Include="TConductiveTracks.h">
       <Filter>Header Files\include\graphics\components</Filter>
@@ -307,6 +319,21 @@
     </ClInclude>
     <ClInclude Include="TRamComponent.h">
       <Filter>Header Files\include\components</Filter>
+    </ClInclude>
+    <ClInclude Include="IScene.h">
+      <Filter>Header Files\include\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="TSceneManager.h">
+      <Filter>Header Files\include\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="IDGenerator.h">
+      <Filter>Header Files\include\internals</Filter>
+    </ClInclude>
+    <ClInclude Include="TMainMenuScene.h">
+      <Filter>Header Files\include\scenes\list</Filter>
+    </ClInclude>
+    <ClInclude Include="TNewGameScene.h">
+      <Filter>Header Files\include\scenes\list</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

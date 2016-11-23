@@ -1,4 +1,5 @@
 #include "TChipComponent.h"
+#include "TSceneManager.h"
 
 namespace nne
 {
@@ -6,6 +7,9 @@ namespace nne
 	const sf::Color TChipComponent::PinColorNormal = { 120, 120, 120 };
 	const sf::Color TChipComponent::PinColorHover = { 60, 60, 60 };
 	const sf::Color TChipComponent::PinColorSelected = { 15, 15, 15 };
+
+	const sf::Color TChipComponent::PinColorStatusLow = { 128, 0, 0 };
+	const sf::Color TChipComponent::PinColorStatusHigh = { 0, 128, 0 };
 
 	TChipComponent::TChipComponent(TEntity* ManagedObject) :
 		mManagedObject(ManagedObject),
@@ -27,6 +31,27 @@ namespace nne
 
 	void TChipComponent::update(const sf::Time& ElapsedTime)
 	{
+		// Get a ref to the pin component
+		auto& PinComponent = *mManagedObject->getComponentAsPtr<tcomponents::TPinComponent>();
+		const auto& PinsNumber = PinComponent.getPinList().size();
+
+		// Draw the pin with the proper color
+		for (auto Index = 0u; Index < PinsNumber; ++Index)
+		{			
+			switch (PinComponent[Index].getPinStatus())
+			{
+			case tcomponents::TPin::LOW:
+				setPinColor(PinColorStatusLow, Index);
+				break;
+			case tcomponents::TPin::HIGH:
+				setPinColor(PinColorStatusHigh, Index);
+				break;
+			case tcomponents::TPin::HIGH_Z:
+				setPinColor(PinColorNormal, Index);
+				break;
+			}
+		}
+
 		// Set the color of the hover pin appropriately
 		if (mOverPin != None)
 		{
@@ -49,10 +74,12 @@ namespace nne
 		{
 			setPinColor(PinColorNormal, mPreviousSelectedPin);
 		}
+
+		
 	}
 
 	void TChipComponent::refresh(const sf::Time& ElapsedTime)
-{
+	{
 		// Iterates 
 		bool PinFound = false;
 		bool PinSelectedFound = false;
@@ -61,10 +88,8 @@ namespace nne
 		std::size_t NumberOfPins = mManagedObject->getComponentAsPtr<tcomponents::TPinComponent>()->getPinList().size();
 
 		// Get mouse info
-		//auto MousePosition = sf::Mouse::getPosition(mAppWindow);
-		sf::Vector2i MousePosition = { 0, 0 };
-
-
+		auto MousePosition = sf::Mouse::getPosition(mParent->getSceneManager().getRenderWindow());
+		
 		// Swap the status of the selected and over pin
 		mPreviousOverPin = mOverPin;
 

@@ -8,8 +8,11 @@
 
 #include "IComponent.h"
 #include "TPinComponent.h"
+#include "TZ80Component.h"
 #include "TDrawableComponent.h"
+#include "TTextComponent.h"
 #include "TEntity.h"
+#include "TValues.h"
 
 namespace nne
 {
@@ -27,6 +30,9 @@ namespace nne
 		static const sf::Color PinColorNormal;
 		static const sf::Color PinColorHover;
 		static const sf::Color PinColorSelected;
+
+		static const sf::Color PinColorStatusLow;
+		static const sf::Color PinColorStatusHigh;
 
 		TChipComponent(TEntity* ManagedObject);
 

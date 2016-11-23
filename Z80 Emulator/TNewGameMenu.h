@@ -2,7 +2,6 @@
 
 #include "IScreenView.h"
 #include "TGuiManager.h"
-#include "TNewGameLoadingScreen.h"
 
 namespace nne
 {
@@ -11,7 +10,7 @@ namespace nne
 		class TNewGameMenu : public nne::tgui::IScreenView
 		{
 		public:
-			virtual void setup(nne::tgui::TGuiManager* GuiManager);
+			virtual void init();
 
 			void handleEvent(sf::Event& Event);
 

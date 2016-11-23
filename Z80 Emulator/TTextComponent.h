@@ -31,7 +31,6 @@ namespace nne
 		};
 
 		using TVertexArrayPtr = std::shared_ptr<sf::VertexArray>;
-
 		
 		TTextComponent();
 		TTextComponent(const sf::String& String, const sf::Font& Font, unsigned int characterSize = 30);

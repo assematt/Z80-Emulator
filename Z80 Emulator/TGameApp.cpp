@@ -5,50 +5,23 @@ namespace nne
 
 	TGameApp::TGameApp() :
 		mAppName(PROGRAM_NAME),
-		mAppWindow(std::make_shared<sf::RenderWindow>(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default))
+		mAppWindow(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default)
 	{
 	}
 
 	bool TGameApp::init()
-	{		
+	{
+		mSceneManager.setup(mAppWindow);
+
 		// Load the resources
 		auto& CacheManager = TCacheManager::getInstance();
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_effect.png"), "monitor_effect"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_shadow.png"), "monitor_shadow"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
-				
-		// Create a Z80 and RAM entity
-		mLogicEntity.addEntity(TFactory::makeZ80(), "Z80");
-		mLogicEntity.addEntity(TFactory::makeRam(), "Ram");
-		mLogicEntity.initEntities();
 
-		// Get the Z80 and the ram entity
-		auto Z80 = mLogicEntity.getEntityByKey("Z80");
-		auto Ram = mLogicEntity.getEntityByKey("Ram");
-
-		Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
-		if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/DJ.A01"))
-		{
-			std::cout << "Error! Could not open the file" << std::endl;
-
-			// Something went bad :(
-			return 1;
-		}
-
-		// Create a temp value the z80 and the ram
-		auto& Z80Chip = TFactory::makeChip(Z80.get());
-		auto& RamChip = TFactory::makeChip(Ram.get());
-		auto& ConductiveRack = TFactory::makeConductiveTrack();
-
-		Z80Chip->getComponentAsPtr<TDrawableComponent>()->setPosition(250.f, 100.f);
-		RamChip->getComponentAsPtr<TDrawableComponent>()->setPosition(900.f, 100.f);
-
-		mGraphicEntity.addEntity(Z80Chip, "Z80Chip");
-		mGraphicEntity.addEntity(RamChip, "RamChip");
-		mGraphicEntity.initEntities();
-
-		// Initialize the GUI
-		mAppGui.setup(mAppWindow);
+		mSceneManager.addScene(std::unique_ptr<IScene>(new TMainMenuScene()), "main_scene");		
+		mSceneManager.addScene(std::unique_ptr<IScene>(new TNewGameScene()), "new_game_scene");
+		mSceneManager.initScenes();
 
 		return true;
 	}
@@ -62,63 +35,11 @@ namespace nne
 	{
 		mAppClock.restart();
 		
-		while (mAppWindow->isOpen())
-		{
-			sf::Time ElapsedTime = mAppClock.restart();
-
-			eventLoop();
-
-			refresh(ElapsedTime);
-
-			update(ElapsedTime);
-
-			draw();
-		}
+		// Run the app and 
+		while (mAppWindow.isOpen())
+			mSceneManager.run(mAppClock.restart());
 
 		return 0;
-	}
-
-	void TGameApp::eventLoop()
-	{
-		while (mAppWindow->pollEvent(mAppEvent))
-		{
-			mAppGui.processEvents(mAppEvent);
-
-			if (mAppEvent.type == sf::Event::Closed)
-				mAppWindow->close();
-
-			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
-				mAppWindow->close();
-		}
-	}
-
-	void TGameApp::refresh(sf::Time ElapsedTime)
-	{
-		mAppGui.refresh(ElapsedTime);
-
-		mGraphicEntity.refresh(ElapsedTime);
-	}
-
-	void TGameApp::update(sf::Time ElapsedTime)
-	{
-		mAppGui.update(ElapsedTime);
-
-		mGraphicEntity.update(ElapsedTime);
-	}
-
-	void TGameApp::draw()
-	{
-		// Clear the back buffered window
-		mAppWindow->clear();
-
-		// Render all the entity in the the entity manager
-		mGraphicEntity.draw(*mAppWindow);
-
-		// Render the GUI
-		mAppGui.draw();
-
-		// Display the back buffered window
-		mAppWindow->display();
 	}
 
 }

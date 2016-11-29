@@ -5,6 +5,7 @@
 #include "IScene.h"
 #include "TManager.h"
 #include "TFactory.h"
+#include "TGuiManager.h"
 
 namespace nne
 {
@@ -28,13 +29,14 @@ namespace nne
 		void addConductiveTrack();
 
 	private:
-		sf::Event	mAppEvent;
-		TManager	mLogicEntity;
-		TManager	mGraphicEntity;
-		std::size_t mTrackCounter;
+		sf::Event				mAppEvent;
+		TManager				mLogicEntity;
+		TManager				mGraphicEntity;
+		std::size_t				mTrackCounter;
+		tgui::TGuiManager		mAppGui;
 
-		TLogicBoardComponent* mLogicBoard;
-		TEntity::EntityPtr mTempChip;
-		TEntity::EntityPtr mTempTrack;
+		TLogicBoardComponent*	mLogicBoard;
+		TEntity::EntityPtr		mTempChip;
+		TEntity::EntityPtr		mTempTrack;
 	};
 }

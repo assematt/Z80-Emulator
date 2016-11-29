@@ -7,8 +7,7 @@ namespace nne
 	{
 
 		IScreenView::IScreenView() :
-			mParentManager(nullptr),
-			mPosition({.0f, .0f})
+			mParentManager(nullptr)
 		{
 		}
 
@@ -18,77 +17,83 @@ namespace nne
 			bool EventFired = false;
 
 			// Iterate over all the widget to check for event
-			for (auto& WidgetIterator = mWidgetsContainer.rbegin(); WidgetIterator != mWidgetsContainer.rend() && !EventFired; ++WidgetIterator)
+			for (auto& WidgetIterator = rbegin(); WidgetIterator != rend() && !EventFired; ++WidgetIterator)
 			{
 				// Get a ref to the widget the widget from the render struct
-				auto& Widget = WidgetIterator->GetWidget();
+				auto& Widget = *WidgetIterator;
 
-				if (Event.type == sf::Event::MouseButtonPressed && Widget->isInputEnabled() && checkMouseClick(Widget->getGlobalBounds(), { Event.mouseButton.x, Event.mouseButton.y }))
+				// Skip the all event handling for this widget if it doesn't accept input
+				if (!Widget->isInputEnabled())
+					continue;
+
+				// Check the mouse events only if the mouse is over a widget
+				if (checkMouseIsInWidget(Widget->getGlobalBounds(), { Event.mouseButton.x, Event.mouseButton.y }))
 				{
-					// Raise the signal
-					Widget->raiseSignal(tevent::_OnMouseClick, Event.mouseButton);
+					
+					/*
+					EVENT TO IMPLEMENT
+					_OnMouseEnter,
+					_OnMouseLeave,
+					*/
 
-					// We fired an event so we can exit the loop
-					EventFired = true;
+					switch (Event.type)
+					{
+						// If we clicked on the widget
+						case sf::Event::MouseButtonPressed:
+						{
+							// Raise the signal
+							Widget->raiseSignal(tevent::_OnMouseClick, Event.mouseButton);
+
+							// Raise the signal
+							Widget->raiseSignal(tevent::_OnMouseDown, Event.mouseButton);
+
+							// We fired an event so we can exit the loop
+							EventFired = true;
+						} break;
+
+						// If we moved the mouse over the widget
+						case sf::Event::MouseMoved:
+						{
+							// Raise the signal
+							Widget->raiseSignal(tevent::_OnMouseMove, Event.mouseButton);
+
+							// We fired an event so we can exit the loop
+							EventFired = true;
+						} break;
+
+						// If we moved the mouse over the widget
+						case sf::Event::MouseButtonReleased:
+						{
+							// Raise the signal
+							Widget->raiseSignal(tevent::_OnMouseUp, Event.mouseButton);
+
+							// We fired an event so we can exit the loop
+							EventFired = true;
+						} break;
+					}
 				}
 			}
 		}
 
-		void IScreenView::removeWidget(std::size_t Index)
-		{
-			mWidgetsContainer.erase(mWidgetsContainer.begin() + Index);
-		}
-
-		const TGuiWidget::UniquePtr& IScreenView::getWidget(const std::size_t Index) const
-		{
-			return mWidgetsContainer[Index].mWidget;
-		}
-
 		void IScreenView::update(const sf::Time& ElapsedTime)
 		{
-			for (auto& Widget : mWidgetsContainer)
-			{
-				Widget.mWidget->update(ElapsedTime);
-			}
+			for (auto& Widget : (*this))
+				Widget->update(ElapsedTime);
 		}
 
 		void IScreenView::refresh(const sf::Time& ElapsedTime)
 		{
-			for (auto& Widget : mWidgetsContainer)
-			{
-				Widget.mWidget->refresh(ElapsedTime);
-			}
+			for (auto& Widget : (*this))
+				Widget->refresh(ElapsedTime);
 		}
 
 		void IScreenView::draw()
 		{
-			for (auto& WidgetIterator : mWidgetsContainer)
-			{
-				mParentManager->getRenderingWindow().draw(*WidgetIterator.GetWidget()->getComponentAsPtr<TDrawableComponent>());
-			}
+			for (auto& Widget : (*this))
+				mParentManager->getRenderingWindow().draw(Widget->getComponent<TDrawableComponent>());
 		}
 
-		std::vector<IScreenView::TWdigetRenderStrcut>::iterator IScreenView::begin()
-		{
-			return mWidgetsContainer.begin();
-		}
-
-		std::vector<IScreenView::TWdigetRenderStrcut>::iterator IScreenView::end()
-		{
-			return mWidgetsContainer.end();
-		}
-
-		TGuiWidget::UniquePtr& IScreenView::operator[](const int Index)
-		{
-			return mWidgetsContainer[Index].mWidget;
-		}
-
-		const TGuiWidget::UniquePtr& IScreenView::operator[](const int Index) const
-		{
-			return mWidgetsContainer[Index].mWidget;
-		}
-
-		bool IScreenView::checkMouseClick(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse)
+		bool IScreenView::checkMouseIsInWidget(const sf::FloatRect& WidgetBound, const sf::Vector2i Mouse)
 		{
 			return WidgetBound.contains(static_cast<sf::Vector2f>(Mouse));
 		}

@@ -39,9 +39,11 @@ namespace nne
 		public:
 			using UniquePtr = std::unique_ptr<TGuiWidget>;
 			using SharedPtr = std::shared_ptr<TGuiWidget>;
+
+			using ZIndex = std::size_t;
 			
 			TGuiWidget();
-			TGuiWidget(const std::string WidgetName);
+			TGuiWidget(const std::string& WidgetName);
 			virtual ~TGuiWidget();
 
 			virtual void init();
@@ -55,8 +57,12 @@ namespace nne
 			virtual sf::Vector2u getSize();
 
 			/// Functions to get/set the widget position
-			void setPosition(const sf::Vector2f& WidgetSize);
-			const sf::Vector2f& getPosition() const;
+			virtual void setPosition(const sf::Vector2f& WidgetSize);
+			virtual const sf::Vector2f& getPosition() const;
+
+			/// Functions to get/set the widget ZIndex 
+			void setZIndex(const ZIndex& WidgetZIndex = 0);
+			const ZIndex& getZIndex() const;
 
 			/// Functions to get/set the widget visibility
 			void setVisibility(bool Show = true);
@@ -82,11 +88,13 @@ namespace nne
 			sf::FloatRect getGlobalBounds();
 
 		private:
-			std::string mName;
-			sf::Vector2u mSize;
-			sf::Vector2f mPosition;
-			bool mVisible;
-			bool mAcceptInput;
+			bool			mVisible;
+			bool			mAcceptInput;
+			ZIndex			mZIndex;
+			TGuiWidget*		mParentWidget;
+			std::string		mName;
+			sf::Vector2u	mSize;
+			sf::Vector2f	mPosition;
 
 			std::array<tevent::BaseEvent, tevent::TEventTypesSize> mSignals;
 		};			   		

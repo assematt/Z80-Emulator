@@ -9,19 +9,21 @@ namespace nne
 			mPosition(0.f, 0.f),
 			mSize(0, 0),
 			mVisible(true),
-			mAcceptInput(true)
+			mAcceptInput(true),
+			mZIndex(0),
+			mParentWidget(nullptr)
 		{
-			init();
 		}
 
-		TGuiWidget::TGuiWidget(const std::string WidgetName) :
+		TGuiWidget::TGuiWidget(const std::string& WidgetName) :
 			mName(WidgetName),
 			mPosition(0.f, 0.f),
 			mSize(0, 0),
 			mVisible(true),
-			mAcceptInput(true)
+			mAcceptInput(true),
+			mZIndex(0),
+			mParentWidget(nullptr)
 		{
-			init();
 		}
 
 		TGuiWidget::~TGuiWidget()
@@ -33,13 +35,7 @@ namespace nne
 		{
 			
 		}
-
-// 		void TGuiWidget::update(const sf::Time& ElapsedTime)
-// 		{
-// 			for (auto& Component : mComponents)
-// 				Component->update();
-// 		}
-
+		
 		void TGuiWidget::setName(const std::string& WidgetName)
 		{
 			mName = WidgetName;
@@ -69,6 +65,16 @@ namespace nne
 		const sf::Vector2f& TGuiWidget::getPosition() const
 		{
 			return mPosition;
+		}
+
+		void TGuiWidget::setZIndex(const ZIndex& WidgetZIndex /*= 0*/)
+		{
+			mZIndex = WidgetZIndex;
+		}
+
+		const nne::tgui::TGuiWidget::ZIndex& TGuiWidget::getZIndex() const
+		{
+			return mZIndex;
 		}
 
 		void TGuiWidget::setVisibility(bool Show /*= true*/)
@@ -110,12 +116,6 @@ namespace nne
 		{
 			return getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getLocalBounds());
 		}
-
-// 		void TGuiWidget::refresh(const sf::Time& ElapsedTime)
-// 		{
-// 			for (auto& Component : mComponents)
-// 				Component->refresh();
-// 		}
 
 	}
 }

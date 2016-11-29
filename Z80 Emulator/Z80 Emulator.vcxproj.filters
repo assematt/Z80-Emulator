@@ -189,6 +189,24 @@
     <ClCompile Include="TLogicBoardComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
+    <ClCompile Include="TGuiTestScene.cpp">
+      <Filter>Source Files\src\scenes\list</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiTestMenu.cpp">
+      <Filter>Source Files\src\gui\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiStaticText.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TWidgetsVector.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TGuiPanel.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TWidgetState.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -323,23 +341,41 @@
     <ClInclude Include="TRamComponent.h">
       <Filter>Header Files\include\components</Filter>
     </ClInclude>
-    <ClInclude Include="IScene.h">
-      <Filter>Header Files\include\scenes</Filter>
-    </ClInclude>
     <ClInclude Include="TSceneManager.h">
       <Filter>Header Files\include\scenes</Filter>
     </ClInclude>
     <ClInclude Include="IDGenerator.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
-    <ClInclude Include="TMainMenuScene.h">
-      <Filter>Header Files\include\scenes\list</Filter>
-    </ClInclude>
     <ClInclude Include="TNewGameScene.h">
       <Filter>Header Files\include\scenes\list</Filter>
     </ClInclude>
     <ClInclude Include="TLogicBoardComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TMainMenuScene.h">
+      <Filter>Header Files\include\scenes\list</Filter>
+    </ClInclude>
+    <ClInclude Include="IScene.h">
+      <Filter>Header Files\include\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiTestScene.h">
+      <Filter>Header Files\include\scenes\list</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiTestMenu.h">
+      <Filter>Header Files\include\gui\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiStaticText.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TWidgetsVector.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TGuiPanel.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TWidgetState.h">
+      <Filter>Header Files\include\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

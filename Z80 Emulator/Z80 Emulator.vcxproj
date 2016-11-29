@@ -280,7 +280,13 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TEntity.cpp" />
     <ClCompile Include="TEventContainer.cpp" />
     <ClCompile Include="TFactory.cpp" />
+    <ClCompile Include="TGuiPanel.cpp" />
+    <ClCompile Include="TWidgetState.cpp" />
+    <ClCompile Include="TWidgetsVector.cpp" />
     <ClCompile Include="TGuiImage.cpp" />
+    <ClCompile Include="TGuiStaticText.cpp" />
+    <ClCompile Include="TGuiTestMenu.cpp" />
+    <ClCompile Include="TGuiTestScene.cpp" />
     <ClCompile Include="TLogicBoardComponent.cpp" />
     <ClCompile Include="TMainMenuScene.cpp" />
     <ClCompile Include="TFrequency.cpp" />
@@ -314,7 +320,13 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TChipComponent.h" />
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TConductiveTracks.h" />
+    <ClInclude Include="TGuiPanel.h" />
+    <ClInclude Include="TWidgetState.h" />
+    <ClInclude Include="TWidgetsVector.h" />
     <ClInclude Include="TGuiImage.h" />
+    <ClInclude Include="TGuiStaticText.h" />
+    <ClInclude Include="TGuiTestMenu.h" />
+    <ClInclude Include="TGuiTestScene.h" />
     <ClInclude Include="TLogicBoardComponent.h" />
     <ClInclude Include="TMainMenuScene.h" />
     <ClInclude Include="TNewGameScene.h" />

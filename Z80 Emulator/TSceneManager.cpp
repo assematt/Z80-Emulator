@@ -4,7 +4,7 @@ namespace nne
 {
 
 	TSceneManager::TSceneManager() :
-		mSelectedScene(1),
+		mSelectedScene(2),
 		mNextMenu(mSelectedScene)
 	{
 	}

@@ -119,7 +119,6 @@ namespace nne
 		template <class T>
 		inline T* getComponentAsPtr() const
 		{
-			//return std::static_pointer_cast<T>(getComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>()));
 			return dynamic_cast<T*>(getComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>()));
 		}
 

@@ -1,11 +1,15 @@
 #include "TNewGameScene.h"
+#include "TMainMenu.h"
 #include "TLogicBoardComponent.h"
+
+#define ENABLE FALSE
 
 namespace nne
 {
 
 	void TNewGameScene::init()
 	{
+#if ENABLE == TRUE
 		// Create a Z80 and RAM entity
 		mLogicEntity.addEntity(TFactory::makeZ80(), "Z80");
 		mLogicEntity.addEntity(TFactory::makeRam(), "Ram");
@@ -51,6 +55,16 @@ namespace nne
 		mLogicBoard->placeChip(RamChip.get());
 		mLogicBoard->placeTrack(ConductiveRack.get());
 		mLogicBoard->setSelectedTrack(ConductiveRack->getComponentAsPtr<TConductiveTracks>());
+#endif // DISABLE == TRUE
+
+		// First setup the GUI
+		mAppGui.setup(*mRenderSurface);
+
+		// Create a main menu
+		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TMainMenu));
+
+		// Init all the menus
+		mAppGui.initMenus(*mRenderSurface, *mParent);
 	}
 
 	nne::IScene::ID TNewGameScene::eventLoop()
@@ -73,6 +87,7 @@ namespace nne
 
 	void TNewGameScene::refresh(sf::Time ElapsedTime)
 	{
+#if ENABLE == TRUE
 		mLogicEntity.refresh(ElapsedTime);
 
 		mGraphicEntity.refresh(ElapsedTime);
@@ -107,13 +122,16 @@ namespace nne
 				}
 			}
 		}
+#endif // ENABLE == TRUE
 	}
 
 	void TNewGameScene::update(sf::Time ElapsedTime)
 	{
+#ifdef ENABLE == TRUE
 		mLogicEntity.update(ElapsedTime);
 
 		mGraphicEntity.update(ElapsedTime);
+#endif // ENABLE == TRUE
 	}
 
 	void TNewGameScene::draw()
@@ -122,7 +140,9 @@ namespace nne
 		mRenderSurface->clear();
 
 		// Render all the entity in the the entity manager
+#ifdef ENABLE == TRUE
 		mGraphicEntity.draw(*mRenderSurface);
+#endif // ENABLE == TRUE
 
 		// Display the back buffered window
 		mRenderSurface->display();

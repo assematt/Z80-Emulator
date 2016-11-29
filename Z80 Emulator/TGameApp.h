@@ -10,9 +10,6 @@
 #include "TCacheManager.h"
 #include "TGuiManager.h"
 #include "TFactory.h"
-
-#include "TMainMenuScene.h"
-#include "TNewGameScene.h"
 #include "TSceneManager.h"
 
 namespace nne

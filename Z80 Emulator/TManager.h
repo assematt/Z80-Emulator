@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Time.hpp>
+#include <functional>
+#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -15,7 +17,7 @@ namespace nne
 	
 	class TManager
 	{
-	public:	
+	public:
 
 		TManager();
 
@@ -50,6 +52,8 @@ namespace nne
 
 		/// Return the position in the vector of the ID we specified, return the vector size if we don't find anything
 		std::size_t getEntityPos(const TEntity::EntityID& IDToSearch);
+
+		void addSorted(TEntity::EntityPtr& Entity);
 
 	protected:
 		std::vector<TEntity::EntityPtr> mEntityVector;

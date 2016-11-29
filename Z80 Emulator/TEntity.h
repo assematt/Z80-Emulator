@@ -15,7 +15,7 @@ namespace nne
 	class TManager;
 	class TSceneManager;
 	
-	class TEntity : public TComponentArray<IComponent, TEntity, TComponentID>//, public TEventContainer
+	class TEntity : public TComponentArray// <IComponent, TEntity, TComponentID>//, public TEventContainer
 	{
 	public:
 		using EntityPtr = std::shared_ptr<TEntity>;
@@ -48,6 +48,9 @@ namespace nne
 
 		/// Get entity ID
 		const EntityID& getEntityID() const;
+
+		/// Get the entity manager
+		TManager& getEntityManager();
 
 		/// Get the scene manager
 		TSceneManager& getSceneManager();

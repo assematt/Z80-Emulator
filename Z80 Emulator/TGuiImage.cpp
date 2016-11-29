@@ -30,8 +30,8 @@ namespace nne
 			getComponentAsPtr<TDrawableComponent>()->setSize(Size);
 		}
 
-		const sf::Vector2u& TGuiImage::getSize() const
-		{
+		sf::Vector2u TGuiImage::getSize()
+{
 			return getComponentAsPtr<TDrawableComponent>()->getSize();
 		}
 

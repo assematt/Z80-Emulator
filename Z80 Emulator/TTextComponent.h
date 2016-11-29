@@ -87,9 +87,8 @@ namespace nne
 		sf::Color               mOutlineColor;       ///< Text outline color
 		float					mOutlineThickness;   ///< Thickness of the text's outline
 		mutable sf::FloatRect   mBounds;             ///< Bounding rectangle of the text (in local coordinates)
-		mutable bool			mGeometryNeedupdate; ///< Does the geometry need to be recomputed?
-
-		std::shared_ptr<TDrawableComponent>	mDrawableComponent;
+		mutable bool			mGeometryNeedupdate; ///< Does the geometry need to be recomputed
+		TDrawableComponent*		mDrawableComponent;
 	};
 
 }

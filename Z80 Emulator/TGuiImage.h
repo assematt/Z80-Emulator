@@ -24,7 +24,7 @@ namespace nne
 
 			/// Functions to get/set the widget size
 			virtual void setSize(const sf::Vector2u& Size) override;
-			virtual const sf::Vector2u& getSize() const override;
+			virtual sf::Vector2u getSize() override;
 
 		private:
 			void draw(sf::RenderTarget& target, sf::RenderStates states) const;

@@ -10,8 +10,29 @@ namespace nne
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 			TempPtr->addComponent<TChipComponent>(ChipToRender);
-			TempPtr->initComponents();
+
+			return std::move(TempPtr);
+		}
+
+		std::shared_ptr<nne::TEntity> makeConductiveTrack()
+		{
+			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+
+			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
+			TempPtr->addComponent<TConductiveTracks>();
+
+			return std::move(TempPtr);
+		}
+
+		std::shared_ptr<nne::TEntity> makeLogicBoard()
+		{
+			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+
+			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -22,7 +43,6 @@ namespace nne
 
 			TempPtr->addComponent<tcomponents::TPinComponent>();
 			TempPtr->addComponent<tcomponents::TZ80Component>();
-			TempPtr->initComponents();
 
 			return std::move(TempPtr);
 		}
@@ -34,18 +54,6 @@ namespace nne
 			TempPtr->addComponent<tcomponents::TPinComponent>();
 			TempPtr->addComponent<tcomponents::TRamComponent>();
 			TempPtr->addComponent<tcomponents::TMemoryComponent>();
-			TempPtr->initComponents();
-
-			return std::move(TempPtr);
-		}
-
-		std::shared_ptr<nne::TEntity> makeConductiveTrack()
-		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
-
-			TempPtr->addComponent<TDrawableComponent>();
-			TempPtr->addComponent<TConductiveTracks>();
-			TempPtr->initComponents();
 
 			return std::move(TempPtr);
 		}
@@ -55,12 +63,9 @@ namespace nne
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
-			TempPtr->initComponents();
 
 			return std::move(TempPtr);
 		}
-
-		
 
 	}
 }

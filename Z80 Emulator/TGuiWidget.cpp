@@ -55,7 +55,7 @@ namespace nne
 			mSize = WidgetSize;
 		}
 
-		const sf::Vector2u& TGuiWidget::getSize() const
+		sf::Vector2u TGuiWidget::getSize()
 		{
 			return mSize;
 		}

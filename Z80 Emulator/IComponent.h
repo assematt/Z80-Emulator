@@ -11,7 +11,8 @@ namespace nne
 
 	class TEntity;
 
-	template <class TType, class TParent, class TID>
+// 	template <class TType, class TParent, class TID>
+// 	class TComponentArray;
 	class TComponentArray;
 
 	class IComponent
@@ -32,6 +33,6 @@ namespace nne
 		TComponentID mID;
 
 		friend class TEntity;
-		friend class TComponentArray<IComponent, TEntity, TComponentID>;
+		friend class TComponentArray;// <IComponent, TEntity, TComponentID>;
 	};
 }

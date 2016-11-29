@@ -38,8 +38,8 @@ namespace nne
 			// Add the right Components to make a CPU
 
 			// Setup the CPU Pins
-			auto& PinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
-			PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{
+			auto& PinComponent = *mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				// ADDRESS BUS
 				{ tcomponents::TPin::TMode::OUTPUT, "A0",  tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
 				{ tcomponents::TPin::TMode::OUTPUT, "A1",  tcomponents::TPin::TStatus::LOW, 31, CPUPinGroup::AddressBus, 2 }, // A2
@@ -176,8 +176,8 @@ namespace nne
 			mRam = Ram;
 	
 			// Get a ref to the PinComponent of the z80 and ram
-			auto& CpuPinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
-			auto& RamPinComponent = mRam->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto CpuPinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto RamPinComponent = mRam->getComponentAsPtr<tcomponents::TPinComponent>();
 	
 			// Connects the Z80 Address bus to the Ram AddressBus
 			auto& LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::AddressBus, 0, 14);
@@ -205,7 +205,7 @@ namespace nne
 				return static_cast<TOpCodesMainInstruction>(TOpCodesMainInstruction::NOP);
 	
 			// Get a ref to the PinComponent
-			auto& Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
 	
 			// Activates MREQ and RD pin
 			Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true);

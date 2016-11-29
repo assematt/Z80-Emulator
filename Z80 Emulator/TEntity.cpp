@@ -19,7 +19,7 @@ namespace nne
 	}
 
 	void TEntity::update(const sf::Time& ElapsedTime)
-{
+	{
 		for (auto& Component : mComponents)
 		{
 			Component->update(ElapsedTime);
@@ -28,6 +28,10 @@ namespace nne
 
 	void TEntity::init()
 	{
+		for (auto& Component : mComponents)
+		{
+			Component->init();
+		}
 	}
 
 	void TEntity::refresh(const sf::Time& ElapsedTime)
@@ -41,6 +45,11 @@ namespace nne
 	const TEntity::EntityID& TEntity::getEntityID() const
 	{
 		return mID;
+	}
+
+	nne::TManager& TEntity::getEntityManager()
+	{
+		return *mParent;
 	}
 
 	nne::TSceneManager& TEntity::getSceneManager()

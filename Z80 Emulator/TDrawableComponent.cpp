@@ -12,8 +12,6 @@ namespace nne
 	{
 		mVertexArray = std::make_shared<sf::VertexArray>(sf::Quads, 4);
 		mTexture = std::make_shared<sf::Texture>();
-
-		//mParent->getComponentAsPtr<TDrawableVector>()->pushdrawableObject({ mVertexArray, mTexture.get() });
 	}
 
 	void TDrawableComponent::setTexture(const sf::Texture& Texture)

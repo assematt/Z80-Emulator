@@ -8,6 +8,26 @@ namespace nne
 	{
 		using GlobalID = std::size_t;
 
+		struct GenerateByType
+		{
+
+			template <class IDType, class Type>
+			static inline IDType getUniqueID() noexcept
+			{
+				//std::string ClassName = typeid(Type).name();
+				static IDType typeID = generateID<IDType>();
+				return typeID;
+			}
+
+		private:
+			template <class IDType>
+			static inline IDType generateID() noexcept
+			{
+				static IDType lastID = 0u;
+				return lastID++;
+			}
+		};
+
 		struct GenerateByString
 		{
 			static GlobalID getUniqueID(const std::string& IDKey)

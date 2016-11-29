@@ -186,6 +186,9 @@
     <ClCompile Include="TMainMenuScene.cpp">
       <Filter>Source Files\src\scenes\list</Filter>
     </ClCompile>
+    <ClCompile Include="TLogicBoardComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -334,6 +337,9 @@
     </ClInclude>
     <ClInclude Include="TNewGameScene.h">
       <Filter>Header Files\include\scenes\list</Filter>
+    </ClInclude>
+    <ClInclude Include="TLogicBoardComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

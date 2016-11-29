@@ -24,7 +24,7 @@ namespace nne
 			void refresh(const sf::Time& ElapsedTime) override {}
 
 		private:
-			std::shared_ptr<TPinComponent> mPinComponent;
+			TPinComponent*	mPinComponent;
 		};
 	}
 }

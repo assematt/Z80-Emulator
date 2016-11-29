@@ -2,6 +2,7 @@
 
 #include "TEntity.h"
 #include "TUtility.h"
+#include "IDGenerator.h"
 
 #include <array>
 #include <bitset>
@@ -11,13 +12,12 @@
 
 namespace nne
 {
-	template <class TType, class TParent, class TID>
 	class TComponentArray
 	{
 	public:
-		using TComponentPtr = std::shared_ptr<TType>;
+		//using TComponentPtr = std::shared_ptr<IComponent>;
 
-		TComponentArray(TParent* ParentEntity) :
+		TComponentArray(TEntity* ParentEntity) :
 			mComponentsParent(ParentEntity)
 		{
 		}
@@ -30,10 +30,11 @@ namespace nne
 			assert(!hasComponent<T>());
 
 			// Compute an unique ID
-			TID UniqueID = TUtility::getTypeID<TID, T>();
+			//TComponentID UniqueID = TUtility::getTypeID<TComponentID, T>();
+			TComponentID UniqueID = idgenerator::GenerateByType::getUniqueID<TComponentID, T>();
 
 			// Creates a shared ptr that hold the component and set his parent entity and component id value
-			auto NewComponentPtr = std::make_shared<T>(std::forward<TArgs>(mArgs)...);
+			auto NewComponentPtr = std::make_unique<T>(std::forward<TArgs>(mArgs)...);
 			NewComponentPtr->mParent = mComponentsParent;
 			NewComponentPtr->mID = UniqueID;
 
@@ -48,14 +49,20 @@ namespace nne
 			// Put the component in the component array
 			mComponents.push_back(std::move(NewComponentPtr));			
 		}
+		
+		template <class T>
+		void addComponent(T* Pointer)
+		{
+			addComponent<T>(std::move(std::unique_ptr<T>(Pointer)));
+		}
 
 		template <class T>
-		void addComponent(std::shared_ptr<T>&& Move)
+		void addComponent(std::unique_ptr<T>&& Move)
 		{
 			// Make sure we are not adding a duplicate component
 			assert(!hasComponent<T>() && "A is not equal to B");
 
-			// Put the position of the newly created shared_ptr in the mComponentsArray for easy access
+			// Put the position of the newly created unique_ptr in the mComponentsArray for easy access
 			mComponentsArray[Move->mID] = mComponents.size();
 
 			// Flag the component as alive
@@ -64,18 +71,39 @@ namespace nne
 			mComponents.push_back(std::move(Move));
 		}
 
+		template <class T, typename... TArgs>
+		void replaceComponent(TArgs&&... mArgs)
+		{
+			replaceComponent<T>(std::move(std::make_unique<T>(std::forward<TArgs>(mArgs)...)));
+		}
+
+		template <class T>
+		void replaceComponent(T* Pointer)
+		{
+			replaceComponent<T>(std::move(std::unique_ptr<T>(Pointer)));
+		}
+
+		template <class T>
+		void replaceComponent(std::unique_ptr<T>&& Move)
+		{
+			// Delete the component and flag the component as dead
+			mComponentsState[Move->mID] = true;
+
+			mComponents[mComponentsArray[Move->mID]] = std::move(Move);
+		}
+
 		/// Function to remove a component by component type
 		template <class T>
 		inline void removeComponent()
 		{
-			removeComponent(TUtility::getTypeID<TID, T>());
+			removeComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>());
 		}
 
 		/// Function to remove a component by component ID
-		inline void removeComponent(TID ID)
+		inline void removeComponent(TComponentID ID)
 		{
 			// Delete the component and flag the component as dead
-			mComponents.erase(mComponents.begin() + ID);
+			mComponents[mComponentsArray[ID]].reset();
 			mComponentsArray[ID] = 0;
 			mComponentsState[ID] = false;
 		}
@@ -84,35 +112,36 @@ namespace nne
 		template <class T>
 		inline T& getComponent() const
 		{
-			return *dynamic_cast<T*>(getComponent(TUtility::getTypeID<TID, T>()).get());
+			return *dynamic_cast<T*>(getComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>()));
 		}
 
 		/// Function to get a component by component type as shared_ptr 
 		template <class T>
-		inline std::shared_ptr<T> getComponentAsPtr() const
+		inline T* getComponentAsPtr() const
 		{
-			return std::static_pointer_cast<T>(getComponent(TUtility::getTypeID<TID, T>()));
+			//return std::static_pointer_cast<T>(getComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>()));
+			return dynamic_cast<T*>(getComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>()));
 		}
 
 		/// Function to get a component to the entity by component ID
-		inline TComponentPtr getComponent(TID ID) const
+		inline IComponent* getComponent(TComponentID ID) const
 		{
 			// Make sure the component we are trying to get exist
 			assert(hasComponent(ID) && "A is not equal to B");
 
 			// Get the component from the array
-			return mComponents[mComponentsArray[ID]];
+			return mComponents[mComponentsArray[ID]].get();
 		}
 
 		/// Function to check if a component exist by component type
 		template <class T>
 		inline const bool hasComponent() const
 		{
-			return mComponentsState[TUtility::getTypeID<TID, T>()];
+			return mComponentsState[idgenerator::GenerateByType::getUniqueID<TComponentID, T>()];
 		}
 
 		/// Function to check if a component exist by component ID
-		inline const bool hasComponent(TID ID) const
+		inline const bool hasComponent(TComponentID ID) const
 		{
 			return mComponentsState[ID];
 		}
@@ -134,7 +163,7 @@ namespace nne
 		}
 
 		/// Function that init a single component by component ID
-		inline void initComponent(TID ID)
+		inline void initComponent(TComponentID ID)
 		{
 			getComponent(ID)->init();
 		}
@@ -142,9 +171,10 @@ namespace nne
 	private:
 		std::array<std::size_t, 32> mComponentsArray;
 		std::bitset<32> mComponentsState;
-		TParent* mComponentsParent;
+		TEntity* mComponentsParent;
 
 	protected:
-		std::vector<TComponentPtr> mComponents;
+		std::vector<std::unique_ptr<IComponent>> mComponents;
+		
 	};
 }

@@ -24,8 +24,17 @@ namespace nne
 		virtual void draw() override;
 
 	private:
+		/// Add a conductive track in the manager and logic board and set it as the current selected track
+		void addConductiveTrack();
+
+	private:
 		sf::Event	mAppEvent;
 		TManager	mLogicEntity;
 		TManager	mGraphicEntity;
+		std::size_t mTrackCounter;
+
+		TLogicBoardComponent* mLogicBoard;
+		TEntity::EntityPtr mTempChip;
+		TEntity::EntityPtr mTempTrack;
 	};
 }

@@ -1,4 +1,5 @@
 #include "TChipComponent.h"
+#include "TLogicBoardComponent.h"
 #include "TSceneManager.h"
 
 namespace nne
@@ -74,8 +75,7 @@ namespace nne
 		{
 			setPinColor(PinColorNormal, mPreviousSelectedPin);
 		}
-
-		
+				
 	}
 
 	void TChipComponent::refresh(const sf::Time& ElapsedTime)
@@ -103,6 +103,9 @@ namespace nne
 				mPreviousSelectedPin = mSelectedPin;
 				mSelectedPin = Index;
 
+				// Inform the logic board component that we selected this component
+				mParent->getComponentAsPtr<TLogicBoardComponent>()->setSelectedChip(this);
+
 				PinFound = true;
 			}
 
@@ -114,11 +117,11 @@ namespace nne
 			}
 		}
 
-		if (!PinFound && sf::Mouse::isButtonPressed(sf::Mouse::Left))
-		{
-			mPreviousSelectedPin = mSelectedPin;
-			mSelectedPin = None;
-		}
+// 		if (!PinFound && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+// 		{
+// 			mPreviousSelectedPin = mSelectedPin;
+// 			mSelectedPin = None;
+// 		}
 	}
 
 	void TChipComponent::setPinsColor(const sf::Color& Color)
@@ -176,6 +179,11 @@ namespace nne
 	sf::FloatRect TChipComponent::getPinGlobalBounds(const std::size_t& PinIndex)
 	{
 		return mDrawableComponent->getTransform().transformRect(getPinLocalBounds(PinIndex));
+	}
+
+	const std::size_t& TChipComponent::getSelectedPin() const
+	{
+		return mSelectedPin;
 	}
 
 	void TChipComponent::renderDipChip()

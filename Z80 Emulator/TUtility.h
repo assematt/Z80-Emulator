@@ -93,20 +93,6 @@ namespace nne
 			// Return the value of the old first bit
 			return Bit;
 		}
-	
-		template <class IDType>
-		inline IDType getUniqueID() noexcept
-		{
-			static IDType lastID = 0u;
-			return lastID++;
-		}
-
-		template <class IDType, class T>
-		inline IDType getTypeID() noexcept
-		{
-			static IDType typeID = getUniqueID<IDType>();
-			return typeID;
-		}
 	}
 }
 

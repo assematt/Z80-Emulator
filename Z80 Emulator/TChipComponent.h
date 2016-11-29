@@ -8,14 +8,12 @@
 
 #include "IComponent.h"
 #include "TPinComponent.h"
-#include "TZ80Component.h"
 #include "TDrawableComponent.h"
-#include "TTextComponent.h"
 #include "TEntity.h"
-#include "TValues.h"
 
 namespace nne
 {
+
 	class TChipComponent : public IComponent
 	{
 	public:
@@ -57,6 +55,8 @@ namespace nne
 		sf::FloatRect getPinLocalBounds(const std::size_t& PinIndex);
 		sf::FloatRect getPinGlobalBounds(const std::size_t& PinIndex);
 
+		const std::size_t& getSelectedPin() const;
+
 	private:
 		/// Render a chip in the DIP format
 		void renderDipChip();
@@ -74,12 +74,12 @@ namespace nne
 		const std::array<sf::Vertex, 4> createPin(const sf::Vector2f& Position, const sf::Vector2f& Size, const sf::Color& Color);
 
 	private:
-		std::size_t							mPreviousOverPin;
-		std::size_t							mOverPin;
-		std::size_t							mPreviousSelectedPin;
-		std::size_t							mSelectedPin;
-		nne::TEntity*						mManagedObject;
-		sf::Vector2u						mChipSize;
-		std::shared_ptr<TDrawableComponent>	mDrawableComponent;
+		std::size_t			mPreviousOverPin;
+		std::size_t			mOverPin;
+		std::size_t			mPreviousSelectedPin;
+		std::size_t			mSelectedPin;
+		nne::TEntity*		mManagedObject;
+		sf::Vector2u		mChipSize;
+		TDrawableComponent*	mDrawableComponent;
 	};
 }

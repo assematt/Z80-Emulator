@@ -52,7 +52,7 @@ namespace nne
 
 			/// Functions to get/set the widget size
 			virtual void setSize(const sf::Vector2u& WidgetSize);
-			virtual const sf::Vector2u& getSize() const;
+			virtual sf::Vector2u getSize();
 
 			/// Functions to get/set the widget position
 			void setPosition(const sf::Vector2f& WidgetSize);

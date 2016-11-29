@@ -135,7 +135,7 @@ namespace nne
 		template <class Type>
 		void AddResource(typename _TResourceVector<Type>::ResourcePtr& Resource, const std::string& Key)
 		{
-			_TResourceTypeID ID = TUtility::getTypeID<_TResourceTypeID, Type>();
+			_TResourceTypeID ID;// = TUtility::getTypeID<_TResourceTypeID, Type>();
 
 			if (mResourcesVectors.find(ID) == mResourcesVectors.end())
 			{

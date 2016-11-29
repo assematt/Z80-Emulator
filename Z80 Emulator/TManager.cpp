@@ -102,4 +102,37 @@ namespace nne
 		return EntityPos;
 	}
 
+	void TManager::addSorted(TEntity::EntityPtr& Entity)
+	{
+// 		// If the manager is empty simply add the entity
+// 		if (mEntityVector.empty())
+// 		{
+// 			mEntityVector.push_back({ Entity });
+// 
+// 			return;
+// 		}
+// 
+// 		// Get the entity size
+// 		auto VectorSize = mEntityVector.size();
+// 		std::size_t InsertionPos = 0;
+// 
+// 		// Get the value to compare
+// 		auto CompareValue = Entity->getComponentAsPtr<TDrawableComponent>()->getZIndex();
+// 
+// 		// Find the insert position
+// 		while (CompareValue > mEntityVector[InsertionPos]->getComponentAsPtr<TDrawableComponent>()->getZIndex() && ++InsertionPos < VectorSize);
+// 
+// 		// Shift all the element right of the insertion position to the right
+// 		// but first make sure we have enough space for one more element by adding an empty object
+// 		mEntityVector.emplace_back();
+// 
+// 		for (std::size_t Index = VectorSize; Index > InsertionPos; --Index)
+// 		{
+// 			mEntityVector[Index] = std::move(mEntityVector[Index - 1]);
+// 		}
+// 
+// 		// Put the element in the right place
+// 		mEntityVector[InsertionPos] = std::move(Entity);
+	}
+
 }

@@ -54,13 +54,13 @@ namespace nne
 
 		private:
 			// Save the size of the ram
-			TU16BitValue						mMemorySize;
-			std::shared_ptr<TMemoryComponent>	mMemoryComponent;
+			TU16BitValue		mMemorySize;
+			TMemoryComponent*	mMemoryComponent;
 
 			// Cache some pins status for easy access to them
-			tcomponents::TPin*					mChipEnablePin;
-			tcomponents::TPin*					mWritePin;
-			tcomponents::TPin*					mOutputEnable;
+			tcomponents::TPin*	mChipEnablePin;
+			tcomponents::TPin*	mWritePin;
+			tcomponents::TPin*	mOutputEnable;
 		};
 	}
 }

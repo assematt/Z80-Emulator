@@ -56,7 +56,7 @@ namespace nne
 			mMemoryComponent->resize(mMemorySize);
 
 			// Get a ref to the pin component
-			auto& PinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto PinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
 
 			// Setup the RAM pins
 			PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{

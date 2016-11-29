@@ -16,7 +16,7 @@ namespace nne
 		}
 
 		void TMultiplexerComponent::init()
-{
+		{
 			assert(mParent->hasComponent<TPinComponent>());
 
 			mPinComponent = mParent->getComponentAsPtr<TPinComponent>();

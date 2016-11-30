@@ -25,28 +25,41 @@ namespace nne
 			TestButton->setName("TEST_BUTTON");
 			TestButton->SetCaption("TEST BUTTON");
 			TestButton->connectSignal(std::bind(&TGuiTestMenu::onTestButtonClick, this, std::placeholders::_1), tevent::_OnMouseClick);
-			this->addWidget(TestButton);
+			addWidget(TestButton);
 
 			// Create a Static Label
 			tgui::TGuiStaticText::UniquePtr TextStatic = std::make_unique<tgui::TGuiStaticText>();
 			TextStatic->setPosition({ 50.f, 100.f });
 			TextStatic->setName("STATIC_TEXT");
 			TextStatic->SetCaption("STATIC TEXT");
-			this->addWidget(TextStatic);
+			addWidget(TextStatic);
+
+			// Create a Static Label
+			tgui::TGuiStaticText::UniquePtr TextStatic2 = std::make_unique<tgui::TGuiStaticText>();
+			TextStatic2->setPosition({ 600.f, 50.f });
+			TextStatic2->setName("STATIC_TEXT_2");
+			TextStatic2->SetCaption("STATIC TEXT 2\nSTATIC TEXT 3");
+			TextStatic2->getComponentAsPtr<TTextComponent>()->setOutlineColor(sf::Color::White);
+			TextStatic2->getComponentAsPtr<TTextComponent>()->setOutlineThickness(2.f);
+			TextStatic2->getComponentAsPtr<TTextComponent>()->setStyle(TTextComponent::TStyle::StrikeThrough | TTextComponent::TStyle::Underlined | TTextComponent::TStyle::Bold | TTextComponent::TStyle::Italic);
+			TextStatic2->getComponentAsPtr<TTextComponent>()->setCharacterFillColor(sf::Color::Red, 1, 3);
+			TextStatic2->getComponentAsPtr<TTextComponent>()->setCharacterOutlineColor(sf::Color::Blue, 4);
+			addWidget(TextStatic2);
 
 			// Create a simple image
 			tgui::TGuiImage::UniquePtr TestImage = std::make_unique<tgui::TGuiImage>();
+			TestImage->setName("TEST_IMAGE");
 			TestImage->setPosition({ 50.f, 150.f });
 			TestImage->SetImage(CacheManager.getResource<sf::Texture>("test_image"));
 			TestImage->disableInput();
-			this->addWidget(TestImage);
+			addWidget(TestImage);
 
 			// Create a container class that contains some widget
 			tgui::TGuiPanel::UniquePtr TestPanel = std::make_unique<tgui::TGuiPanel>();
+			TestPanel->setName("TEST_PANEL");
 			TestPanel->setPosition({ 400.f, 50.f });
 			TestPanel->disableInput();
-			this->addWidget(TestPanel);
-
+			addWidget(TestPanel);
 		}
 
 		void TGuiTestMenu::onTestButtonClick(const sf::Event::MouseButtonEvent& Button)

@@ -24,8 +24,8 @@ namespace nne
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/test_Image.png"), "test_image"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
 
-		mSceneManager.addScene(std::unique_ptr<IScene>(new TMainMenuScene()), "main_scene");		
-		mSceneManager.addScene(std::unique_ptr<IScene>(new TNewGameScene()), "new_game_scene");
+		//mSceneManager.addScene(std::unique_ptr<IScene>(new TMainMenuScene()), "main_scene");		
+		//mSceneManager.addScene(std::unique_ptr<IScene>(new TNewGameScene()), "new_game_scene");
 		mSceneManager.addScene(std::unique_ptr<IScene>(new TGuiTestScene()), "gui_test_scene");
 		mSceneManager.initScenes();
 

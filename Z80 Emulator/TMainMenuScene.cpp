@@ -13,7 +13,7 @@ namespace nne
 		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TMainMenu));
 
 		// Init all the menus
-		mAppGui.initMenus(*mRenderSurface, *mParent);
+		mAppGui.initMenus(*mParent);
 	}
 
 	nne::IScene::ID TMainMenuScene::eventLoop()

@@ -40,7 +40,7 @@ namespace nne
 
 			void addMenu(IScreenView::UniquePtr& Menu);
 
-			void initMenus(sf::RenderWindow& RenderWindow, TSceneManager& SceneManager);
+			void initMenus(TSceneManager& SceneManager);
 
 			void changeMenu(std::size_t NextMenu);
 

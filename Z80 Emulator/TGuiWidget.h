@@ -44,6 +44,8 @@ namespace nne
 			
 			TGuiWidget();
 			TGuiWidget(const std::string& WidgetName);
+			TGuiWidget(const TGuiWidget& Copy);
+			TGuiWidget(TGuiWidget&& Move);
 			virtual ~TGuiWidget();
 
 			virtual void init();

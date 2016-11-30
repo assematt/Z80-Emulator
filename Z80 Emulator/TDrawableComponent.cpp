@@ -1,4 +1,5 @@
 #include "TDrawableComponent.h"
+#include "TTextComponent.h"
 
 namespace nne
 {
@@ -143,17 +144,21 @@ namespace nne
 		// Get the sprite transformation matrix
 		States.transform *= getTransform();
 
-		// Set the sprite texture (if we have one)
-		if (mExternalTexture)
-		{
-			States.texture = mExternalTexture;
-		}
-		else if (mTexture)
+		if (mTexture)
 		{
 			States.texture = mTexture.get();
-		}			
+		}
 
+		// Draw the basic drawable object
 		Target.draw(*mVertexArray, States);
+		
+		// If this entity has a Text component draws it on top 
+		if (mParent->hasComponent<TTextComponent>())
+		{
+			States.texture = mParent->getComponentAsPtr<TTextComponent>()->getTexture();
+
+			Target.draw(mParent->getComponentAsPtr<TTextComponent>()->getVertexArray(), States);
+		}
 	}
 
 }

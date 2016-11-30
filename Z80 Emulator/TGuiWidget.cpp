@@ -26,6 +26,30 @@ namespace nne
 		{
 		}
 
+		TGuiWidget::TGuiWidget(const TGuiWidget& Copy) :
+			mVisible(Copy.mVisible),
+			mAcceptInput(Copy.mAcceptInput),
+			mZIndex(Copy.mZIndex),
+			mParentWidget(Copy.mParentWidget),
+			mName("Widget" + std::to_string(getEntityID())),
+			mSize(Copy.mSize),
+			mPosition(Copy.mPosition),
+			mSignals(Copy.mSignals)
+		{
+		}
+
+		TGuiWidget::TGuiWidget(TGuiWidget&& Move) :
+			mVisible(std::move(Move.mVisible)),
+			mAcceptInput(std::move(Move.mAcceptInput)),
+			mZIndex(std::move(Move.mZIndex)),
+			mParentWidget(std::move(Move.mParentWidget)),
+			mName(std::move(Move.mName)),
+			mSize(std::move(Move.mSize)),
+			mPosition(std::move(Move.mPosition)),
+			mSignals(std::move(Move.mSignals))
+		{
+		}
+
 		TGuiWidget::~TGuiWidget()
 		{
 

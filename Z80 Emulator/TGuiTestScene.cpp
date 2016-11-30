@@ -1,4 +1,7 @@
 #include "TGuiTestScene.h"
+
+#include <SFML/OpenGL.hpp>
+
 #include "TGuiTestMenu.h"
 
 namespace nne
@@ -13,7 +16,7 @@ namespace nne
 		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TGuiTestMenu));
 
 		// Init all the menus
-		mAppGui.initMenus(*mRenderSurface, *mParent);
+		mAppGui.initMenus(*mParent);
 	}
 
 	nne::IScene::ID TGuiTestScene::eventLoop()
@@ -27,6 +30,12 @@ namespace nne
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
 				mRenderSurface->close();
+
+			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.code == sf::Keyboard::W)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.code == sf::Keyboard::F)
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		return IScene::Same;
@@ -45,7 +54,7 @@ namespace nne
 	void TGuiTestScene::draw()
 	{
 		// Clear the back buffered window
-		mRenderSurface->clear();
+		mRenderSurface->clear();		
 
 		// Render the GUI
 		mAppGui.draw();

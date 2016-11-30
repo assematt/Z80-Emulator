@@ -18,7 +18,6 @@ namespace nne
 			initComponents();
 
 			getComponentAsPtr<TTextComponent>()->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
-			getComponentAsPtr<TTextComponent>()->setString(getName());
 			getComponentAsPtr<TTextComponent>()->setFillColor({170, 170, 170});
 			disableInput();
 		}

@@ -10,9 +10,8 @@ namespace nne
 		{
 		}
 
-		void TGuiManager::initMenus(sf::RenderWindow& RenderWindow, TSceneManager& SceneManager)
+		void TGuiManager::initMenus(TSceneManager& SceneManager)
 		{
-			mRenderWindow = &RenderWindow;
 			mSceneManager = &SceneManager;
 
 			for (auto& Screen : mScreens)

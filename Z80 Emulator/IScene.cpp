@@ -5,7 +5,7 @@ namespace nne
 	IScene::IScene() :
 		mID(0),
 		mParent(nullptr),
-		mRenderSurface(nullptr)
+		mRenderWindow(nullptr)
 	{
 	}
 

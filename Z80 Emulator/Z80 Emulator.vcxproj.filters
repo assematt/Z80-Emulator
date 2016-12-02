@@ -85,6 +85,12 @@
     <Filter Include="Source Files\src\scenes\list">
       <UniqueIdentifier>{61489c7b-4a24-41e5-b769-75280d2d39ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\gui\base">
+      <UniqueIdentifier>{a0dcca83-b5c7-4975-bdae-0fbe999019e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\gui\base">
+      <UniqueIdentifier>{41999430-d98c-4c7f-a1f2-d45d2791c367}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -129,9 +135,6 @@
     <ClCompile Include="IComponent.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="TGuiWidget.cpp">
-      <Filter>Source Files\src\gui</Filter>
-    </ClCompile>
     <ClCompile Include="IScreenView.cpp">
       <Filter>Source Files\src\gui</Filter>
     </ClCompile>
@@ -144,14 +147,8 @@
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="TGuiButton.cpp">
-      <Filter>Source Files\src\gui\widgets</Filter>
-    </ClCompile>
     <ClCompile Include="TNewGameMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
-    </ClCompile>
-    <ClCompile Include="TGuiImage.cpp">
-      <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
     <ClCompile Include="TConductiveTracks.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
@@ -195,17 +192,29 @@
     <ClCompile Include="TGuiTestMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TGuiStaticText.cpp">
-      <Filter>Source Files\src\gui\widgets</Filter>
-    </ClCompile>
-    <ClCompile Include="TWidgetsVector.cpp">
-      <Filter>Source Files\src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="TGuiPanel.cpp">
-      <Filter>Source Files\src\gui\widgets</Filter>
-    </ClCompile>
     <ClCompile Include="TWidgetState.cpp">
       <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TWidgetsContainer.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TButton.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TImage.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TStaticText.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TBasePanel.cpp">
+      <Filter>Source Files\src\gui\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TWidget.cpp">
+      <Filter>Source Files\src\gui\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TPanel.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -241,9 +250,6 @@
     </ClInclude>
     <ClInclude Include="TMultiplexerComponent.h">
       <Filter>Header Files\include\components</Filter>
-    </ClInclude>
-    <ClInclude Include="TGuiWidget.h">
-      <Filter>Header Files\include\gui</Filter>
     </ClInclude>
     <ClInclude Include="TAlu.h">
       <Filter>Header Files\include</Filter>
@@ -293,9 +299,6 @@
     <ClInclude Include="TFactory.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiButton.h">
-      <Filter>Header Files\include\gui\widgets</Filter>
-    </ClInclude>
     <ClInclude Include="TNewGameMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
@@ -322,9 +325,6 @@
     </ClInclude>
     <ClInclude Include="TLoaders.h">
       <Filter>Header Files\include\resources</Filter>
-    </ClInclude>
-    <ClInclude Include="TGuiImage.h">
-      <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
     <ClInclude Include="TDrawableComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
@@ -365,17 +365,32 @@
     <ClInclude Include="TGuiTestMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiStaticText.h">
-      <Filter>Header Files\include\gui\widgets</Filter>
-    </ClInclude>
-    <ClInclude Include="TWidgetsVector.h">
-      <Filter>Header Files\include\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="TGuiPanel.h">
-      <Filter>Header Files\include\gui\widgets</Filter>
-    </ClInclude>
     <ClInclude Include="TWidgetState.h">
       <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TWidgetsContainer.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TButton.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TImage.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TStaticText.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TWidget.h">
+      <Filter>Header Files\include\gui\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TBasePanel.h">
+      <Filter>Header Files\include\gui\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TPanel.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TRenderSurface.h">
+      <Filter>Header Files\include\graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,17 +1,17 @@
-#include "TGuiStaticText.h"
-#include "TGuiWidget.h"
+#include "TStaticText.h"
+#include "TWidget.h"
 
 namespace nne
 {
 	namespace tgui
 	{
 
-		TGuiStaticText::TGuiStaticText()
+		TStaticText::TStaticText()
 		{
 			init();
 		}
 
-		void TGuiStaticText::init()
+		void TStaticText::init()
 		{
 			addComponent<TDrawableComponent>();
 			addComponent<TTextComponent>();
@@ -22,17 +22,27 @@ namespace nne
 			disableInput();
 		}
 
-		void TGuiStaticText::SetCaption(const std::string& WidgetName)
+		void TStaticText::SetCaption(const std::string& WidgetName)
 		{
 			getComponentAsPtr<TTextComponent>()->setString(WidgetName);
 		}
 
-		const std::string& TGuiStaticText::GetCaption() const
+		const std::string& TStaticText::GetCaption() const
 		{
 			return getComponentAsPtr<TTextComponent>()->getString();
 		}
 
-		void TGuiStaticText::draw(sf::RenderTarget& target, sf::RenderStates states) const
+		void TStaticText::setCharacterSize(const std::size_t& CharacterSize)
+		{
+			getComponentAsPtr<TTextComponent>()->setCharacterSize(CharacterSize);
+		}
+
+		const std::size_t& TStaticText::getCharacterSize()
+		{
+			return getComponentAsPtr<TTextComponent>()->getCharacterSize();
+		}
+
+		void TStaticText::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
 			target.draw(*getComponentAsPtr<TDrawableComponent>(), states);
 		}

@@ -1,19 +1,22 @@
 #pragma once
 
-#include "TGuiWidget.h"
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Texture.hpp>
+
+#include "TWidget.h"
 #include "IComponent.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		class TGuiImage : public TGuiWidget
+		class TImage : public TWidget
 		{
 		public:
-			TGuiImage();
+			TImage();
 
-			using UniquePtr = std::unique_ptr<TGuiImage>;
-			using SharedPtr = std::shared_ptr<TGuiImage>;
+			using UniquePtr = std::unique_ptr<TImage>;
+			using SharedPtr = std::shared_ptr<TImage>;
 
 			/// Init function
 			void init();

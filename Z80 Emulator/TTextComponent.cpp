@@ -295,8 +295,8 @@ namespace nne
 		return mFont;
 	}
 
-	std::size_t TTextComponent::getCharacterSize() const
-	{
+	const std::size_t& TTextComponent::getCharacterSize() const
+{
 		return mCharacterSize;
 	}
 

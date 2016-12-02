@@ -6,8 +6,8 @@
 #include <future>
 #include <vector>
 
-#include "TGuiWidget.h"
-#include "TWidgetsVector.h"
+#include "TWidget.h"
+#include "TWidgetsContainer.h"
 
 namespace nne
 {
@@ -15,7 +15,7 @@ namespace nne
 	{
 		class TGuiManager;
 
-		class IScreenView : public TWidgetsVector
+		class IScreenView : public TWidgetsContainer
 		{
 		public:
 			using UniquePtr = std::unique_ptr<IScreenView>;
@@ -32,10 +32,10 @@ namespace nne
 			void handleEvent(const sf::Event& Event);
 
 			/// updates every widget in the container
-			void update(const sf::Time& ElapsedTime);
+			virtual void update(const sf::Time& ElapsedTime);
 
 			/// refreshes every widget in the container
-			void refresh(const sf::Time& ElapsedTime);
+			virtual void refresh(const sf::Time& ElapsedTime);
 
 			/// draw all the widgets in the container
 			void draw();

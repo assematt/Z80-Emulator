@@ -1,8 +1,8 @@
 #pragma once
 
 #include "IScreenView.h"
-#include "TGuiButton.h"
-#include "TGuiImage.h"
+#include "TButton.h"
+#include "TImage.h"
 #include "TCacheManager.h"
 
 namespace nne

@@ -1,5 +1,6 @@
 #include "IScreenView.h"
 #include "TGuiManager.h"
+#include "TDrawableComponent.h"
 
 namespace nne
 {
@@ -27,7 +28,7 @@ namespace nne
 					continue;
 
 				// Check the mouse events only if the mouse is over a widget
-				if (checkMouseIsInWidget(Widget->getGlobalBounds(), { Event.mouseButton.x, Event.mouseButton.y }))
+				if (checkMouseIsInWidget(Widget->getGlobalBounds(), sf::Mouse::getPosition(mParentManager->getRenderingWindow())))
 				{
 					
 					/*

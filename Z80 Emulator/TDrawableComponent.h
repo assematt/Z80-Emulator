@@ -25,9 +25,12 @@ namespace nne
 		void refresh(const sf::Time& ElapsedTime) override {}
 		
 		/// Function to set/get the sprite texture
-		void setTexture(const sf::Texture& Texture);
-		void setTexture(const sf::Texture* Texture);
+		void setTexture(const sf::Texture& Texture, bool UpdateBounds = true);
 		const sf::Texture& getTexture() const;
+
+		/// Function to set/get the sprite texture rect
+		void setTextureRect(const sf::IntRect& rectangle);
+		const sf::IntRect& getTextureRect() const;
 
 		/// Functio to set/get the sprite color
 		void setColor(const sf::Color& Color);
@@ -63,7 +66,6 @@ namespace nne
 		sf::FloatRect computeComplexLocalBound();
 				
 	private:
-		const sf::Texture*					mExternalTexture;
 		std::shared_ptr<sf::Texture>		mTexture;
 		std::shared_ptr<sf::VertexArray>	mVertexArray;
 	};

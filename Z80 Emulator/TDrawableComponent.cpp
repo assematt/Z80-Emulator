@@ -1,11 +1,11 @@
 #include "TDrawableComponent.h"
 #include "TTextComponent.h"
+#include "TLogicBoardComponent.h"
 
 namespace nne
 {
 
-	TDrawableComponent::TDrawableComponent() :
-		mExternalTexture(nullptr)
+	TDrawableComponent::TDrawableComponent()
 	{
 	}
 
@@ -15,21 +15,18 @@ namespace nne
 		mTexture = std::make_shared<sf::Texture>();
 	}
 
-	void TDrawableComponent::setTexture(const sf::Texture& Texture)
+	void TDrawableComponent::setTexture(const sf::Texture& Texture, bool UpdateBounds /*= true*/)
 	{
 		*mTexture = Texture;
 
-		updateSpriteBounds(Texture.getSize());
+		if (UpdateBounds)
+		{
+			updateSpriteBounds(Texture.getSize());
 
-		updateTextureBounds(sf::IntRect({ 0, 0 }, static_cast<sf::Vector2i>(Texture.getSize())));
+			updateTextureBounds(sf::IntRect({ 0, 0 }, static_cast<sf::Vector2i>(Texture.getSize())));
+		}		
 	}
-
-	void TDrawableComponent::setTexture(const sf::Texture* Texture)
-	{
-		//mTexture.reset(const_cast<sf::Texture*>(Texture));
-		mExternalTexture = Texture;
-	}
-
+	
 	void TDrawableComponent::setOpacity(sf::Uint8 Opacity)
 	{
 		auto& VertexArray = *mVertexArray;
@@ -43,6 +40,16 @@ namespace nne
 	const sf::Texture& TDrawableComponent::getTexture() const
 	{
 		return *mTexture;
+	}
+
+	void TDrawableComponent::setTextureRect(const sf::IntRect& rectangle)
+	{
+		updateTextureBounds(rectangle);
+	}
+
+	const sf::IntRect& TDrawableComponent::getTextureRect() const
+	{
+		return sf::IntRect();
 	}
 
 	void TDrawableComponent::setColor(const sf::Color& Color)
@@ -71,7 +78,7 @@ namespace nne
 	}
 
 	sf::Vector2u TDrawableComponent::getSize()
-{
+	{
 		if (mVertexArray->getVertexCount() == 4)
 			return static_cast<sf::Vector2u>((*mVertexArray)[3].position);
 
@@ -125,7 +132,7 @@ namespace nne
 	}
 
 	sf::FloatRect TDrawableComponent::computeComplexLocalBound()
-{
+	{
 		float Width = 0.f, Height = 0.f;
 
 		for (std::size_t Index = 0; Index < mVertexArray->getVertexCount(); ++Index)
@@ -143,7 +150,7 @@ namespace nne
 	{
 		// Get the sprite transformation matrix
 		States.transform *= getTransform();
-
+		
 		if (mTexture)
 		{
 			States.texture = mTexture.get();

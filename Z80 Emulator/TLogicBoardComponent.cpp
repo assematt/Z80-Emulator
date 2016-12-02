@@ -1,5 +1,7 @@
 #include "TLogicBoardComponent.h"
 #include "TSceneManager.h"
+#include "TCacheManager.h"
+#include <SFML/Graphics.hpp>
 
 namespace nne
 {
@@ -110,20 +112,21 @@ namespace nne
 
 	void TLogicBoardComponent::init()
 	{
-		// Copy the pointer to the drawable component
-// 		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
-// 
-// 		// Get a ref to the vertex array
-// 		auto& VertexArray = mDrawableComponent->getVertexArray();
-// 
-// 		// Get a ref to the window size
-// 		auto& WindowSize = static_cast<sf::Vector2f>(mParent->getSceneManager().getRenderWindow().getSize());
-// 
-// 		VertexArray.resize(4);
-// 		VertexArray[0] = sf::Vertex({ 0.f, 0.f }, sf::Color::Blue);
-// 		VertexArray[1] = sf::Vertex({ WindowSize.x, 0.f }, sf::Color::Blue);
-// 		VertexArray[2] = sf::Vertex({ WindowSize.x, WindowSize.y }, sf::Color::Blue);
-// 		VertexArray[3] = sf::Vertex({ 0.f, WindowSize.y }, sf::Color::Blue);
+		/*// Get a ref to the vertex array
+		auto& VertexArray = mParent->getComponentAsPtr<TDrawableComponent>()->getVertexArray();
+
+		// Set the size and color of the logic board
+		auto LogicBoardSize = static_cast<sf::Vector2f>(mParent->getSceneManager().getRenderWindow().getSize()) - sf::Vector2f({ 340.f, 90.f });
+		sf::Color LogicBoardColor = { 17, 17, 17 };
+
+		// Get a ref to the texture to use
+		auto& GridPattern = TCacheManager::getInstance().getResource<sf::Texture>("grid_pattern");
+		GridPattern.setRepeated(true);
+
+		// Set the grid
+		mParent->getComponentAsPtr<TDrawableComponent>()->setTexture(GridPattern);
+		mParent->getComponentAsPtr<TDrawableComponent>()->setSize(static_cast<sf::Vector2u>(LogicBoardSize));
+		mParent->getComponentAsPtr<TDrawableComponent>()->setTextureRect(sf::IntRect(5, 5, LogicBoardSize.x, LogicBoardSize.y));*/
 	}
 
 }

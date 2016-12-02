@@ -1,7 +1,6 @@
 #pragma once
 
-#include "TGuiWidget.h"
-#include "TWidgetState.h"
+#include "TWidget.h"
 #include "IComponent.h"
 #include "TDrawableComponent.h"
 #include "TTextComponent.h"
@@ -11,21 +10,25 @@ namespace nne
 {
 	namespace tgui
 	{
-		class TGuiButton : public TGuiWidget
+		class TStaticText : public TWidget
 		{
 		public:
-			TGuiButton();
+			TStaticText();
 
-			using UniquePtr = std::unique_ptr<TGuiButton>;
-			using SharedPtr = std::shared_ptr<TGuiButton>;
+			using UniquePtr = std::unique_ptr<TStaticText>;
+			using SharedPtr = std::shared_ptr<TStaticText>;
 
 			/// Init function
 			void init();
-			
+
 			/// Functions to change the widget property
 			void SetCaption(const std::string& WidgetName);
 			const std::string& GetCaption() const;
-			
+
+			/// Set character size
+			void setCharacterSize(const std::size_t& CharacterSize);
+			const std::size_t& getCharacterSize();
+
 		private:
 			void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 		};

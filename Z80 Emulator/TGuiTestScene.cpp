@@ -10,7 +10,7 @@ namespace nne
 	void TGuiTestScene::init()
 	{
 		// First setup the GUI
-		mAppGui.setup(*mRenderSurface);
+		mAppGui.setup(*mRenderWindow);
 
 		// Create a main menu
 		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TGuiTestMenu));
@@ -21,15 +21,15 @@ namespace nne
 
 	nne::IScene::ID TGuiTestScene::eventLoop()
 	{
-		while (mRenderSurface->pollEvent(mAppEvent))
+		while (mRenderWindow->pollEvent(mAppEvent))
 		{
 			mAppGui.processEvents(mAppEvent);
 
 			if (mAppEvent.type == sf::Event::Closed)
-				mRenderSurface->close();
+				mRenderWindow->close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
-				mRenderSurface->close();
+				mRenderWindow->close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.code == sf::Keyboard::W)
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -54,13 +54,13 @@ namespace nne
 	void TGuiTestScene::draw()
 	{
 		// Clear the back buffered window
-		mRenderSurface->clear();		
+		mRenderWindow->clear();		
 
 		// Render the GUI
 		mAppGui.draw();
 
 		// Display the back buffered window
-		mRenderSurface->display();
+		mRenderWindow->display();
 	}
 
 }

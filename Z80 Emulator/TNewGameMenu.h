@@ -7,12 +7,15 @@ namespace nne
 {
 	namespace tgui
 	{
-		class TNewGameMenu : public nne::tgui::IScreenView
+		class TNewGameMenu : public IScreenView
 		{
 		public:
 			virtual void init();
 
 			void handleEvent(sf::Event& Event);
+
+
+			virtual void refresh(const sf::Time& ElapsedTime) override;
 
 		};
 	}

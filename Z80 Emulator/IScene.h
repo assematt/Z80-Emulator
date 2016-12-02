@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/System/Time.hpp>
 #include <limits>
@@ -42,7 +43,7 @@ namespace nne
 		ID					mID;
 		sf::Event			mAppEvent;
 		TSceneManager*		mParent;
-		sf::RenderWindow*	mRenderSurface;
+		sf::RenderWindow*	mRenderWindow;
 
 		friend class TSceneManager;
 	};

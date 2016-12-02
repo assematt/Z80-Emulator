@@ -1,8 +1,8 @@
 #include "TNewGameScene.h"
-#include "TMainMenu.h"
+#include "TNewGameMenu.h"
 #include "TLogicBoardComponent.h"
 
-#define ENABLE FALSE
+#define ENABLE TRUE
 
 namespace nne
 {
@@ -50,18 +50,24 @@ namespace nne
 
 		// Create the logic board who will contain all the chip and set some property
 		mLogicBoard = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>();
+		mGraphicEntity.getEntityByKey("LogicBoard")->getComponent<TDrawableComponent>().setPosition({ 320.f, 70.f });
 	
 		mLogicBoard->placeChip(Z80Chip.get());
 		mLogicBoard->placeChip(RamChip.get());
 		mLogicBoard->placeTrack(ConductiveRack.get());
 		mLogicBoard->setSelectedTrack(ConductiveRack->getComponentAsPtr<TConductiveTracks>());
+
+// 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", mParent);
+// 		mGraphicEntity.getEntityByKey("LogicBoard")->getComponent<TDrawableComponent>().setPosition({ 320.f, 70.f });
+// 		mGraphicEntity.initEntities();
+
 #endif // DISABLE == TRUE
 
 		// First setup the GUI
-		mAppGui.setup(*mRenderSurface);
+		mAppGui.setup(*mRenderWindow);
 
 		// Create a main menu
-		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TMainMenu));
+		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TNewGameMenu));
 
 		// Init all the menus
 		mAppGui.initMenus(*mParent);
@@ -69,13 +75,15 @@ namespace nne
 
 	nne::IScene::ID TNewGameScene::eventLoop()
 	{
-		while (mRenderSurface->pollEvent(mAppEvent))
+		while (mRenderWindow->pollEvent(mAppEvent))
 		{
+			mAppGui.processEvents(mAppEvent);
+
 			if (mAppEvent.type == sf::Event::Closed)
-				mRenderSurface->close();
+				mRenderWindow->close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
-				mRenderSurface->close();
+				mRenderWindow->close();
 
 			// See if we are trying to place a new track
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.code == sf::Keyboard::T)
@@ -123,6 +131,9 @@ namespace nne
 			}
 		}
 #endif // ENABLE == TRUE
+	
+		// Refresh the UI
+		mAppGui.refresh(ElapsedTime);
 	}
 
 	void TNewGameScene::update(sf::Time ElapsedTime)
@@ -132,20 +143,26 @@ namespace nne
 
 		mGraphicEntity.update(ElapsedTime);
 #endif // ENABLE == TRUE
+
+		// Update the UI
+		mAppGui.update(ElapsedTime);
 	}
 
 	void TNewGameScene::draw()
 	{
 		// Clear the back buffered window
-		mRenderSurface->clear();
+		mRenderWindow->clear({ 1, 47, 83 });
 
 		// Render all the entity in the the entity manager
 #ifdef ENABLE == TRUE
-		mGraphicEntity.draw(*mRenderSurface);
+		mGraphicEntity.draw(*mRenderWindow);
 #endif // ENABLE == TRUE
 
+		// Draw the ui
+		mAppGui.draw();
+
 		// Display the back buffered window
-		mRenderSurface->display();
+		mRenderWindow->display();
 	}
 
 	void TNewGameScene::addConductiveTrack()

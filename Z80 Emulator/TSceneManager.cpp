@@ -4,7 +4,7 @@ namespace nne
 {
 
 	TSceneManager::TSceneManager() :
-		mSelectedScene(0),
+		mSelectedScene(1),
 		mNextMenu(mSelectedScene)
 	{
 	}
@@ -18,7 +18,7 @@ namespace nne
 	{
 		Scene->mParent = this;
 		Scene->mID = nne::idgenerator::GenerateByString::getUniqueID(SceneKey);
-		Scene->mRenderSurface = mRenderWindow;
+		Scene->mRenderWindow = mRenderWindow;
 
 		mSceneVector.push_back(std::move(Scene));
 	}

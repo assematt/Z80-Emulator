@@ -82,7 +82,7 @@ namespace nne
 		const sf::Font* getFont() const;
 
 		/// Get the character size
-		std::size_t getCharacterSize() const;
+		const std::size_t& getCharacterSize() const;
 
 		/// Get the current style of component
 		sf::Uint32 getStyle() const;

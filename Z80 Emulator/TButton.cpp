@@ -1,16 +1,16 @@
-#include "TGuiButton.h"
+#include "TButton.h"
 
 namespace nne
 {
 	namespace tgui
 	{
 
-		TGuiButton::TGuiButton()
+		TButton::TButton()
 		{
 			init();
 		}
 
-		void TGuiButton::init()
+		void TButton::init()
 		{
 			addComponent<TDrawableComponent>();
 			addComponent<TTextComponent>();
@@ -20,17 +20,27 @@ namespace nne
 			getComponentAsPtr<TTextComponent>()->setString(getName());
 		}
 
-		void TGuiButton::SetCaption(const std::string& WidgetName)
+		void TButton::SetCaption(const std::string& WidgetName)
 		{
 			getComponentAsPtr<TTextComponent>()->setString(WidgetName);
 		}
 
-		const std::string& TGuiButton::GetCaption() const
+		const std::string& TButton::GetCaption() const
 		{
 			return getComponentAsPtr<TTextComponent>()->getString();
 		}
 
-		void TGuiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
+		void TButton::setCharacterSize(const std::size_t& CharacterSize)
+		{
+			getComponentAsPtr<TTextComponent>()->setCharacterSize(CharacterSize);
+		}
+
+		const std::size_t& TButton::getCharacterSize()
+		{
+			return getComponentAsPtr<TTextComponent>()->getCharacterSize();
+		}
+		
+		void TButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 		{
 			target.draw(*getComponentAsPtr<TDrawableComponent>(), states);
 		}

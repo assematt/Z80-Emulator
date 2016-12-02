@@ -1,19 +1,15 @@
 #pragma once
 
-#include "TGuiWidget.h"
-#include "IComponent.h"
-#include "TDrawableComponent.h"
-#include "TTextComponent.h"
-#include "TCacheManager.h"
+#include "TWidget.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		class TWidgetsVector : public sf::Transformable
+		class TWidgetsContainer
 		{
 		public:
-			TWidgetsVector();
+			TWidgetsContainer();
 			
 			/// Function to add a widget to the menu
 			template <class T>
@@ -24,55 +20,60 @@ namespace nne
 			/// Function to remove a widget
 			void removeWidget(std::size_t Index);
 
-			/// Function to retrieve a widget from the vector
-			const TGuiWidget::UniquePtr& getWidget(const std::size_t Index) const;
+			/// Function to retrieve a widget from the vector by Index
+			template <class T>
+			T* getWidget(const std::size_t Index) const;
+
+			/// Function to retrieve a widget from the vector by Name
+			template <class T>
+			T* getWidget(const std::string& WidgetName) const;
 
 			/// Get the last added widget
-			const TGuiWidget::UniquePtr& getLastAdded();
+			const TWidget::UniquePtr& getLastAdded();
 
 			/// Get the widget with the highest ZIndex value (that also correspond to the last widget in the vector)
-			const TGuiWidget::UniquePtr& getFrontWidget();
+			const TWidget::UniquePtr& getFrontWidget();
 
 			/// Get the widget with the lowest ZIndex value (that also correspond to the first widget in the vector)
-			const TGuiWidget::UniquePtr& getBackWidget();
+			const TWidget::UniquePtr& getBackWidget();
 
 			/// Helper function for c++11 for each use
-			std::vector<TGuiWidget::UniquePtr>::iterator begin();
-			std::vector<TGuiWidget::UniquePtr>::iterator end();
+			std::vector<TWidget::UniquePtr>::iterator begin();
+			std::vector<TWidget::UniquePtr>::iterator end();
 
 			/// Helper function for c++11 for each use as const iterator
-			std::vector<TGuiWidget::UniquePtr>::const_iterator cbegin();
-			std::vector<TGuiWidget::UniquePtr>::const_iterator cend();
+			std::vector<TWidget::UniquePtr>::const_iterator cbegin();
+			std::vector<TWidget::UniquePtr>::const_iterator cend();
 
 			/// Helper function for c++11 for each use as reverse iterator
-			std::vector<TGuiWidget::UniquePtr>::reverse_iterator rbegin();
-			std::vector<TGuiWidget::UniquePtr>::reverse_iterator rend();
+			std::vector<TWidget::UniquePtr>::reverse_iterator rbegin();
+			std::vector<TWidget::UniquePtr>::reverse_iterator rend();
 
 			/// Helper function for c++11 for each use as const reverse iterator
-			std::vector<TGuiWidget::UniquePtr>::const_reverse_iterator crbegin();
-			std::vector<TGuiWidget::UniquePtr>::const_reverse_iterator crend();
+			std::vector<TWidget::UniquePtr>::const_reverse_iterator crbegin();
+			std::vector<TWidget::UniquePtr>::const_reverse_iterator crend();
 
 			/// Subscript operator to access an widget by index
-			TGuiWidget::UniquePtr& operator[] (const int Index);
-			const TGuiWidget::UniquePtr& operator[] (const int Index) const;
+			TWidget::UniquePtr& operator[] (const int Index);
+			const TWidget::UniquePtr& operator[] (const int Index) const;
 			
 		private:
 			std::size_t							mLastAddedPosition;
 			sf::Vector2f						mContainerPos;
-			std::vector<TGuiWidget::UniquePtr>	mWidgetsContainer;
+			std::vector<TWidget::UniquePtr>		mWidgetsContainer;
 		};
 
 		template <typename... TArgs>
-		void nne::tgui::TWidgetsVector::addWidget(TArgs&&... mArgs)
+		void nne::tgui::TWidgetsContainer::addWidget(TArgs&&... mArgs)
 		{
 			// Creates a temp pointer that holds the value that we are gonna to insert in the array
-			TGuiWidget::UniquePtr TempPtr = std::make_unique<TGuiWidget>(std::forward<TArgs>(mArgs)...);
+			TWidget::UniquePtr TempPtr = std::make_unique<TWidget>(std::forward<TArgs>(mArgs)...);
 
 			addWidget(TempPtr);
 		}
 
 		template <class T>
-		void nne::tgui::TWidgetsVector::addWidget(T& Widget)
+		void nne::tgui::TWidgetsContainer::addWidget(T& Widget)
 		{
 			// If the manager is empty simply add the entity
 			if (mWidgetsContainer.empty())
@@ -111,5 +112,20 @@ namespace nne
 			mLastAddedPosition = InsertionPos;
 		}
 
+		template <class T>
+		T* TWidgetsContainer::getWidget(const std::size_t Index) const
+		{
+			return dynamic_cast<T*>(mWidgetsContainer[Index].get());
+		}
+
+		template <class T>
+		T* TWidgetsContainer::getWidget(const std::string& WidgetName) const
+		{
+			for (auto& Widget : mWidgetsContainer)
+				if (Widget->getName() == WidgetName)
+					return dynamic_cast<T*>(Widget.get());
+
+			return nullptr;
+		}
 	}
 }

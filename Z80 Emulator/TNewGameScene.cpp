@@ -1,6 +1,7 @@
 #include "TNewGameScene.h"
-#include "TNewGameMenu.h"
 #include "TLogicBoardComponent.h"
+#include "TNewGameMenu.h"
+#include "TStaticText.h"
 
 #define ENABLE TRUE
 
@@ -9,7 +10,7 @@ namespace nne
 
 	void TNewGameScene::init()
 	{
-#if ENABLE == TRUE
+		#if ENABLE == TRUE
 		// Create a Z80 and RAM entity
 		mLogicEntity.addEntity(TFactory::makeZ80(), "Z80");
 		mLogicEntity.addEntity(TFactory::makeRam(), "Ram");
@@ -57,27 +58,32 @@ namespace nne
 		mLogicBoard->placeTrack(ConductiveRack.get());
 		mLogicBoard->setSelectedTrack(ConductiveRack->getComponentAsPtr<TConductiveTracks>());
 
-// 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", mParent);
-// 		mGraphicEntity.getEntityByKey("LogicBoard")->getComponent<TDrawableComponent>().setPosition({ 320.f, 70.f });
-// 		mGraphicEntity.initEntities();
-
-#endif // DISABLE == TRUE
+		#endif // DISABLE == TRUE
 
 		// First setup the GUI
-		mAppGui.setup(*mRenderWindow);
+		//mAppGui.setup(nullptr);
 
 		// Create a main menu
-		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TNewGameMenu));
+// 		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TNewGameMenu));
+// 
+// 		// Init all the menus
+// 		mAppGui.initMenus(*mParent);
 
-		// Init all the menus
-		mAppGui.initMenus(*mParent);
+		mRenderSurface.create(mRenderWindow->getSize().x - 300u, mRenderWindow->getSize().y - 50u);
+		mRenderSurface.setPosition(300.f, 50.f);
+
+		mGuiManager.addWidget<tgui::TNewGameMenu>();
+		mGuiManager.getLastAdded();
+		std::dynamic_pointer_cast<tgui::TNewGameMenu>(mGuiManager.getLastAdded())->init(&mGuiManager);
 	}
 
 	nne::IScene::ID TNewGameScene::eventLoop()
 	{
 		while (mRenderWindow->pollEvent(mAppEvent))
 		{
-			mAppGui.processEvents(mAppEvent);
+			mGuiManager.processEvents(mAppEvent, *mRenderWindow);
+
+			updateDebugInfo();
 
 			if (mAppEvent.type == sf::Event::Closed)
 				mRenderWindow->close();
@@ -95,7 +101,7 @@ namespace nne
 
 	void TNewGameScene::refresh(sf::Time ElapsedTime)
 	{
-#if ENABLE == TRUE
+		#if ENABLE == TRUE
 		mLogicEntity.refresh(ElapsedTime);
 
 		mGraphicEntity.refresh(ElapsedTime);
@@ -130,38 +136,42 @@ namespace nne
 				}
 			}
 		}
-#endif // ENABLE == TRUE
+		#endif // ENABLE == TRUE
 	
 		// Refresh the UI
-		mAppGui.refresh(ElapsedTime);
+		//mAppGui.refresh(ElapsedTime);
 	}
 
 	void TNewGameScene::update(sf::Time ElapsedTime)
 	{
-#ifdef ENABLE == TRUE
+		#if ENABLE == TRUE
 		mLogicEntity.update(ElapsedTime);
 
 		mGraphicEntity.update(ElapsedTime);
-#endif // ENABLE == TRUE
+		#endif // ENABLE == TRUE
 
 		// Update the UI
-		mAppGui.update(ElapsedTime);
+		//mAppGui.update(ElapsedTime);
 	}
 
 	void TNewGameScene::draw()
 	{
-		// Clear the back buffered window
+		// Clear the render surface
 		mRenderWindow->clear({ 1, 47, 83 });
+		mRenderSurface.clear({ 0, 0, 0 });
 
-		// Render all the entity in the the entity manager
-#ifdef ENABLE == TRUE
-		mGraphicEntity.draw(*mRenderWindow);
-#endif // ENABLE == TRUE
+		// Renders the entity
+		for (auto& GraphicsEntity : mGraphicEntity)
+			mRenderSurface.draw(GraphicsEntity->getComponent<TDrawableComponent>());
 
-		// Draw the ui
-		mAppGui.draw();
+		// Renders the gui
+		for (auto& Widget : mGuiManager)
+			mRenderWindow->draw(*Widget);
 
-		// Display the back buffered window
+		// Apply the RenderSurface onto the rendering window
+		mRenderSurface.render(mRenderWindow);
+
+		// Display the window
 		mRenderWindow->display();
 	}
 
@@ -183,6 +193,23 @@ namespace nne
 		mLogicBoard->deselectTrack(true);
 		mLogicBoard->deselectChip(true);
 		mLogicBoard->setSelectedTrack(mTempTrack->getComponentAsPtr<TConductiveTracks>());
+	}
+
+	void TNewGameScene::updateDebugInfo()
+	{
+		auto XStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("XVALUE_TEXT");
+		auto YStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("YVALUE_TEXT");
+
+		auto& MousePos = sf::Mouse::getPosition(*mRenderWindow);
+		auto& RenderSurfacePos = static_cast<sf::Vector2i>(mRenderSurface.getPosition());
+
+		if (MousePos.x >= RenderSurfacePos.x && MousePos.y >= RenderSurfacePos.y)
+		{
+			XStaticText->setCaption("X:" + std::to_string(MousePos.x - RenderSurfacePos.x));
+			YStaticText->setCaption("Y:" + std::to_string(MousePos.y - RenderSurfacePos.y));
+		}
+
+		
 	}
 
 }

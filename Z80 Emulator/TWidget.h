@@ -1,119 +1,169 @@
 #pragma once
 
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/Window/Event.hpp>
-
-#include <functional>
-#include <array>
+#include <SFML/Graphics/Transformable.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <string>
 #include <memory>
-#include <windows.h>
 
-#include "TEntity.h"
-
+#include "IDGenerator.h"
+#include "TStateManager.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		namespace tevent
-		{
-			enum TEventTypes : sf::Uint8
-			{
-				_OnMouseClick,
-				_OnMouseDown,
-				_OnMouseUp,
-				_OnMouseEnter,
-				_OnMouseLeave,
-				_OnMouseMove,
+		class TGuiManager;
 
-				// 
-				TEventTypesSize
-			};
-
-			using BaseEvent		= std::function<void(const sf::Event::MouseButtonEvent&)>;
-			using EventID		= std::size_t;
-		}
-
-		class TBasePanel;
-
-		class TWidget : public nne::TEntity
+		// Base class for all the widgets
+		class TWidget: public sf::Drawable, public sf::Transformable, public TStateManager
 		{
 		public:
-			using UniquePtr = std::unique_ptr<TWidget>;
-			using SharedPtr = std::shared_ptr<TWidget>;
 
-			using ZIndex = std::size_t;
-			
+			enum class TReferencePoint : sf::Uint8
+			{
+				LEFT_TOP,
+				CENTER_TOP,
+				RIGHT_TOP,
+
+				LEFT_CENTER,
+				CENTER,
+				RIGHT_CENTER,
+
+				LEFT_BOTTOM,
+				CENTER_BOTTOM,
+				RIGHT_BOTTOM,
+			};
+
+			enum class TState : sf::Uint8
+			{
+				NORMAL,
+				HOVER,
+				SELECTED,
+				CLICKED,
+				DISABLED
+			};
+
+			/// Typedef for a shared_ptr or the widget
+			using Ptr = std::shared_ptr<TWidget>;
+
+			/// Typedef for the widget ID
+			using ID = std::size_t;
+
+			/// Widget constructor
 			TWidget();
+			TWidget(TGuiManager& GuiManager);
 			TWidget(const std::string& WidgetName);
+			TWidget(TGuiManager& GuiManager, TWidget& Parent);
+			TWidget(TGuiManager& GuiManager, const std::string& WidgetName);
+			TWidget(TGuiManager& GuiManager, TWidget& Parent, const std::string& WidgetName);
+
+			/// Copy constructor
 			TWidget(const TWidget& Copy);
+
+			/// Move constructor
 			TWidget(TWidget&& Move);
-			virtual ~TWidget();
 
-			virtual void init();
-
-			/// Function to set/get the widget parent
-			void setPanelParent(TBasePanel* WidgetParent);
-			const TBasePanel* getPanelParent() const;
+			/// Virtual destructor
+			virtual ~TWidget() = default;
 			
-			/// Functions to get/set the widget name
-			void setName(const std::string& WidgetName);
-			const std::string& getName() const;
+			/// Get the ID
+			const ID& getID() const;
 
-			/// Functions to get/set the widget size
-			virtual void setSize(const sf::Vector2u& WidgetSize);
-			virtual sf::Vector2u getSize();
+			/// Get the parent transform
+			const sf::Transform& getParentTransform() const;
 
-			/// Functions to get/set the widget position
-			virtual void setPosition(const sf::Vector2f& Position);
-			virtual const sf::Vector2f& getPosition() const;
+			/// Set/get the input enable
+			void enableInput(const bool& Enabled = true);
+			const bool& isEnabled() const;
 
-			/// Function to get/set the widget color
+			/// Function to set/get the sprite texture
+			void setTexture(const sf::Texture* Texture, bool UpdateBounds = true);
+			const sf::Texture* getTexture() const;
+
+			/// Function to set/get the sprite texture rect
+			void setTextureRect(const sf::IntRect& Rectangle);
+			const sf::IntRect& getTextureRect() const;
+
+			/// Function to set/get the sprite color
 			void setColor(const sf::Color& Color);
 			const sf::Color& getColor() const;
 
-			/// Functions to get/set the widget ZIndex 
-			void setZIndex(const ZIndex& WidgetZIndex = 0);
-			const ZIndex& getZIndex() const;
+			/// Function to set/get the sprite opacity
+			void setOpacity(const sf::Uint8& Opacity);
+			const sf::Uint8& getOpacity() const;
 
-			/// Functions to get/set the widget visibility
-			void setVisibility(bool Show = true);
-			bool isVisible();
+			void setZIndex(const std::size_t& ZIndex);
+			const std::size_t& getZIndex() const;
 
-			/// Functions to get/set the widget ability to accept input
-			void enableInput();
-			void disableInput();
-			bool isInputEnabled();
+			/// Set/Get widget name
+			void setName(const std::string& WidgetName);
+			const std::string& getName() const;
 
-			/// Connect a signal to the widget
-			void connectSignal(const tevent::BaseEvent& Function, const tevent::TEventTypes& SignalToConnect);
+			/// Set/Get widget parent
+			void setParent(const TWidget* WidgetParent);
+			const TWidget* getParent() const;
 
-			/// Raise a signal
-			void raiseSignal(const tevent::TEventTypes& SignalToConnect, const sf::Event::MouseButtonEvent& Button)
-			{
-				if (mSignals[SignalToConnect])
-					mSignals[SignalToConnect](Button);
-			}
+			/// Set/Get widget parent
+			void setManager(const TGuiManager& WidgetManager);
+			const TGuiManager& getManager() const;
 
-			/// Get the widget bound
-			sf::FloatRect getLocalBounds();
-			sf::FloatRect getGlobalBounds();
+			/// Set/Get the widget size
+			virtual void setSize(const sf::Vector2u& Size);
+			virtual sf::Vector2u getSize();
+
+			/// Get the position of a particular point of the widget without applying a transform
+			virtual sf::Vector2f getWidgetReferencePointPosition(const TReferencePoint& ReferencePoint);
+
+			/// Get the widget local bound
+			virtual sf::FloatRect getLocalBound();
+
+			/// Get the widget global bound
+			virtual sf::FloatRect getGlobalBound();
+
+			/// Copy the layout from another widget
+			virtual void copyLayout(const TWidget& WidgetLayout);
+
+			/// Return true if the current widget is selected or not
+			void setSelected(const bool& Select);
+			const bool& isSelected() const;
+
+			/// Set the ability for 
+			void setToggleable(const bool& Toggle);
+			const bool& isToggleable() const;
+
+			/// If the widget is 
+			const bool& IsHovered() const;
+
+		protected:
+			/// Draw this widget
+			virtual void draw(sf::RenderTarget& Target, sf::RenderStates States) const override;
 
 		private:
-			bool			mVisible;
-			bool			mAcceptInput;
-			ZIndex			mZIndex;
-			std::string		mName;
-			sf::Vector2u	mSize;
-			sf::Vector2f	mPosition;
-			TBasePanel*		mParentPanel;
-			std::size_t		mParentPanelPosition;
-			std::array<tevent::BaseEvent, tevent::TEventTypesSize> mSignals;
+			/// Update the visible texture bound
+			void updateTextureBounds(const sf::IntRect& TextureRect);
 
-			friend class	TBasePanel;
-		};			   		
+			/// Update the size of the sprite
+			void updateSpriteBounds(const sf::Vector2u& SpriteSize);
+
+		private:
+			ID					mID;
+			bool				mInputEnable;
+			bool				mIsSelected;
+			bool				mIsToggleable;
+			bool				mIsHovered;
+			TState				mState;
+			std::size_t			mZIndex;
+			sf::IntRect			mTextureRect;
+			std::string			mName;
+			const TWidget*		mParent;
+			sf::VertexArray		mVertices;
+			const sf::Texture*	mTexture;
+			const TGuiManager*	mGuiManager;
+
+			friend class TGuiManager;
+		};
 	}
-}					   	
-					   	
+}

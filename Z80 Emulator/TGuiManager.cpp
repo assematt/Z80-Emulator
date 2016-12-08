@@ -1,102 +1,253 @@
 #include "TGuiManager.h"
 
+#include <SFML/Window/Mouse.hpp>
+
 namespace nne
 {
 	namespace tgui
 	{
+
 		TGuiManager::TGuiManager() :
-			mCurrentViewIndex(0),
-			mRenderWindow(nullptr)
+			mLastAddedPosition(0)
 		{
 		}
 
-		void TGuiManager::initMenus(TSceneManager& SceneManager)
+		void TGuiManager::removeWidget(const TWidget::ID& WidgetID)
 		{
-			mSceneManager = &SceneManager;
+			auto WidgetToRemove = getWidgetPos(WidgetID);
 
-			for (auto& Screen : mScreens)
-				Screen->init();
+			mWidgetsContainer.erase(mWidgetsContainer.begin() + WidgetToRemove);
 		}
 
-		void TGuiManager::changeMenu(std::size_t NextMenu)
+		TWidget::Ptr TGuiManager::getWidget(const TWidget::ID& WidgetID) const
 		{
-			///  Keep in memory the last viewed screen
-			mPreviousViewIndex = mCurrentViewIndex;
+			for (auto& Widget : mWidgetsContainer)
+				if (Widget->getID() == WidgetID)
+					return Widget;
 
-			/// Set the new screen to display, if this screen doesn't exist goes back to the main menu
-			mCurrentViewIndex = mCurrentViewIndex == mScreens.size() ? 0 : NextMenu;		}
-
-		void TGuiManager::refresh(const sf::Time& ElapsedTime)
-		{
-			mScreens[mCurrentViewIndex]->refresh(ElapsedTime);
+			// If we got to this point return an empty pointer
+			return TWidget::Ptr();
 		}
 
-		void TGuiManager::update(const sf::Time& ElapsedTime)
+		TWidget::Ptr TGuiManager::getWidget(const std::string& WidgetName) const
 		{
-			mScreens[mCurrentViewIndex]->update(ElapsedTime);
+			for (auto& Widget : mWidgetsContainer)
+				if (Widget->getName() == WidgetName)
+					return Widget;
+
+			// If we got to this point return an empty pointer
+			return TWidget::Ptr();
 		}
 
-		void TGuiManager::draw()
+		std::size_t TGuiManager::getWidgetPos(const TWidget::ID& WidgetID) const
 		{
-			mScreens[mCurrentViewIndex]->draw();
+			std::size_t WidgetPos = 0;
+
+			while (mWidgetsContainer[WidgetPos]->getID() != WidgetID && ++WidgetPos < mWidgetsContainer.size());
+
+			return WidgetPos;
 		}
 
-		const sf::Vector2f TGuiManager::getReferencePointPosition(TReferencePoint RefPoint /*= TReferencePoint::CENTER*/)
+		std::size_t TGuiManager::getWidgetPos(const std::string& WidgetName) const
 		{
-			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(mRenderWindow->getSize());
+			std::size_t WidgetPos = 0;
 
-			switch (RefPoint)
+			while (mWidgetsContainer[WidgetPos]->getName() != WidgetName && ++WidgetPos < mWidgetsContainer.size());
+
+			return WidgetPos;
+		}
+
+		const TWidget::Ptr& TGuiManager::getLastAdded()
+		{
+			return mWidgetsContainer[mLastAddedPosition];
+		}
+
+		const TWidget::Ptr& TGuiManager::getFrontWidget()
+		{
+			return mWidgetsContainer.back();
+		}
+
+		const TWidget::Ptr& TGuiManager::getBackWidget()
+		{
+			return mWidgetsContainer.front();
+		}
+
+		std::vector<TWidget::Ptr>::iterator TGuiManager::begin()
+		{
+			return mWidgetsContainer.begin();
+		}
+
+		std::vector<TWidget::Ptr>::iterator TGuiManager::end()
+		{
+			return mWidgetsContainer.end();
+		}
+
+		std::vector<TWidget::Ptr>::const_iterator TGuiManager::cbegin()
+		{
+			return mWidgetsContainer.cbegin();
+		}
+
+		std::vector<TWidget::Ptr>::const_iterator TGuiManager::cend()
+		{
+			return mWidgetsContainer.cend();
+		}
+
+		std::vector<TWidget::Ptr>::reverse_iterator TGuiManager::rbegin()
+		{
+			return mWidgetsContainer.rbegin();
+		}
+
+		std::vector<TWidget::Ptr>::reverse_iterator TGuiManager::rend()
+		{
+			return mWidgetsContainer.rend();
+		}
+
+		std::vector<TWidget::Ptr>::const_reverse_iterator TGuiManager::crbegin()
+		{
+			return mWidgetsContainer.crbegin();
+		}
+
+		std::vector<TWidget::Ptr>::const_reverse_iterator TGuiManager::crend()
+		{
+			return mWidgetsContainer.crend();
+		}
+
+		TWidget::Ptr& TGuiManager::operator[](const int Index)
+		{
+			return mWidgetsContainer[Index];
+		}
+
+		const TWidget::Ptr& TGuiManager::operator[](const int Index) const
+		{
+			return mWidgetsContainer[Index];
+		}
+
+		void TGuiManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow)
+		{
+			// First reset the state of all the widgets
+// 			for (auto& Widget : mWidgetsContainer)
+// 				Widget->onStateNormal();
+
+			// Loop all the widget until we find an object to fire an event on
+			// We loop in revers order (since we want to check the widget with the highest ZIndex first)
+			bool EventFire = false;
+			for (auto& WidgetIterator = rbegin(); WidgetIterator != rend(); ++WidgetIterator)
 			{
-			case nne::tgui::TReferencePoint::LEFT_TOP:
-				return{ 0.f, 0.f };
-			case nne::tgui::TReferencePoint::CENTER_TOP:
-				return{ WindowSize.x / 2, 0.f };
-			case nne::tgui::TReferencePoint::RIGHT_TOP:
-				return{ WindowSize.x, 0.f };
+				// First get a ref to the shared_ptr<TWidget> inside the reverse iterator
+				auto& Widget = **WidgetIterator;
 
-			case nne::tgui::TReferencePoint::LEFT_CENTER:
-				return{ 0.f, WindowSize.y / 2 };
-			case nne::tgui::TReferencePoint::CENTER:
-				return{ WindowSize.x / 2, WindowSize.y / 2 };
-			case nne::tgui::TReferencePoint::RIGHT_CENTER:
-				return{ 0.f, WindowSize.y / 2 };
+				// If the widget doesn't allow input skip this loop cycle
+				if (!Widget.isEnabled())
+					continue;
 
-			case nne::tgui::TReferencePoint::LEFT_BOTTOM:
-				return{ 0.f, WindowSize.y };
-			case nne::tgui::TReferencePoint::CENTER_BOTTOM:
-				return{ WindowSize.x / 2, WindowSize.y };
-			case nne::tgui::TReferencePoint::RIGHT_BOTTOM:
-				return{ WindowSize.x, WindowSize.y };
+				// Get the bound of that object
+				auto& WidgetBound = Widget.getGlobalBound();
+
+				// Establish if the mouse it's above the widget
+				bool IsInsideWidget = WidgetBound.contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(EventWindow)));
+
+				// See if the widget is toggle able
+				const bool& IsToggleable = Widget.isToggleable();
+
+				// See if the widget is enabled
+				const bool& IsEnabled = Widget.isEnabled();
+
+				// See if the widget is selected
+				const bool& IsSelected = Widget.isSelected();
+
+				// See if the widget is being selected
+				const bool& IsHovered = Widget.IsHovered();
+
+// 				switch (Event.type)
+// 				{
+// 
+// 				case sf::Event::MouseMoved:
+// 				{
+// 					if (!IsInsideWidget && !IsHovered)
+// 					{
+// 						Widget.onStateNormal();
+// 					}
+// 					else
+// 					{
+// 						Widget.onStateHover();
+// 					}
+// 				} break;
+// 
+// 				case sf::Event::MouseButtonPressed:
+// 				{
+// 					// If we didn't clicked on the widget and the widget isn't toggleable once we click outside reset the state of the widget (goes back to normal)
+// 					if (!IsInsideWidget)
+// 					{
+// 						if (!IsToggleable)
+// 							Widget.onStateNormal();						
+// 					}
+// 					// If we clicked on the widget and the widget isn't toggleable once we click outside reset the state of the widget (goes back to normal)
+// 					else
+// 					{
+// 						Widget.setSelected(!IsSelected);
+// 
+// 						if (Widget.isSelected())
+// 							Widget.onStateSelected();
+// 						else
+// 							Widget.onStateClicked();
+// 					}
+// 				} break;
+// 				
+// 				}
+
+				/*// If we pressed the mouse
+				if (Event.type == sf::Event::MouseButtonPressed && IsInsideWidget)
+				{
+					Widget.onStateClicked();
+
+					EventFire = true;
+				}
+				else if (Event.type == sf::Event::MouseButtonReleased && IsInsideWidget)
+				{
+					Widget.onStateSelected();
+
+					EventFire = true;
+				}
+				else if (Event.type == sf::Event::MouseMoved && IsInsideWidget)
+				{
+					Widget.onStateHover();
+
+					EventFire = true;
+				}
+				else if (!Widget.isToggleable() && !Widget.isSelected())
+				{
+					Widget.onStateNormal();
+				}*/
+/*
+
+				// If the mouse is above the widget
+				if (WidgetBound.contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(EventWindow))))
+				{
+					if (Event.type == sf::Event::MouseButtonPressed)
+					{
+						Widget.onStateClicked();
+
+						EventFire = true;
+					}
+
+					if (Event.type == sf::Event::MouseButtonReleased)
+					{
+						Widget.onStateSelected();
+
+						EventFire = true;
+					}
+
+					if (Event.type == sf::Event::MouseMoved)
+					{
+						Widget.onStateHover();
+						
+						EventFire = true;
+					}
+				}
+*/
+
 			}
-		}
-
-		sf::RenderWindow& TGuiManager::getRenderingWindow() const
-		{
-			return *mRenderWindow;
-		}
-
-		nne::TSceneManager* TGuiManager::getSceneManager()
-		{
-			return mSceneManager;
-		}
-
-		void TGuiManager::setup(sf::RenderWindow& RenderTarget)
-		{
-			mRenderWindow = &RenderTarget;
-		}
-
-		void TGuiManager::processEvents(sf::Event& EventToProcess)
-		{
-			mScreens[mCurrentViewIndex]->handleEvent(EventToProcess);
-		}
-
-		void TGuiManager::addMenu(IScreenView::UniquePtr& Menu)
-		{
-			Menu->mParentManager = this;
-
-			mScreens.push_back(std::move(Menu));
 		}
 
 	}
 }
-

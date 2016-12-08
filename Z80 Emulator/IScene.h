@@ -7,6 +7,8 @@
 #include <limits>
 #include <memory>
 
+#include "TRenderSurface.h"
+
 namespace nne
 {
 	class TSceneManager;
@@ -16,8 +18,9 @@ namespace nne
 		class TGuiManager;
 	}
 
-	struct IScene
+	class IScene
 	{
+	public:
 		using ID = std::size_t;
 		using Ptr = std::unique_ptr<IScene>;
 
@@ -28,7 +31,11 @@ namespace nne
 
 		virtual void init() = 0;
 
-		ID& run(const sf::Time& ElapsedTime);
+		// Set/get the size of the scene (basically it's the size of the render window)
+		void setSize(const sf::Vector2u& Size);
+		const sf::Vector2u getSize() const;
+
+		ID& run(const sf::Time& ElapsedTimem);
 
 	protected:
 		virtual ID eventLoop() = 0;
@@ -42,7 +49,9 @@ namespace nne
 	protected:
 		ID					mID;
 		sf::Event			mAppEvent;
+		sf::Vector2u		mSize;
 		TSceneManager*		mParent;
+		TRenderSurface		mRenderSurface;
 		sf::RenderWindow*	mRenderWindow;
 
 		friend class TSceneManager;

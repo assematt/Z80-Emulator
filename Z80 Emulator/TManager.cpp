@@ -49,12 +49,6 @@ namespace nne
 		return getEntityByID(nne::idgenerator::GenerateByString::getUniqueID(EntityKey));
 	}
 
-	void TManager::draw(sf::RenderTarget& Target)
-	{
-		for (std::size_t Index = 0; Index < mAliveElement; ++Index)
-			Target.draw(*mEntityVector[Index]->getComponentAsPtr<TDrawableComponent>());
-	}
-
 	void TManager::initEntities()
 	{
 		while (mAliveElement < mEntityVector.size())
@@ -79,6 +73,16 @@ namespace nne
 			if (!mEntityVector[Index]->isAlive())
 				--mAliveElement;
 		}
+	}
+
+	TManager::EntityIterator TManager::begin()
+	{
+		return mEntityVector.begin();
+	}
+
+	TManager::EntityIterator TManager::end()
+	{
+		return mEntityVector.end();
 	}
 
 	const TEntity::EntityPtr& TManager::operator[](const std::size_t& Index) const

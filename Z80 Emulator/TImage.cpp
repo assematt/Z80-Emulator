@@ -1,44 +1,29 @@
 #include "TImage.h"
-#include "TDrawableComponent.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		tgui::TImage::TImage()
+
+		TImage::TImage()
 		{
-			init();
+
 		}
 
-		void tgui::TImage::init()
+		void TImage::setImage(const sf::Texture& Image)
 		{
-			addComponent<TDrawableComponent>();
-			initComponents();
+			TWidget::setTexture(&Image);
 		}
 
-		void tgui::TImage::SetImage(const sf::Texture& Image)
+		const sf::Texture& TImage::GetImage() const
 		{
-			getComponentAsPtr<TDrawableComponent>()->setTexture(Image);
+			return *TWidget::getTexture();
 		}
 
-		const sf::Texture& tgui::TImage::GetImage() const
+		void TImage::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 		{
-			return getComponentAsPtr<TDrawableComponent>()->getTexture();
+			TWidget::draw(Target, States);
 		}
 
-		void TImage::setSize(const sf::Vector2u& Size)
-		{
-			getComponentAsPtr<TDrawableComponent>()->setSize(Size);
-		}
-
-		sf::Vector2u TImage::getSize()
-		{
-			return getComponentAsPtr<TDrawableComponent>()->getSize();
-		}
-
-		void TImage::draw(sf::RenderTarget& target, sf::RenderStates states) const
-		{
-			target.draw(getComponent<TDrawableComponent>(), states);
-		}
 	}
 }

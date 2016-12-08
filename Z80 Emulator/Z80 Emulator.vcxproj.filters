@@ -46,12 +46,6 @@
     <Filter Include="Source Files\src\component_system">
       <UniqueIdentifier>{7367ff90-6380-4c5e-a945-f14a2b9a0aa5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\include\gui\menus">
-      <UniqueIdentifier>{fc759a67-5245-4c20-a903-d72b18b5b0de}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\gui\menus">
-      <UniqueIdentifier>{05f6e825-b514-4695-bc26-ebb39f331b49}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\include\graphics">
       <UniqueIdentifier>{27eb3769-0d89-4953-98ec-3e04955dcbf6}</UniqueIdentifier>
     </Filter>
@@ -63,12 +57,6 @@
     </Filter>
     <Filter Include="Source Files\src\graphics\components">
       <UniqueIdentifier>{5ba67813-76de-4065-9f60-64cd01438115}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\gui\widgets">
-      <UniqueIdentifier>{decce8d8-be4a-4582-b57d-5a852bf18650}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\gui\widgets">
-      <UniqueIdentifier>{c6932541-e8c3-4c22-ba69-288c3eab01b9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\include\resources">
       <UniqueIdentifier>{cce71831-d44e-41e7-a733-dbce0427e488}</UniqueIdentifier>
@@ -85,11 +73,23 @@
     <Filter Include="Source Files\src\scenes\list">
       <UniqueIdentifier>{61489c7b-4a24-41e5-b769-75280d2d39ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\include\gui\base">
-      <UniqueIdentifier>{a0dcca83-b5c7-4975-bdae-0fbe999019e3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\src\gui\base">
-      <UniqueIdentifier>{41999430-d98c-4c7f-a1f2-d45d2791c367}</UniqueIdentifier>
+      <UniqueIdentifier>{14897ae5-0bc1-49e3-a356-1eb70aefb6ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\gui\menus">
+      <UniqueIdentifier>{0f866aed-471c-4a09-aae0-55048f44fac6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\gui\widgets">
+      <UniqueIdentifier>{3d1dc27c-6ebf-4065-af01-5d1c90cdf90b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\gui\widgets">
+      <UniqueIdentifier>{a66ad2b7-e213-40a1-b5d4-94e72463a4e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\gui\menus">
+      <UniqueIdentifier>{da7b1c00-15aa-4a17-8bd9-df4afbceabf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\gui\base">
+      <UniqueIdentifier>{2ade1568-48a5-4b8b-9fa8-1efe023d65a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -135,20 +135,8 @@
     <ClCompile Include="IComponent.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="IScreenView.cpp">
-      <Filter>Source Files\src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="TGuiManager.cpp">
-      <Filter>Source Files\src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="TMainMenu.cpp">
-      <Filter>Source Files\src\gui\menus</Filter>
-    </ClCompile>
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
-    </ClCompile>
-    <ClCompile Include="TNewGameMenu.cpp">
-      <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
     <ClCompile Include="TConductiveTracks.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
@@ -186,34 +174,31 @@
     <ClCompile Include="TLogicBoardComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
-    <ClCompile Include="TGuiTestScene.cpp">
-      <Filter>Source Files\src\scenes\list</Filter>
+    <ClCompile Include="TRenderSurface.cpp">
+      <Filter>Source Files\src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="TGuiTestMenu.cpp">
+    <ClCompile Include="TGuiManager.cpp">
+      <Filter>Source Files\src\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="TWidget.cpp">
+      <Filter>Source Files\src\gui\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TMainMenu.cpp">
       <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
-    <ClCompile Include="TWidgetState.cpp">
-      <Filter>Source Files\src\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="TWidgetsContainer.cpp">
-      <Filter>Source Files\src\gui</Filter>
+    <ClCompile Include="TNewGameMenu.cpp">
+      <Filter>Source Files\src\gui\menus</Filter>
     </ClCompile>
     <ClCompile Include="TButton.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TContainer.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
     <ClCompile Include="TImage.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
     <ClCompile Include="TStaticText.cpp">
-      <Filter>Source Files\src\gui\widgets</Filter>
-    </ClCompile>
-    <ClCompile Include="TBasePanel.cpp">
-      <Filter>Source Files\src\gui\base</Filter>
-    </ClCompile>
-    <ClCompile Include="TWidget.cpp">
-      <Filter>Source Files\src\gui\base</Filter>
-    </ClCompile>
-    <ClCompile Include="TPanel.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
   </ItemGroup>
@@ -278,15 +263,6 @@
     <ClInclude Include="TManager.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiManager.h">
-      <Filter>Header Files\include\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="IScreenView.h">
-      <Filter>Header Files\include\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="TMainMenu.h">
-      <Filter>Header Files\include\gui\menus</Filter>
-    </ClInclude>
     <ClInclude Include="TRandom.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
@@ -298,9 +274,6 @@
     </ClInclude>
     <ClInclude Include="TFactory.h">
       <Filter>Header Files\include\internals</Filter>
-    </ClInclude>
-    <ClInclude Include="TNewGameMenu.h">
-      <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
     <ClInclude Include="TResource.h">
       <Filter>Header Files\include\resources</Filter>
@@ -359,19 +332,25 @@
     <ClInclude Include="IScene.h">
       <Filter>Header Files\include\scenes</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiTestScene.h">
-      <Filter>Header Files\include\scenes\list</Filter>
+    <ClInclude Include="TRenderSurface.h">
+      <Filter>Header Files\include\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="TGuiTestMenu.h">
+    <ClInclude Include="TGuiManager.h">
+      <Filter>Header Files\include\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="TWidget.h">
+      <Filter>Header Files\include\gui\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TMainMenu.h">
       <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
-    <ClInclude Include="TWidgetState.h">
-      <Filter>Header Files\include\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="TWidgetsContainer.h">
-      <Filter>Header Files\include\gui</Filter>
+    <ClInclude Include="TNewGameMenu.h">
+      <Filter>Header Files\include\gui\menus</Filter>
     </ClInclude>
     <ClInclude Include="TButton.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TContainer.h">
       <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
     <ClInclude Include="TImage.h">
@@ -380,17 +359,11 @@
     <ClInclude Include="TStaticText.h">
       <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
-    <ClInclude Include="TWidget.h">
+    <ClInclude Include="TStateManager.h">
       <Filter>Header Files\include\gui\base</Filter>
     </ClInclude>
-    <ClInclude Include="TBasePanel.h">
+    <ClInclude Include="IMenu.h">
       <Filter>Header Files\include\gui\base</Filter>
-    </ClInclude>
-    <ClInclude Include="TPanel.h">
-      <Filter>Header Files\include\gui\widgets</Filter>
-    </ClInclude>
-    <ClInclude Include="TRenderSurface.h">
-      <Filter>Header Files\include\graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

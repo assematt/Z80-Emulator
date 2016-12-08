@@ -6,21 +6,22 @@ namespace nne
 
 	void TMainMenuScene::init()
 	{
-		// First setup the GUI
-		mAppGui.setup(*mRenderWindow);
+// 		tgui::TMainMenu::Ptr Menu = std::make_shared<tgui::TMainMenu>();
+// 		Menu->setSize(mRenderWindow->getSize());
+// 		Menu->init(&mGuiManager);
+// 		mGuiManager.addWidget(std::move(Menu));
 
-		// Create a main menu
-		mAppGui.addMenu(std::unique_ptr<tgui::IScreenView>(new tgui::TMainMenu));
-
-		// Init all the menus
-		mAppGui.initMenus(*mParent);
+		mGuiManager.addWidget<tgui::TMainMenu>();
+		auto& Menu = mGuiManager.getLastAdded();
+		Menu->setSize(mRenderWindow->getSize());
+		std::dynamic_pointer_cast<tgui::TMainMenu>(Menu)->init(&mGuiManager);
 	}
 
 	nne::IScene::ID TMainMenuScene::eventLoop()
 	{
 		while (mRenderWindow->pollEvent(mAppEvent))
 		{
-			mAppGui.processEvents(mAppEvent);
+			mGuiManager.processEvents(mAppEvent, *mRenderWindow);
 
 			if (mAppEvent.type == sf::Event::Closed)
 				mRenderWindow->close();
@@ -34,12 +35,10 @@ namespace nne
 
 	void TMainMenuScene::refresh(sf::Time ElapsedTime)
 	{
-		mAppGui.refresh(ElapsedTime);
 	}
 
 	void TMainMenuScene::update(sf::Time ElapsedTime)
 	{
-		mAppGui.update(ElapsedTime);
 	}
 
 	void TMainMenuScene::draw()
@@ -47,8 +46,9 @@ namespace nne
 		// Clear the back buffered window
 		mRenderWindow->clear();
 
-		// Render the GUI
-		mAppGui.draw();
+		// Renders the Gui
+		for (auto& Widget : mGuiManager)
+			mRenderWindow->draw(*Widget);
 
 		// Display the back buffered window
 		mRenderWindow->display();

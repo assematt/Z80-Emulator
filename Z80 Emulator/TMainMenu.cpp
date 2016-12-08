@@ -1,89 +1,81 @@
 #include "TMainMenu.h"
+#include <SFML/Graphics/Texture.hpp>
+#include "TCacheManager.h"
 #include "TGuiManager.h"
-#include "TSceneManager.h"
+#include "TButton.h"
+#include "TImage.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		void TMainMenu::init()
-		{
-			// get a ref to the cache manager and the rendering window
-			auto& CacheManager = TCacheManager::getInstance();
-			auto& RenderingWindow = mParentManager->getRenderingWindow();
 
-			tgui::TImage::UniquePtr BackgroundColor = std::make_unique<tgui::TImage>();
+		void TMainMenu::init(TGuiManager* GuiManager)
+		{
+			TImage::Ptr BackgroundColor = std::make_shared<TImage>();
 			BackgroundColor->setName("BACKGROUND_COLOR");
-			BackgroundColor->setSize({RenderingWindow.getSize().x, RenderingWindow.getSize().y});
-			BackgroundColor->getComponentAsPtr<TDrawableComponent>()->setColor({ 0, 0, 170 });
-			BackgroundColor->setZIndex(0);
-			BackgroundColor->disableInput();
-			this->addWidget(BackgroundColor);
+			BackgroundColor->setSize({ 1600u, 900u });
+			BackgroundColor->setColor({ 0, 0, 170 });
+			BackgroundColor->enableInput(false);
 
-			tgui::TImage::UniquePtr MonitorEffect = std::make_unique<tgui::TImage>();
+			TImage::Ptr MonitorEffect = std::make_shared<TImage>();
 			MonitorEffect->setName("MONITOR_SHADOW");
-			MonitorEffect->SetImage(CacheManager.getResource<sf::Texture>("monitor_shadow"));
-			MonitorEffect->setZIndex(10);
-			MonitorEffect->setSize(RenderingWindow.getSize());
-			MonitorEffect->disableInput();
-			this->addWidget(MonitorEffect);
+			MonitorEffect->setImage(TCacheManager::getInstance().getResource<sf::Texture>("monitor_shadow"));
+			MonitorEffect->setSize({ 1600u, 900u });
+			MonitorEffect->enableInput(false);
 
-			tgui::TImage::UniquePtr MonitorFrame = std::make_unique<tgui::TImage>();
+			TImage::Ptr MonitorFrame = std::make_shared<TImage>();
 			MonitorFrame->setName("MONITOR_EFFECT");
-			MonitorFrame->SetImage(CacheManager.getResource<sf::Texture>("monitor_effect"));
-			MonitorFrame->setZIndex(9);
-			MonitorFrame->disableInput();
-			this->addWidget(MonitorFrame);
+			auto& Texture = TCacheManager::getInstance().getResource<sf::Texture>("monitor_effect_2");
+			Texture.setRepeated(true);
+			dynamic_cast<TWidget*>(MonitorFrame.get())->setTexture(&Texture);
+			dynamic_cast<TWidget*>(MonitorFrame.get())->setTextureRect({ 0, 0, 1600, 900 });
+			dynamic_cast<TWidget*>(MonitorFrame.get())->setOpacity(76);
+			MonitorFrame->enableInput(false);
+			MonitorFrame->setSize({ 1600u, 900u });
 
-			tgui::TButton::UniquePtr StoryMode = std::make_unique<tgui::TButton>();
-			StoryMode->setPosition(mParentManager->getReferencePointPosition());
-			StoryMode->setZIndex(3);
+			TButton::Ptr StoryMode = std::make_shared<TButton>();
 			StoryMode->setName("STORY_MODE");
-			StoryMode->SetCaption("STORY MODE");
-			StoryMode->connectSignal(std::bind(&TMainMenu::onNewGameButtonClick, this, std::placeholders::_1), tevent::_OnMouseClick);
-			this->addWidget(StoryMode);
+			StoryMode->setCaption("STORY MODE");
+			StoryMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) - sf::Vector2f(StoryMode->getSize().x / 2.f, 0.f));
+			//StoryMode->connectSignal(std::bind(&TMainMenu::onNewGameButtonClick, this, std::placeholders::_1), tevent::_OnMouseClick);
 
-			tgui::TButton::UniquePtr SandboxMode = std::make_unique<tgui::TButton>();
-			SandboxMode->setPosition(mParentManager->getReferencePointPosition() + sf::Vector2f(0.f, 50.f));
-			SandboxMode->setZIndex(3);
+			TButton::Ptr SandboxMode = std::make_shared<TButton>();
 			SandboxMode->setName("SANDBOX_MODE");
-			SandboxMode->SetCaption("SANDBOX MODE");
-			this->addWidget(SandboxMode);
+			SandboxMode->setCaption("SANDBOX MODE");
+			SandboxMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(SandboxMode->getSize().x / 2.f), 50.f));
 
-			tgui::TButton::UniquePtr ChallangeMode = std::make_unique<tgui::TButton>();
-			ChallangeMode->setPosition(mParentManager->getReferencePointPosition() + sf::Vector2f(0.f, 100.f));
-			ChallangeMode->setZIndex(3);
+			TButton::Ptr ChallangeMode = std::make_shared<TButton>();
 			ChallangeMode->setName("CHALLANGE_MODE");
-			ChallangeMode->SetCaption("CHALLANGE MODE");
-			this->addWidget(ChallangeMode);
+			ChallangeMode->setCaption("CHALLANGE MODE");
+			ChallangeMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(ChallangeMode->getSize().x / 2.f), 100.f));
 
-			tgui::TButton::UniquePtr Options = std::make_unique<tgui::TButton>();
-			Options->setPosition(mParentManager->getReferencePointPosition() + sf::Vector2f(0.f, 150.f));
-			Options->setZIndex(3);
+			TButton::Ptr Options = std::make_shared<TButton>();
 			Options->setName("OPTIONS");
-			Options->SetCaption("OPTIONS");
-			this->addWidget(Options);
+			Options->setCaption("OPTIONS");
+			Options->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Options->getSize().x / 2.f), 150.f));
 
-			tgui::TButton::UniquePtr Credits = std::make_unique<tgui::TButton>();
-			Credits->setPosition(mParentManager->getReferencePointPosition() + sf::Vector2f(0.f, 200.f));
-			Credits->setZIndex(3);
+			TButton::Ptr Credits = std::make_shared<TButton>();
 			Credits->setName("CREDITS");
-			Credits->SetCaption("CREDITS");
-			this->addWidget(Credits);
+			Credits->setCaption("CREDITS");
+			Credits->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Credits->getSize().x / 2.f), 200.f));
 
-			tgui::TButton::UniquePtr Quit = std::make_unique<tgui::TButton>();
-			Quit->setPosition(mParentManager->getReferencePointPosition() + sf::Vector2f(0.f, 250.f));
-			Quit->setZIndex(3);
+			TButton::Ptr Quit = std::make_shared<TButton>();
 			Quit->setName("QUIT");
-			Quit->SetCaption("QUIT");
-			this->addWidget(Quit);
-		}
+			Quit->setCaption("QUIT");
+			Quit->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Quit->getSize().x / 2.f), 250.f));
 
-		void TMainMenu::onNewGameButtonClick(const sf::Event::MouseButtonEvent& Button)
-		{
-			mParentManager->getSceneManager()->changeScene(1);
+			// Adds the widgets to the menu
+			GuiManager->addWidget(BackgroundColor, 1);
+			GuiManager->addWidget(MonitorEffect, 2);
+			GuiManager->addWidget(MonitorFrame, 2);
+			GuiManager->addWidget(StoryMode, 3);
+			GuiManager->addWidget(SandboxMode, 3);
+			GuiManager->addWidget(ChallangeMode, 3);
+			GuiManager->addWidget(Options, 3);
+			GuiManager->addWidget(Credits, 3);
+			GuiManager->addWidget(Quit, 3);
 		}
 
 	}
 }
-

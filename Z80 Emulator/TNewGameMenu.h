@@ -1,21 +1,19 @@
 #pragma once
 
-#include "IScreenView.h"
-#include "TGuiManager.h"
+#include "TContainer.h"
+#include "IMenu.h"
 
 namespace nne
 {
 	namespace tgui
 	{
-		class TNewGameMenu : public IScreenView
+		class TNewGameMenu : public TContainer, public IMenu
 		{
 		public:
-			virtual void init();
 
-			void handleEvent(sf::Event& Event);
+			using Ptr = std::shared_ptr<TNewGameMenu>;
 
-
-			virtual void refresh(const sf::Time& ElapsedTime) override;
+			virtual void init(TGuiManager* GuiManager) override;
 
 		};
 	}

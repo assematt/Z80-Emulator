@@ -7,7 +7,7 @@
 
 namespace nne
 {
-	class TMainMenuScene : public IScene, public tgui::IScreenView
+	class TMainMenuScene : public IScene
 	{
 		
 	public:
@@ -23,6 +23,6 @@ namespace nne
 		virtual void draw() override;
 
 	private:
-		tgui::TGuiManager	mAppGui;
+		tgui::TGuiManager mGuiManager;
 	};
 }

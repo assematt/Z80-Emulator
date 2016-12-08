@@ -18,6 +18,8 @@ namespace nne
 	protected:
 		virtual ID eventLoop() override;
 
+		void updateDebugInfo();
+
 		virtual void refresh(sf::Time ElapsedTime) override;
 
 		virtual void update(sf::Time ElapsedTime) override;
@@ -33,7 +35,8 @@ namespace nne
 		TManager				mLogicEntity;
 		TManager				mGraphicEntity;
 		std::size_t				mTrackCounter;
-		tgui::TGuiManager		mAppGui;
+		//tgui::TGuiManager		mAppGui;
+		tgui::TGuiManager		mGuiManager;
 
 		TLogicBoardComponent*	mLogicBoard;
 		TEntity::EntityPtr		mTempChip;

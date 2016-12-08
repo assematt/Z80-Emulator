@@ -8,7 +8,6 @@
 #include "TManager.h"
 #include "TLoaders.h"
 #include "TCacheManager.h"
-#include "TGuiManager.h"
 #include "TFactory.h"
 #include "TSceneManager.h"
 

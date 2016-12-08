@@ -19,6 +19,10 @@ namespace nne
 	{
 	public:
 
+		using EntityVector = std::vector<TEntity::EntityPtr>;
+		using EntityIterator = EntityVector::iterator;
+		using EntityConstIterator = EntityVector::const_iterator;
+
 		TManager();
 
 		/// Function to add an entity to the manager
@@ -33,8 +37,6 @@ namespace nne
 		/// Get an entity by type, return nullptr if the entity isn't found
 		TEntity::EntityPtr& getEntityByKey(const std::string& EntityKey);
 
-		void draw(sf::RenderTarget& Target);
-
 		/// Function to init all the entity in the array
 		void initEntities();
 
@@ -43,6 +45,10 @@ namespace nne
 
 		/// refreshes every entity in the container
 		void refresh(const sf::Time& ElapsedTime);
+
+		/// Helper function for for-each style loop
+		EntityIterator begin();
+		EntityIterator end();
 
 		/// Return an element specified by the Index
 		TEntity::EntityPtr& operator[] (const std::size_t& Index);

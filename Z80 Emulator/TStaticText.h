@@ -1,10 +1,7 @@
 #pragma once
 
+#include <SFML/Graphics/Text.hpp>
 #include "TWidget.h"
-#include "IComponent.h"
-#include "TDrawableComponent.h"
-#include "TTextComponent.h"
-#include "TCacheManager.h"
 
 namespace nne
 {
@@ -13,24 +10,26 @@ namespace nne
 		class TStaticText : public TWidget
 		{
 		public:
+
+			using Ptr = std::shared_ptr<TStaticText>;
+
 			TStaticText();
 
-			using UniquePtr = std::unique_ptr<TStaticText>;
-			using SharedPtr = std::shared_ptr<TStaticText>;
-
-			/// Init function
-			void init();
-
-			/// Functions to change the widget property
-			void SetCaption(const std::string& WidgetName);
-			const std::string& GetCaption() const;
-
-			/// Set character size
+			/// Set some of the widget properties
 			void setCharacterSize(const std::size_t& CharacterSize);
-			const std::size_t& getCharacterSize();
+			std::size_t getCharacterSize();
+
+			void setCaption(const sf::String& Caption);
+			const sf::String& getCaption() const;
+
+			void setColor(const sf::Color& Color);
+			const sf::Color& getColor() const;
+
+		protected:
+			virtual void draw(sf::RenderTarget& Target, sf::RenderStates States) const override;
 
 		private:
-			void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+			sf::Text	mText;
 		};
 	}
 }

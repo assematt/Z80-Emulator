@@ -50,7 +50,7 @@ namespace nne
 
 			void init();
 
-			// Use the refresh instruction as an M1 cycle
+			/// Use the refresh instruction as an M1 cycle
 			void refresh(const sf::Time& ElapsedTime);
 
 			void update(const sf::Time& ElapsedTime);
@@ -59,8 +59,15 @@ namespace nne
 
 			bool connectRam(std::shared_ptr<TEntity> Ram);
 
-			virtual void makeVirtual() {};
+			/// Pause the program execution
+			void pauseExecution();
 
+			/// Resume the program execution
+			void resumeExecution();
+
+			/// Restart the program execution
+			void restartExecution();
+			
 			/// Fetch the instruction from memory
 			TU8BitValue fetchInstruction(const TU16BitValue& Address = 0);
 

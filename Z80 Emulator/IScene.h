@@ -35,6 +35,12 @@ namespace nne
 		void setSize(const sf::Vector2u& Size);
 		const sf::Vector2u getSize() const;
 
+		// Get the current utilized view
+		const TRenderSurface& getRenderSurface() const;
+
+		const sf::RenderWindow& getRenderWindow() const;
+		
+
 		ID& run(const sf::Time& ElapsedTimem);
 
 	protected:

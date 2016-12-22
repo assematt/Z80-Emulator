@@ -10,10 +10,11 @@
 
 namespace nne
 {
+
 	class TConductiveTracks : public IComponent
 	{
 	public:
-
+		// constructor
 		TConductiveTracks();
 
 		virtual void update(const sf::Time& ElapsedTime) override;
@@ -22,38 +23,40 @@ namespace nne
 
 		virtual void init() override;
 
-		/// Start a track 
-		void startTrack(const sf::Vector2f& LineBegin);
+		// place a fixed point
+		void confirmPoints();
 
-		/// Place a point in the track
-		void placePoint(const sf::Vector2f& Point);
+		// Adjust the oblique line to be a combination of an horizontal + vertical lines
+		void adjustLine(const sf::Vector2f& Point1, const sf::Vector2f& Point2);
 
-		/// End the track finally
-		void endTrack(const sf::Vector2f& LineEnd);
+		// place a temp point
+		void placePointTemp(const sf::Vector2f& PointPos);
+
+		// Check the orientation of the lines we want to draw
+		bool checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
+
+		void placeInitialPoint(const sf::Vector2f& PointPos);
+
+		void lineToQuad(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
+		
+		// 
+		void toggleDraw();
 
 		/// Get the bound of the track
-		sf::FloatRect getTrackLocalBound();
-		sf::FloatRect getTrackGlobalBound();
+		sf::FloatRect getLocalBound();
+		sf::FloatRect getGlobalBound();
 
 		/// Get the bound of a single segment of the track
 		sf::FloatRect getSegmentLocalBound(const std::size_t SegmentNumber);
 		sf::FloatRect getSegmentGlobalBound(const std::size_t SegmentNumber);
 
 	private:
-
-		/// Check if we clicked the mouse on the track
-		bool checkMouseClickOnTrack(const sf::Vector2i Mouse);
-
-		bool checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
-
-		void lineToRectangleShape(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd, const std::size_t SegmentNumber);
-
-	private:
-		std::size_t				mSegmentNumber;
-		const float				mTrackThickness;
-		sf::Vector2f			mTempLineBegin;
-		sf::Vector2f			mTempLineEnd;
-		std::vector<sf::Vertex>	mPathJoints;
-		TDrawableComponent*		mDrawableComponent;
+		bool				mEnableDraw;
+		float				mThickness;
+		sf::Color			mTrackColor;
+		std::size_t			mFixedPoints;
+		sf::Vector2f		mLastPointPos;
+		sf::Vector2f		mLastPointPosTemp;
+		TDrawableComponent*	mDrawableComponent;
 	};
 }

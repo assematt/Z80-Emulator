@@ -27,7 +27,8 @@ namespace nne
 
 	void TLogicBoardComponent::placeChip(TEntity* Entity)
 	{
-		Entity->replaceComponent<TLogicBoardComponent>(this);
+		//Entity->replaceComponent<TLogicBoardComponent>(this);
+		Entity->addComponent<TLogicBoardComponent>(this);
 
 		placeChip(Entity->getComponentAsPtr<TChipComponent>());
 	}
@@ -39,7 +40,8 @@ namespace nne
 
 	void TLogicBoardComponent::placeTrack(TEntity* Entity)
 	{
-		Entity->replaceComponent<TLogicBoardComponent>(this);
+		//Entity->replaceComponent<TLogicBoardComponent>(this);
+		Entity->addComponent<TLogicBoardComponent>(this);
 
 		placeTrack(Entity->getComponentAsPtr<TConductiveTracks>());
 	}
@@ -112,21 +114,7 @@ namespace nne
 
 	void TLogicBoardComponent::init()
 	{
-		/*// Get a ref to the vertex array
-		auto& VertexArray = mParent->getComponentAsPtr<TDrawableComponent>()->getVertexArray();
-
-		// Set the size and color of the logic board
-		auto LogicBoardSize = static_cast<sf::Vector2f>(mParent->getSceneManager().getRenderWindow().getSize()) - sf::Vector2f({ 340.f, 90.f });
-		sf::Color LogicBoardColor = { 17, 17, 17 };
-
-		// Get a ref to the texture to use
-		auto& GridPattern = TCacheManager::getInstance().getResource<sf::Texture>("grid_pattern");
-		GridPattern.setRepeated(true);
-
-		// Set the grid
-		mParent->getComponentAsPtr<TDrawableComponent>()->setTexture(GridPattern);
-		mParent->getComponentAsPtr<TDrawableComponent>()->setSize(static_cast<sf::Vector2u>(LogicBoardSize));
-		mParent->getComponentAsPtr<TDrawableComponent>()->setTextureRect(sf::IntRect(5, 5, LogicBoardSize.x, LogicBoardSize.y));*/
+		
 	}
 
 }

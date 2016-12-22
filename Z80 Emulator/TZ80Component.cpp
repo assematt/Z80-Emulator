@@ -40,6 +40,9 @@ namespace nne
 			// Setup the CPU Pins
 			auto& PinComponent = *mParent->getComponentAsPtr<tcomponents::TPinComponent>();
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
+				
+				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
+
 				// ADDRESS BUS
 				{ tcomponents::TPin::TMode::OUTPUT, "A0",  tcomponents::TPin::TStatus::LOW, 30, CPUPinGroup::AddressBus, 1 }, // A1
 				{ tcomponents::TPin::TMode::OUTPUT, "A1",  tcomponents::TPin::TStatus::LOW, 31, CPUPinGroup::AddressBus, 2 }, // A2
@@ -100,8 +103,69 @@ namespace nne
 		
 		void TZ80Component::refresh(const sf::Time& ElapsedTime)
 		{
+			// Before check if the z80 is still active
+			if (!mIsRunning)
+				return;
+
+			// Instruction fetch
+			switch (mTStates)
+			{
+				// T1
+				case 0:
+				{
+					// The Program Counter is placed on the address bus at the beginning of the M1 cycle
+					// Select the instruction by putting the address in the address bus
+					auto& PC = mRegisters.programCounter();
+					pushDataToAddressBus(PC);
+				} break;
+
+				// T2
+				case 1:
+				{
+					// One half clock cycle later, the MREQ signal goes active.At this time, the address to memory has had time to stabilize 
+					// so that the falling edge of MREQ can be used directly as a chip enable clock to dynamic memories.
+					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
+
+					// Get a ref to the PinComponent
+					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+
+					// Activates MREQ and RD pin
+					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
+					Pins->getPin(21).changePinStatus(tcomponents::TPin::LOW, true); // RD
+				} break;
+
+				// T3
+				case 2:
+				{
+					// The CPU samples the data from the memory space on the data bus with the rising edge of the clock of state T3, and this same edge is used by the
+					// CPU to turn off the RD and MREQ signals. As a result, the data is sampled by the CPU before the RD signal becomes inactive
+
+					// Get the instruction from the bus
+					mCurrentInstruction = getDataFromDataBus();
+
+					// Get a ref to the PinComponent
+					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+
+					// Deactivates MREQ and RD pin
+					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ
+					Pins->getPin(21).changePinStatus(tcomponents::TPin::HIGH, true); // RD
+				} break;
+
+				// T4
+				case 3:
+				{
+					// Execute the instruction
+					auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
+					executeInstruction(Instruction);
+				} break;
+			}
+
 			// Get the current instruction Opcode
-			fetchInstruction();
+			// fetchInstruction();
+
+			// Updated the TStates in which we are
+			if (++mTStates == 4)
+				mTStates = 0;
 		}
 	
 		void TZ80Component::update(const sf::Time& ElapsedTime)
@@ -111,14 +175,11 @@ namespace nne
 				return;
 	
 			// Show the debug window
-			//mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
-			
-			// Get the current instruction Opcode
-			//TOpCodesMainInstruction CurrentInstruction = FetchInstruction<TOpCodesMainInstruction>();
-	
+			mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
+				
 			// Execute the instruction
-			auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
-			executeInstruction(Instruction);
+			// auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
+			// executeInstruction(Instruction);
 	
 			//mClock.wait();
 		}
@@ -190,14 +251,30 @@ namespace nne
 			tcomponents::TPinComponentUtility::connectPins(LeftBus, RightBus);
 	
 			// Connect the MREQ pin to the CE of the ram
-			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
+			//tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
 	
 			// Connect the RD pin to the OE of the ram
-			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
+			//tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
 
 			return true;
 		}
 		
+		void TZ80Component::pauseExecution()
+		{
+			mIsRunning = false;
+		}
+
+		void TZ80Component::resumeExecution()
+		{
+			mIsRunning = true;
+		}
+
+		void TZ80Component::restartExecution()
+		{
+			// Reset the state of the register
+			mRegisters.reset();
+		}
+
 		TU8BitValue TZ80Component::fetchInstruction(const TU16BitValue& Address /*= 0*/)
 		{
 			// Check if we have a connected ram, if we don't have one return nop
@@ -877,7 +954,7 @@ namespace nne
 				}
 		
 				// Perform the increment
-				mAlu.aluInc<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluInc<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister).getInternalValue());
 		
 				// Increment the PC
 				++mRegisters.programCounter();
@@ -918,7 +995,7 @@ namespace nne
 				}
 		
 				// Perform the decrement
-				mAlu.aluDec<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister));
+				mAlu.aluDec<TU8BitValue>(mRegisters.getRegister<T8BitRegister>(SourceRegister).getInternalValue());
 		
 				// Increment the PC
 				++mRegisters.programCounter();

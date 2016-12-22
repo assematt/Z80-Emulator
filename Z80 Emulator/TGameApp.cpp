@@ -10,8 +10,8 @@ namespace nne
 		mAppName(PROGRAM_NAME),
 		mAppWindow(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default)
 	{
-		mAppWindow.setFramerateLimit(60);
-		mAppWindow.setVerticalSyncEnabled(true);
+		//mAppWindow.setFramerateLimit(2);
+		//mAppWindow.setFramerateLimit(60);
 	}
 
 	bool TGameApp::init()
@@ -42,6 +42,8 @@ namespace nne
 	int TGameApp::run()
 	{
 		mAppClock.restart();
+
+		LOG_VALUE("Log App");
 		
 		// Run the app and 
 		while (mAppWindow.isOpen())

@@ -48,8 +48,8 @@ namespace nne
 		sf::VertexArray& getVertexArray();
 		const sf::VertexArray& getVertexArray() const;
 
-		sf::FloatRect getLocalBounds();
-		sf::FloatRect getGlobalBounds();
+		sf::FloatRect getLocalBounds() const;
+		sf::FloatRect getGlobalBounds() const;
 
 	protected:
 		/// SFML function to draw the graphics
@@ -63,7 +63,7 @@ namespace nne
 		void updateSpriteBounds(const sf::Vector2u& SpriteSize);
 
 		/// Compute local bounds for drawables with more than 4 vertices
-		sf::FloatRect computeComplexLocalBound();
+		sf::FloatRect computeComplexLocalBound() const;
 				
 	private:
 		std::shared_ptr<sf::Texture>		mTexture;

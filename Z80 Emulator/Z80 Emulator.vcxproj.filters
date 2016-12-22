@@ -201,6 +201,9 @@
     <ClCompile Include="TStaticText.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
+    <ClCompile Include="TGridComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -364,6 +367,9 @@
     </ClInclude>
     <ClInclude Include="IMenu.h">
       <Filter>Header Files\include\gui\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TGridComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

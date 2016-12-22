@@ -1,16 +1,9 @@
 #pragma once
 
 #include <memory>
+#include "TEntity.h"
 
-#include "TChipComponent.h"
-#include "TDrawableComponent.h"
-#include "TTextComponent.h"
-#include "TConductiveTracks.h"
-#include "TLogicBoardComponent.h"
-#include "TZ80Component.h"
-#include "TPinComponent.h"
-#include "TRamComponent.h"
-#include "TMemoryComponent.h"
+
 
 namespace nne
 {

@@ -12,7 +12,7 @@
 namespace nne
 {
 
-	class TLogicBoardComponent : public IComponent, public std::enable_shared_from_this<TLogicBoardComponent>
+	class TLogicBoardComponent : public IComponent
 	{
 	public:
 

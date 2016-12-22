@@ -9,11 +9,11 @@ namespace nne
 
 	}
 
-	void TManager::addEntity(TEntity::EntityPtr& Entity, const std::string& EntityKey, TSceneManager* SceneManager /*= nullptr*/)
+	void TManager::addEntity(TEntity::EntityPtr& Entity, const std::string& EntityKey, IScene* CurrentScene /*= nullptr*/)
 	{
 		Entity->mParent = this;
 		Entity->mID = static_cast<TEntity::EntityID>(nne::idgenerator::GenerateByString::getUniqueID(EntityKey));
-		Entity->mSceneManager = SceneManager;
+		Entity->mParentScene = CurrentScene;
 
 		mEntityVector.push_back({ Entity });
 	}
@@ -53,6 +53,11 @@ namespace nne
 	{
 		while (mAliveElement < mEntityVector.size())
 			mEntityVector[mAliveElement++]->init();
+	}
+
+	void TManager::initLastEntity()
+	{
+		mEntityVector.back()->init();
 	}
 
 	void TManager::update(const sf::Time& ElapsedTime)

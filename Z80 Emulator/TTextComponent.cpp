@@ -69,8 +69,9 @@ namespace nne
 		mOutlineThickness(0),
 		mBounds(),
 		mGeometryNeedupdate(true),
-		mCharactersFillColor(String.getSize(), { 255, 255, 255 }),
-		mCharactersOutlineColor(String.getSize(), { 255, 255, 255 }),
+// 		mCharactersFillColor(String.getSize(), { 255, 255, 255 }),
+// 		mCharactersOutlineColor(String.getSize(), { 255, 255, 255 }),
+// 		mCharactersPositions(mString.getSize(), { 0.f, 0.f }),
 		mVertices(sf::Triangles),
 		mStrikeThroughFillColor(255, 255, 255),
 		mStrikeThroughOutlineColor(0, 0, 0),
@@ -87,10 +88,7 @@ namespace nne
 
 		mString = String;
 		mGeometryNeedupdate = true;
-
-		// Resize the vectors with the properties of the individual character
-		mCharactersFillColor.resize(mString.getSize(), mFillColor);
-		mCharactersOutlineColor.resize(mString.getSize(), mOutlineColor);
+		
 	}
 
 	void TTextComponent::setFont(const sf::Font& Font)
@@ -134,9 +132,8 @@ namespace nne
 		mStrikeThroughFillColor = Color;
 		mUnderlineFillColor = Color;
 
-		// Replace all the color for the individual character with the new fill color
-		for (auto& Color : mCharactersFillColor)
-			Color = mFillColor;
+		// Replace all the color for the individual character with the new fill color by clearing the std::unordered_map
+		mCharactersFillColor.clear();
 
 		// Change vertex colors directly, no need to update whole geometry, if geometry is updated anyway, we can skip this step
 		if (!mGeometryNeedupdate)
@@ -149,6 +146,10 @@ namespace nne
 
 	void TTextComponent::setCharacterFillColor(const sf::Color& Color, const std::size_t CharacterPos)
 	{
+		// If we try to modify a character that doesn't exist
+		if (CharacterPos > mString.getSize())
+			return;
+
 		// If we are trying to replace the fill color with the same color we can exit the function now
 		if (mCharactersFillColor[CharacterPos] == Color)
 			return;
@@ -172,6 +173,10 @@ namespace nne
 
 	void TTextComponent::setCharacterFillColor(const sf::Color& Color, const std::size_t& CharacterBegin, const std::size_t& CharacterEnd)
 	{
+		// If we try to modify a character that doesn't exist
+		if (CharacterEnd > mString.getSize())
+			return;
+
 		for (std::size_t Index = CharacterBegin; Index <= CharacterEnd; ++Index)
 			mCharactersFillColor[Index] = Color;
 
@@ -204,9 +209,8 @@ namespace nne
 		mStrikeThroughOutlineColor = Color;
 		mUnderlineOutlineColor = Color;
 
-		// Replace all the outline color for the individual character with the new outline color
-		for (auto& Color : mCharactersOutlineColor)
-			Color = mOutlineColor;
+		// Replace all the color for the individual character with the new outline color by clearing the std::unordered_map
+		mCharactersOutlineColor.clear();
 
 		// Change vertex colors directly, no need to update whole geometry
 		// (if geometry is updated anyway, we can skip this step)
@@ -219,7 +223,11 @@ namespace nne
 	}
 
 	void TTextComponent::setCharacterOutlineColor(const sf::Color& Color, const std::size_t CharacterPos)
-{
+	{
+		// If we try to modify a character that doesn't exist
+		if (CharacterPos > mString.getSize())
+			return;
+
 		// If we are trying to replace the fill color with the same color we can exit the function now
 		if (mCharactersOutlineColor[CharacterPos] == Color)
 			return;
@@ -241,6 +249,10 @@ namespace nne
 
 	void TTextComponent::setCharacterOutlineColor(const sf::Color& Color, const std::size_t& CharacterBegin, const std::size_t& CharacterEnd)
 	{
+		// If we try to modify a character that doesn't exist
+		if (CharacterEnd > mString.getSize())
+			return;
+
 		for (std::size_t Index = CharacterBegin; Index <= CharacterEnd; ++Index)
 			mCharactersOutlineColor[Index] = Color;
 
@@ -280,9 +292,64 @@ namespace nne
 		mStrikeThroughOutlineColor = Color;
 	}
 
-	void TTextComponent::setCharacterPosition(const std::size_t CharacterPos)
+	void TTextComponent::setCharacterPosition(const std::size_t& CharacterPos, const sf::Vector2f& Position)
 	{
+		// If we try to modify a character that doesn't exist
+		if (CharacterPos > mString.getSize())
+			return;
 
+		// If we are trying to replace the fill color with the same color we can exit the function now
+		if (mCharactersPositions[CharacterPos] == Position)
+			return;
+
+		mCharactersPositions[CharacterPos] = Position;
+
+		// Change vertex colors directly, no need to update whole geometry
+		// (if geometry is updated anyway, we can skip this step)
+		if (!mGeometryNeedupdate)
+		{
+			auto StartPos = computeVerticesStartPos();
+
+			mVertices[CharacterPos * 6 + StartPos + 0].position += Position;
+			mVertices[CharacterPos * 6 + StartPos + 1].position += Position;
+			mVertices[CharacterPos * 6 + StartPos + 2].position += Position;
+			mVertices[CharacterPos * 6 + StartPos + 3].position += Position;
+			mVertices[CharacterPos * 6 + StartPos + 4].position += Position;
+			mVertices[CharacterPos * 6 + StartPos + 5].position += Position;
+		}
+	}
+
+	void TTextComponent::setCharacterPosition(const std::string& SubString, const sf::Vector2f& Position)
+	{
+		// If we try to modify a character that doesn't exist
+		if (SubString.size() > mString.getSize())
+			return;
+
+		auto SubStringStartPos = mString.toAnsiString().find(SubString);
+		auto SubStringEndPos = SubStringStartPos + SubString.size();
+		for (auto Index = SubStringStartPos; Index < SubStringEndPos; ++Index)
+			mCharactersPositions[Index] = Position;
+
+		// Change vertex colors directly, no need to update whole geometry
+		// (if geometry is updated anyway, we can skip this step)
+		if (!mGeometryNeedupdate)
+		{
+			auto StartPos = computeVerticesStartPos();
+
+			for (auto Index = SubStringStartPos; Index < SubStringEndPos; ++Index)
+			{
+				mVertices[Index * 6 + StartPos + 0].position += Position;
+				mVertices[Index * 6 + StartPos + 1].position += Position;
+				mVertices[Index * 6 + StartPos + 2].position += Position;
+				mVertices[Index * 6 + StartPos + 3].position += Position;
+				mVertices[Index * 6 + StartPos + 4].position += Position;
+				mVertices[Index * 6 + StartPos + 5].position += Position;
+			}			
+		}
+		else
+		{
+			mGeometryNeedupdate = true;
+		}
 	}
 
 	const sf::String& TTextComponent::getString() const
@@ -312,7 +379,10 @@ namespace nne
 
 	const sf::Color& TTextComponent::getCharacterFillColor(const std::size_t& CharactePos) const
 	{
-		return mCharactersFillColor[CharactePos];
+		//return mCharactersFillColor[CharactePos];
+
+		//auto Temp = mCharactersFillColor[CharactePos].a = 50;;
+		return mCharactersFillColor.at(CharactePos);
 	}
 
 	const sf::Color& TTextComponent::getOutlineColor() const
@@ -322,7 +392,7 @@ namespace nne
 
 	const sf::Color& TTextComponent::getCharacterOutlineColor(const std::size_t& CharactePos) const
 	{
-		return mCharactersOutlineColor[CharactePos];
+		return mCharactersOutlineColor.at(CharactePos);
 	}
 
 	float TTextComponent::getOutlineThickness() const
@@ -491,6 +561,7 @@ namespace nne
 		float hspace = static_cast<float>(mFont->getGlyph(L' ', mCharacterSize, bold).advance);
 		float vspace = static_cast<float>(mFont->getLineSpacing(mCharacterSize));
 		float x = 0.f;
+		float substringX = 0.f;
 		float y = static_cast<float>(mCharacterSize);
 
 		// Create one quad for each character
@@ -505,6 +576,11 @@ namespace nne
 
 			// Apply the kerning offset
 			x += mFont->getKerning(prevChar, curChar, mCharacterSize);
+
+			if (mCharactersPositions.find(Index) != mCharactersPositions.end())
+				substringX += mFont->getGlyph(curChar, mCharacterSize, bold).advance;
+			else
+				substringX = 0.f;
 			
 			// If we're using the underlined style and there's a new line, draw a line
 			if (underlined && (curChar == L'\n') && (prevChar != L'\n'))
@@ -559,20 +635,29 @@ namespace nne
 				float bottom = glyph.bounds.top + glyph.bounds.height;
 
 				// Add the outline glyph to the vertices
-				addGlyphQuad(mVertices, Index * 6, sf::Vector2f(x, y), mCharactersOutlineColor[Index], glyph, italic, mOutlineThickness);
+
+				auto CharacterOutlineColor = mCharactersOutlineColor.find(Index); mCharactersOutlineColor.end();
+				auto CharacterPos = mCharactersPositions.find(Index);
+				addGlyphQuad(mVertices, Index * 6, CharacterPos == mCharactersPositions.end() ? sf::Vector2f(x, y) : CharacterPos->second, CharacterOutlineColor == mCharactersOutlineColor.end() ? mOutlineColor : CharacterOutlineColor->second, glyph, italic, mOutlineThickness);
 
 				// Update the current bounds with the outlined glyph bounds
 				minX = std::min(minX, x + left - italic * bottom - mOutlineThickness);
 				maxX = std::max(maxX, x + right - italic * top - mOutlineThickness);
 				minY = std::min(minY, y + top - mOutlineThickness);
-				maxY = std::max(maxY, y + bottom - mOutlineThickness);
+				maxY = std::max(maxY, y 
+					+ bottom - mOutlineThickness);
 			}
 
 			// Extract the current glyph's description
 			const sf::Glyph& glyph = mFont->getGlyph(curChar, mCharacterSize, bold);
 
-			// Add the glyph to the vertices
-			addGlyphQuad(mVertices, Index * 6 + VerticesStartPos, sf::Vector2f(x, y), mCharactersFillColor[Index], glyph, italic);
+			// 
+			auto CharacterFillColor = mCharactersFillColor.find(Index);
+			auto CharacterPos = mCharactersPositions.find(Index);
+			auto StadardPos = sf::Vector2f(x, y);
+			char DebugChar = static_cast<char>(curChar);
+
+			addGlyphQuad(mVertices, Index * 6, CharacterPos == mCharactersPositions.end() ? StadardPos : (sf::Vector2f(substringX, y) + CharacterPos->second), CharacterFillColor == mCharactersFillColor.end() ? mFillColor : CharacterFillColor->second, glyph, italic, mOutlineThickness);
 
 			// Update the current bounds with the non outlined glyph bounds
 			if (mOutlineThickness == 0)

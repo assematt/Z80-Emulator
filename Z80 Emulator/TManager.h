@@ -26,7 +26,7 @@ namespace nne
 		TManager();
 
 		/// Function to add an entity to the manager
-		void addEntity(TEntity::EntityPtr& Entity, const std::string& EntityKey, TSceneManager* SceneManager = nullptr);
+		void addEntity(TEntity::EntityPtr& Entity, const std::string& EntityKey, IScene* CurrentScene = nullptr);
 
 		/// Function to remove an entity to the manager
 		void removeEntity(const TEntity::EntityID& IDToRemove);
@@ -37,8 +37,11 @@ namespace nne
 		/// Get an entity by type, return nullptr if the entity isn't found
 		TEntity::EntityPtr& getEntityByKey(const std::string& EntityKey);
 
-		/// Function to init all the entity in the array
+		/// Function to init all the entity in the array (useful in bulk creation of multiple entity)
 		void initEntities();
+
+		/// function to init the last added entity in the array (in case 
+		void initLastEntity();
 
 		/// updates every entity in the container
 		void update(const sf::Time& ElapsedTime);

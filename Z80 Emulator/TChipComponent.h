@@ -9,6 +9,7 @@
 #include "IComponent.h"
 #include "TPinComponent.h"
 #include "TDrawableComponent.h"
+#include "TTextComponent.h"
 #include "TEntity.h"
 
 namespace nne
@@ -31,6 +32,7 @@ namespace nne
 
 		static const sf::Color PinColorStatusLow;
 		static const sf::Color PinColorStatusHigh;
+		static const sf::Color PinColorStatusHighZ;
 
 		TChipComponent(TEntity* ManagedObject);
 
@@ -55,7 +57,12 @@ namespace nne
 		sf::FloatRect getPinLocalBounds(const std::size_t& PinIndex);
 		sf::FloatRect getPinGlobalBounds(const std::size_t& PinIndex);
 
-		const std::size_t& getSelectedPin() const;
+		void deselectPin();
+		const std::size_t& getSelectedPinNumber() const;
+
+		// Get the selected pin
+		tcomponents::TPin& getSelectedPin();
+		const tcomponents::TPin& getSelectedPin() const;
 
 	private:
 		/// Render a chip in the DIP format
@@ -80,6 +87,7 @@ namespace nne
 		std::size_t			mSelectedPin;
 		nne::TEntity*		mManagedObject;
 		sf::Vector2u		mChipSize;
+		TTextComponent*		mLabels;
 		TDrawableComponent*	mDrawableComponent;
 	};
 }

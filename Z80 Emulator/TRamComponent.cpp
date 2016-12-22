@@ -60,6 +60,9 @@ namespace nne
 
 			// Setup the RAM pins
 			PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{
+
+				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
+
 				// ADDRESS BUS
 				{ tcomponents::TPin::TMode::INPUT, "A0", tcomponents::TPin::TStatus::LOW, 10, TRamPinGroup::AddressBus, 0 }, // A0
 				{ tcomponents::TPin::TMode::INPUT, "A1",  tcomponents::TPin::TStatus::LOW,  9, TRamPinGroup::AddressBus, 1 }, // A1

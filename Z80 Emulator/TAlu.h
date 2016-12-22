@@ -234,10 +234,10 @@ namespace nne
 		// 	C is not affected
 		template <>
 		inline void aluInc(TU8BitValue& Value)
-		{
+		{	
 			// Save the old value 
 			auto OldValue = Value;
-	
+
 			// Increment the value
 			++Value;
 	
@@ -292,10 +292,10 @@ namespace nne
 		// 	C is not affected.
 		template <>
 		inline void aluDec(TU8BitValue& Value)
-		{
+		{	
 			// Save the old value 
 			auto OldValue = Value;
-	
+
 			// Increment the value
 			--Value;
 	

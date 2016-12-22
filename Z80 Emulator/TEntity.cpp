@@ -4,6 +4,8 @@ namespace nne
 {
 	TEntity::TEntity() :
 		mAlive(true),
+		mParent(nullptr),
+		mParentScene(nullptr),
 		TComponentArray(this)
 	{
 	}
@@ -52,9 +54,9 @@ namespace nne
 		return *mParent;
 	}
 
-	nne::TSceneManager& TEntity::getSceneManager()
+	const nne::IScene* TEntity::getParentScene() const
 	{
-		return *mSceneManager;
+		return mParentScene;
 	}
-
+	
 }

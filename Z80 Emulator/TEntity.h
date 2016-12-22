@@ -10,10 +10,12 @@
 #include "TEventContainer.h"
 #include "IDGenerator.h"
 
+
 namespace nne
 {
 	class TManager;
 	class TSceneManager;
+	class IScene;
 	
 	class TEntity : public TComponentArray// <IComponent, TEntity, TComponentID>//, public TEventContainer
 	{
@@ -52,14 +54,13 @@ namespace nne
 		/// Get the entity manager
 		TManager& getEntityManager();
 
-		/// Get the scene manager
-		TSceneManager& getSceneManager();
-
+		const IScene* getParentScene() const;
+		
 	private:
 		bool			mAlive;
 		EntityID		mID;
 		TManager*		mParent;
-		TSceneManager*	mSceneManager;
+		IScene*			mParentScene;
 
 		friend class TManager;
 	};

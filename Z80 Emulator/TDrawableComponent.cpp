@@ -1,6 +1,7 @@
 #include "TDrawableComponent.h"
 #include "TTextComponent.h"
 #include "TLogicBoardComponent.h"
+#include "IScene.h"
 
 namespace nne
 {
@@ -97,16 +98,16 @@ namespace nne
 		return *mVertexArray;
 	}
 
-	sf::FloatRect TDrawableComponent::getLocalBounds()
-	{
+	sf::FloatRect TDrawableComponent::getLocalBounds() const
+{
 		auto& Position = getPosition();
 		sf::Vector2f Size = (*mVertexArray)[2].position;
 
 		return mVertexArray->getVertexCount() == 4 ? sf::FloatRect(Position, Size) : computeComplexLocalBound();
 	}
 
-	sf::FloatRect TDrawableComponent::getGlobalBounds()
-	{
+	sf::FloatRect TDrawableComponent::getGlobalBounds() const
+{
 		return getTransform().transformRect(getLocalBounds());
 	}
 
@@ -131,8 +132,8 @@ namespace nne
 		VertexArray[3].position = { static_cast<float>(SpriteSize.x), 0.f };
 	}
 
-	sf::FloatRect TDrawableComponent::computeComplexLocalBound()
-	{
+	sf::FloatRect TDrawableComponent::computeComplexLocalBound() const
+{
 		float Width = 0.f, Height = 0.f;
 
 		for (std::size_t Index = 0; Index < mVertexArray->getVertexCount(); ++Index)
@@ -149,6 +150,7 @@ namespace nne
 	void TDrawableComponent::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 	{
 		// Get the sprite transformation matrix
+		auto OldStates = States;
 		States.transform *= getTransform();
 		
 		if (mTexture)
@@ -158,7 +160,7 @@ namespace nne
 
 		// Draw the basic drawable object
 		Target.draw(*mVertexArray, States);
-		
+
 		// If this entity has a Text component draws it on top 
 		if (mParent->hasComponent<TTextComponent>())
 		{

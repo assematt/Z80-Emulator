@@ -17,7 +17,14 @@ namespace nne
 		/// Render this surface onto something else (usually the rendering window)
 		void render(sf::RenderTarget* SurfaceToRender);
 
+		void setZoomView(const float& ZoomLevel);
+		const float& getZoomView() const;
+
+		// Move the view
+		void moveView(const std::size_t& Direction);
 	private:
+		float		mZoomLevel;
+		sf::View	mCurrentView;
 		sf::Sprite	mSprite;
 	};
 }

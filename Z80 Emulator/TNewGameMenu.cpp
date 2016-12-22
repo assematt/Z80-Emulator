@@ -101,7 +101,7 @@ namespace nne
 			XValueButton->setPosition({ sf::Vector2f(1600.f, 0.f) + sf::Vector2f(-162.f, 16.f) });
 			XValueButton->setZIndex(3);
 			XValueButton->setName("XVALUE_TEXT");
-			XValueButton->setCaption("X: ");
+			XValueButton->setCaption("X: 0");
 			XValueButton->setCharacterSize(16);
 			HeaderPanel->addWidget(XValueButton.get());
 
@@ -111,7 +111,7 @@ namespace nne
 			YValueButton->setPosition({ sf::Vector2f(1600.f, 0.f) + sf::Vector2f(-81.f, 16.f) });
 			YValueButton->setZIndex(3);
 			YValueButton->setName("YVALUE_TEXT");
-			YValueButton->setCaption("Y: ");
+			YValueButton->setCaption("Y: 0");
 			YValueButton->setCharacterSize(16);
 			HeaderPanel->addWidget(YValueButton.get());
 #pragma endregion

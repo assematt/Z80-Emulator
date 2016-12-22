@@ -1,6 +1,10 @@
 #include "TChipComponent.h"
+
 #include "TLogicBoardComponent.h"
+#include "TCacheManager.h"
 #include "TSceneManager.h"
+
+#define DEBUG_ONCE TRUE
 
 namespace nne
 {
@@ -9,8 +13,9 @@ namespace nne
 	const sf::Color TChipComponent::PinColorHover = { 60, 60, 60 };
 	const sf::Color TChipComponent::PinColorSelected = { 15, 15, 15 };
 
-	const sf::Color TChipComponent::PinColorStatusLow = { 128, 0, 0 };
-	const sf::Color TChipComponent::PinColorStatusHigh = { 0, 128, 0 };
+	const sf::Color TChipComponent::PinColorStatusLow = { 120, 0, 0 };
+	const sf::Color TChipComponent::PinColorStatusHigh = { 0, 120, 0 };
+	const sf::Color TChipComponent::PinColorStatusHighZ = { 0, 0, 128 };
 
 	TChipComponent::TChipComponent(TEntity* ManagedObject) :
 		mManagedObject(ManagedObject),
@@ -27,6 +32,12 @@ namespace nne
 		// Get the drawable component
 		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
 
+		mLabels = mParent->getComponentAsPtr<TTextComponent>();
+
+		mLabels->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
+		mLabels->setCharacterSize(13);
+		mLabels->setFillColor({ 171,171,171 });
+
 		renderDipChip();
 	}
 
@@ -39,7 +50,7 @@ namespace nne
 		// Draw the pin with the proper color
 		for (auto Index = 0u; Index < PinsNumber; ++Index)
 		{			
-			switch (PinComponent[Index].getPinStatus())
+			switch (PinComponent.getPin(Index + 1).getPinStatus())
 			{
 			case tcomponents::TPin::LOW:
 				setPinColor(PinColorStatusLow, Index);
@@ -48,7 +59,7 @@ namespace nne
 				setPinColor(PinColorStatusHigh, Index);
 				break;
 			case tcomponents::TPin::HIGH_Z:
-				setPinColor(PinColorNormal, Index);
+				setPinColor(PinColorStatusHighZ, Index);
 				break;
 			}
 		}
@@ -88,17 +99,23 @@ namespace nne
 		std::size_t NumberOfPins = mManagedObject->getComponentAsPtr<tcomponents::TPinComponent>()->getPinList().size();
 
 		// Get mouse info
-		auto MousePosition = sf::Mouse::getPosition(mParent->getSceneManager().getRenderWindow());
+		auto MousePosition = sf::Mouse::getPosition(mParent->getParentScene()->getRenderWindow());
+		auto RenderSurfacePos = static_cast<sf::Vector2i>(mParent->getParentScene()->getRenderSurface().getPosition());
+		MousePosition -= RenderSurfacePos;
+
+		auto MousePositionAdj = static_cast<sf::Vector2i>(mParent->getParentScene()->getRenderSurface().mapPixelToCoords(MousePosition));
 		
 		// Swap the status of the selected and over pin
 		mPreviousOverPin = mOverPin;
 
 		// Reset the status of the selected pin and the hover pin
 		mOverPin = None;
-
+		
 		for (size_t Index = 0; Index < NumberOfPins && !PinFound; ++Index)
 		{
-			if (checkMouseClickOnPin(getPinGlobalBounds(Index), MousePosition))
+			auto& PinBound = getPinGlobalBounds(Index);
+
+			if (checkMouseClickOnPin(PinBound, MousePositionAdj))
 			{
 				mPreviousSelectedPin = mSelectedPin;
 				mSelectedPin = Index;
@@ -109,19 +126,13 @@ namespace nne
 				PinFound = true;
 			}
 
-			if (checkMouseOverOnPin(getPinGlobalBounds(Index), MousePosition))
+			if (checkMouseOverOnPin(PinBound, MousePositionAdj))
 			{
 				mOverPin = Index;
 
 				PinFound = true;
 			}
 		}
-
-// 		if (!PinFound && sf::Mouse::isButtonPressed(sf::Mouse::Left))
-// 		{
-// 			mPreviousSelectedPin = mSelectedPin;
-// 			mSelectedPin = None;
-// 		}
 	}
 
 	void TChipComponent::setPinsColor(const sf::Color& Color)
@@ -181,21 +192,42 @@ namespace nne
 		return mDrawableComponent->getTransform().transformRect(getPinLocalBounds(PinIndex));
 	}
 
-	const std::size_t& TChipComponent::getSelectedPin() const
+	void TChipComponent::deselectPin()
 	{
-		return mSelectedPin;
+		mPreviousOverPin = None;
+		mOverPin = None;
+		mPreviousSelectedPin = None;
+		mSelectedPin = None;
+	}
+
+	const std::size_t& TChipComponent::getSelectedPinNumber() const
+	{
+		return mSelectedPin + 1;
+	}
+
+	const nne::tcomponents::TPin& TChipComponent::getSelectedPin() const
+	{
+		return mManagedObject->getComponent<tcomponents::TPinComponent>().getPin(mSelectedPin + 1);
+	}
+
+	nne::tcomponents::TPin& TChipComponent::getSelectedPin()
+	{
+		return mManagedObject->getComponent<tcomponents::TPinComponent>().getPin(mSelectedPin + 1);
 	}
 
 	void TChipComponent::renderDipChip()
 	{
+		// Get a ref to the PIN component
+		auto& PinComponent = mManagedObject->getComponent<tcomponents::TPinComponent>();
+
 		// Get the number of pins
-		std::size_t NumberOfPins = mManagedObject->getComponentAsPtr<tcomponents::TPinComponent>()->getPinList().size();
+		std::size_t NumberOfPins = PinComponent.getPinList().size();
 
 		// Resize the vertex array to fit all the vertices
 		mDrawableComponent->getVertexArray().resize(NumberOfPins * 4 + 4);
 
 		// Set the chip's base properties
-		mDrawableComponent->setSize({ 403, (21 * NumberOfPins / 2 + 33 * (NumberOfPins / 2 - 1)) + 70 });
+		mDrawableComponent->setSize({ 185, (9 * NumberOfPins / 2 + 14 * (NumberOfPins / 2 - 1)) + 38 });
 
 		mChipSize = mDrawableComponent->getSize();
 
@@ -203,18 +235,27 @@ namespace nne
 		mDrawableComponent->setColor({ 30, 30, 30 });
 
 		// Define pin size
-		sf::Vector2f PinSize = { 31.f, 21.f };
+		sf::Vector2f PinSize = { 15.f, 9.f };
 
 		// Get the chip position
 		sf::Vector2f ChipPosition = mDrawableComponent->getPosition();
 
 		// Get a ref to the drawable component vertex array for cache purposes
 		auto& Vertices = mDrawableComponent->getVertexArray();
+
+		std::string ChipTotalString = "";
 		
 		// Set the chip's pins properties
 		for (std::size_t PinCounter = 0; PinCounter < NumberOfPins; ++PinCounter)
 		{
-			sf::Vector2f PinPosition = PinCounter < NumberOfPins / 2 ? sf::Vector2f(-PinSize.x, 54.f * PinCounter + 35.f) : sf::Vector2f(mChipSize.x, 54.f * (PinCounter - NumberOfPins / 2) + 35.f);
+			float LabelOffsetX = PinCounter < NumberOfPins / 2 ? 22 : -23.f;
+
+			sf::Vector2f PinPosition;
+			if (PinCounter < NumberOfPins / 2)
+				PinPosition = { -PinSize.x, 23.f * PinCounter + 19.f };
+			else
+				PinPosition = { static_cast<float>(mChipSize.x), 23.f * (NumberOfPins - PinCounter) - 4.f };
+
 
 			// Create a pin and put the info in the main vertex array
 			auto PinVerticesArray = createPin(PinPosition + ChipPosition, PinSize, PinColorNormal);
@@ -223,6 +264,14 @@ namespace nne
 			Vertices[PinCounter * 4 + 4 + 1] = PinVerticesArray[1];
 			Vertices[PinCounter * 4 + 4 + 2] = PinVerticesArray[2];
 			Vertices[PinCounter * 4 + 4 + 3] = PinVerticesArray[3];
+
+			// 
+
+			// Create the pin label			
+			auto& PinName = PinComponent.getPin(PinCounter + 1).mPinName; //PinComponent[PinCounter].mPinName; //
+			ChipTotalString += PinName + "  ";
+			mLabels->setString(ChipTotalString);
+			mLabels->setCharacterPosition(PinName + " ", { LabelOffsetX + PinPosition.x, PinPosition.y - 3.f });
 		}
 	}
 

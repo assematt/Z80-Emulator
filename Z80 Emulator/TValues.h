@@ -16,3 +16,4 @@ using TS16BitValue = std::int16_t;
 using TMemoryAddress = std::uint16_t;
 using TMemory = std::vector<TU8BitValue>;
 
+#define LOG_VALUE(Value) std::clog << __FILE__ << "[" << __LINE__ << "] " << ": " << Value << std::endl;

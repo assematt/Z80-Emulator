@@ -8,6 +8,7 @@
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/String.hpp>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,9 @@ namespace nne
 			Underlined = 1 << 2, ///< Underlined characters
 			StrikeThrough = 1 << 3  ///< Strike through characters
 		};
+
+		template <class T>
+		using TSpecialization = std::unordered_map<std::size_t, T>;
 				
 		TTextComponent();
 		TTextComponent(const sf::String& String, const sf::Font& Font, const std::size_t& CharacterSize = 30);
@@ -73,7 +77,8 @@ namespace nne
 		void setStrikeThroughOutlineColor(const sf::Color& Color);
 
 		/// Set the position of a single character in the text
-		void setCharacterPosition(const std::size_t CharacterPos);
+		void setCharacterPosition(const std::size_t& CharacterPos, const sf::Vector2f& Position);
+		void setCharacterPosition(const std::string& SubString, const sf::Vector2f& Position);
 		
 		/// Get the displayed text as a sf::String
 		const sf::String& getString() const;
@@ -143,22 +148,23 @@ namespace nne
 		std::size_t computeVerticesStartPos() const;
 
 	private:
-		std::vector<sf::Color>	mCharactersFillColor;		/// The individual fill color of the single character
-		std::vector<sf::Color>	mCharactersOutlineColor;	/// The individual outline color of the single character
-		sf::String              mString;					///< String to display
-		const sf::Font*         mFont;						///< Font used to display the string
-		unsigned int			mCharacterSize;				///< Base size of characters, in pixels
-		sf::Uint32              mStyle;						///< Text style (see Style enum)
-		sf::Color               mFillColor;					///< Text fill color
-		sf::Color				mStrikeThroughFillColor;	///< Fill color for the StrikeThrough style, by default it's the same color of the Fill Color
-		sf::Color				mUnderlineFillColor;		///< Fill color for the StrikeThrough style, by default it's the same color of the Fill Color
-		sf::Color               mOutlineColor;				///< Text outline color
-		sf::Color				mStrikeThroughOutlineColor; ///< Outline color for the StrikeThrough style, by default it's the same color of the outline Color
-		sf::Color				mUnderlineOutlineColor;		///< Outline color for the StrikeThrough style, by default it's the same color of the outline Color
-		float					mOutlineThickness;			///< Thickness of the text's outline
-		mutable sf::FloatRect   mBounds;					///< Bounding rectangle of the text (in local coordinates)
-		mutable bool			mGeometryNeedupdate;		///< Does the geometry need to be recomputed
-		mutable sf::VertexArray	mVertices;					///< Vertex array containing the fill geometry
+		sf::String						mString;					///< String to display
+		const sf::Font*					mFont;						///< Font used to display the string
+		unsigned int					mCharacterSize;				///< Base size of characters, in pixels
+		sf::Uint32						mStyle;						///< Text style (see Style enum)
+		sf::Color						mFillColor;					///< Text fill color
+		sf::Color						mStrikeThroughFillColor;	///< Fill color for the StrikeThrough style, by default it's the same color of the Fill Color
+		sf::Color						mUnderlineFillColor;		///< Fill color for the StrikeThrough style, by default it's the same color of the Fill Color
+		sf::Color						mOutlineColor;				///< Text outline color
+		sf::Color						mStrikeThroughOutlineColor; ///< Outline color for the StrikeThrough style, by default it's the same color of the outline Color
+		sf::Color						mUnderlineOutlineColor;		///< Outline color for the StrikeThrough style, by default it's the same color of the outline Color
+		float							mOutlineThickness;			///< Thickness of the text's outline
+		mutable sf::FloatRect			mBounds;					///< Bounding rectangle of the text (in local coordinates)
+		mutable bool					mGeometryNeedupdate;		///< Does the geometry need to be recomputed
+		mutable sf::VertexArray			mVertices;					///< Vertex array containing the fill geometry
+		TSpecialization<sf::Color>		mCharactersFillColor;		/// The individual fill color of the single character
+		TSpecialization<sf::Color>		mCharactersOutlineColor;	/// The individual outline color of the single character
+		TSpecialization<sf::Vector2f>	mCharactersPositions;		/// The individual position of the single character
 	};
 
 }

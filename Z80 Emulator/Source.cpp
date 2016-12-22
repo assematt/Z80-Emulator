@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <iostream>
 #include <map>
 
@@ -16,7 +17,7 @@ int main()
 // 	std::cout.sync_with_stdio(false);
 // 	cout << "Test Z80 Emulator" << endl;
 // 
-// 	nne::_TManager EntitiesManager;
+// 	nne::TManager EntitiesManager;
 // 	EntitiesManager.addEntity(nne::TFactory::makeZ80(), "Z80");
 // 	EntitiesManager.addEntity(nne::TFactory::makeRam(), "Ram");
 // 	EntitiesManager.initEntities();
@@ -26,7 +27,7 @@ int main()
 // 	auto Ram = EntitiesManager.getEntityByKey("Ram");
 // 
 // 	Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->connectRam(Ram);
-// 	if (!Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->loadProgram("resources/programs/DJ.A01"))
+// 	if (!Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
 // 	{
 // 		std::cout << "Error! Could not open the file" << std::endl;
 // 
@@ -41,6 +42,8 @@ int main()
 // 
 // 		// update the entities
 // 		EntitiesManager.update(sf::Time::Zero);
+// 
+// 		sf::sleep(sf::seconds(1.f));
 // 	} while (true);
 	
 	nne::TGameApp App;

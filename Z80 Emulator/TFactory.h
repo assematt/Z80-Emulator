@@ -11,7 +11,9 @@ namespace nne
 	{
 		std::shared_ptr<TEntity> makeChip(TEntity* ChipToRender);
 
-		std::shared_ptr<TEntity> makeConductiveTrack();
+		std::shared_ptr<TEntity> makeWire();
+
+		std::shared_ptr<TEntity> makeBus();
 
 		std::shared_ptr<TEntity> makeLogicBoard();
 

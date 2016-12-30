@@ -138,9 +138,6 @@
     <ClCompile Include="TEntity.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="TConductiveTracks.cpp">
-      <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
     <ClCompile Include="TFactory.cpp">
       <Filter>Source Files\src\internals</Filter>
     </ClCompile>
@@ -202,6 +199,12 @@
       <Filter>Source Files\src\gui\widgets</Filter>
     </ClCompile>
     <ClCompile Include="TGridComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TWireComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TBusComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
   </ItemGroup>
@@ -293,9 +296,6 @@
     <ClInclude Include="TCacheManager.h">
       <Filter>Header Files\include\resources</Filter>
     </ClInclude>
-    <ClInclude Include="TConductiveTracks.h">
-      <Filter>Header Files\include\graphics\components</Filter>
-    </ClInclude>
     <ClInclude Include="ILoadingScreen.h">
       <Filter>Header Files\include\gui</Filter>
     </ClInclude>
@@ -369,6 +369,12 @@
       <Filter>Header Files\include\gui\base</Filter>
     </ClInclude>
     <ClInclude Include="TGridComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TWireComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TBusComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>

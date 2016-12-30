@@ -273,6 +273,9 @@ namespace nne
 		{
 			// Reset the state of the register
 			mRegisters.reset();
+
+			// Reset the TState
+			mTStates = 0;
 		}
 
 		TU8BitValue TZ80Component::fetchInstruction(const TU16BitValue& Address /*= 0*/)

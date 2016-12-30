@@ -12,7 +12,9 @@ namespace nne
 	TNewGameScene::TNewGameScene() :
 		IScene::IScene(),
 		mInsertionMethod(TInsertionMethod::NONE),
-		mTrackCounter(0)
+		mWireCounter(0),
+		mBusCounter(0),
+		mDrawingFromBusToChip(false)
 	{
 	}
 
@@ -55,56 +57,7 @@ namespace nne
 		// Create a RAM chip and set some property
 		auto RamChip = mGraphicEntity.getEntityByKey("RamChip");
 		RamChip->getComponentAsPtr<TDrawableComponent>()->setPosition(mGridComponent->transformCellCoords({ 30, 5 }) + sf::Vector2f(0.f, -1.f));
-
-		// Create basic connection
-		/*{
-		// Gets the pin component
-		auto& Z80PinComponent = Z80Chip->getComponent<TChipComponent>();
-		auto& RamPinComponent = RamChip->getComponent<TChipComponent>();
-
-		// Create the data bus connection
-		auto Z80D0Bound = Z80PinComponent.getPinGlobalBounds(13),
-		Z80D1Bound = Z80PinComponent.getPinGlobalBounds(14),
-		Z80D2Bound = Z80PinComponent.getPinGlobalBounds(11),
-		Z80D3Bound = Z80PinComponent.getPinGlobalBounds(7),
-		Z80D4Bound = Z80PinComponent.getPinGlobalBounds(6),
-		Z80D5Bound = Z80PinComponent.getPinGlobalBounds(8),
-		Z80D6Bound = Z80PinComponent.getPinGlobalBounds(9),
-		Z80D7Bound = Z80PinComponent.getPinGlobalBounds(12);
-
-		auto RamD0Bound = RamPinComponent.getPinGlobalBounds(10),
-		RamD1Bound = RamPinComponent.getPinGlobalBounds(11),
-		RamD2Bound = RamPinComponent.getPinGlobalBounds(12),
-		RamD3Bound = RamPinComponent.getPinGlobalBounds(14),
-		RamD4Bound = RamPinComponent.getPinGlobalBounds(15),
-		RamD5Bound = RamPinComponent.getPinGlobalBounds(16),
-		RamD6Bound = RamPinComponent.getPinGlobalBounds(17),
-		RamD7Bound = RamPinComponent.getPinGlobalBounds(18);
-
-		// Create 8 single track
-		for (mTrackCounter = 0; mTrackCounter < 8; ++mTrackCounter)
-		{
-		mGraphicEntity.addEntity(TFactory::makeConductiveTrack(), "conductive_track_D" + std::to_string(mTrackCounter), this);
-		mGraphicEntity.initLastEntity();
-		}
-
-		// Retrieve those track
-		auto&	ConductiveTrack0 = mGraphicEntity.getEntityByKey("conductive_track_D0")->getComponent<TConductiveTracks>(),
-		ConductiveTrack1 = mGraphicEntity.getEntityByKey("conductive_track_D1")->getComponent<TConductiveTracks>(),
-		ConductiveTrack2 = mGraphicEntity.getEntityByKey("conductive_track_D2")->getComponent<TConductiveTracks>(),
-		ConductiveTrack3 = mGraphicEntity.getEntityByKey("conductive_track_D3")->getComponent<TConductiveTracks>(),
-		ConductiveTrack4 = mGraphicEntity.getEntityByKey("conductive_track_D4")->getComponent<TConductiveTracks>(),
-		ConductiveTrack5 = mGraphicEntity.getEntityByKey("conductive_track_D5")->getComponent<TConductiveTracks>(),
-		ConductiveTrack6 = mGraphicEntity.getEntityByKey("conductive_track_D6")->getComponent<TConductiveTracks>(),
-		ConductiveTrack7 = mGraphicEntity.getEntityByKey("conductive_track_D7")->getComponent<TConductiveTracks>();
-
-		ConductiveTrack0.placePoint({ Z80D0Bound.left + Z80D0Bound.width, Z80D0Bound.top + (Z80D0Bound.height / 2) });
-		ConductiveTrack0.placePoint(sf::Vector2f(Z80D0Bound.left + Z80D0Bound.width, Z80D0Bound.top + (Z80D0Bound.height / 2)) - sf::Vector2f(100.f, 0.f));
-		ConductiveTrack0.placePoint(sf::Vector2f(Z80D0Bound.left + Z80D0Bound.width, Z80D0Bound.top + (Z80D0Bound.height / 2)) - sf::Vector2f(100.f, 0.f) + sf::Vector2f(0, 300.f));
-		ConductiveTrack0.placePoint(sf::Vector2f(Z80D0Bound.left + Z80D0Bound.width, Z80D0Bound.top + (Z80D0Bound.height / 2)) - sf::Vector2f(100.f, 0.f) + sf::Vector2f(0, 300.f) + sf::Vector2f(800.f, 0.f));
-		mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>()->placeTrack(&ConductiveTrack0);
-		}*/
-
+		
 		// Create the logic board who will contain all the chip and set some property
 		mLogicBoard = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>();
 		mLogicBoard->placeChip(Z80Chip.get());
@@ -150,10 +103,17 @@ namespace nne
 			{
 				switch (mAppEvent.key.code)
 				{
-					// See if we are trying to place a new track
+					// See if we are trying to place a new wire
 					case sf::Keyboard::T:
-						addConductiveTrack();
-						break;
+					{
+						addWire();
+					}break;
+
+					// See if we are trying to place a new bus
+					case sf::Keyboard::Y:
+					{
+						addBus();
+					}break;					
 
 					// Reset the insertion method
 					case sf::Keyboard::R:
@@ -241,73 +201,193 @@ namespace nne
 						mRenderSurface.moveView(2);
 						mGridComponent->forceRefresh();
 					}break;
-				}
-			}
 
-			if (mAppEvent.type == sf::Event::KeyReleased && mAppEvent.key.code == sf::Keyboard::P)
-			{
-				// get a pointer to the selected track
-				auto CurrentTrackPtr = mLogicBoard->getSelectedTrack();
-				
-				if (CurrentTrackPtr)
-					CurrentTrackPtr->toggleDraw();
+					// Toggle conductive wire
+					case sf::Keyboard::P:
+					{
+						// get a pointer to the selected wire
+						auto CurrentWire = mLogicBoard->getSelectedWire();
+
+						if (CurrentWire)
+							CurrentWire->toggleDraw();
+					}break;
+				}
 			}
 
 			// IF we moved the mouse
 			if (mAppEvent.type == sf::Event::MouseMoved)
 			{
-				// get a pointer to the selected track
-				auto CurrentTrackPtr = mLogicBoard->getSelectedTrack();
+				// Get the mouse coordinate and transform them to make them stick to the grid
+				auto MousePos = static_cast<sf::Vector2i>(convertMouseCoordinate(sf::Mouse::getPosition(*mRenderWindow)));
+				auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(MousePos);
+				auto CellPos = mGridComponent->transformCellCoords(GridCoord);
 
-				if (CurrentTrackPtr)
+				switch (mInsertionMethod)
 				{
-					auto MousePos = static_cast<sf::Vector2i>(convertMouseCoordinate(sf::Mouse::getPosition(*mRenderWindow)));
-					auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(MousePos);
-					auto CellPos = mGridComponent->transformCellCoords(GridCoord);
+					// If we are using the chip tool
+					case TInsertionMethod::CHIP:
+						break;
 
-					CurrentTrackPtr->placePointTemp(CellPos);
+					// If we are using the wire tool
+					case TInsertionMethod::WIRE:
+					{
+						// get a pointer to the selected wire
+						auto CurrentWire = mLogicBoard->getSelectedWire();
+
+						if (CurrentWire)
+							CurrentWire->placePointTemp(CellPos);
+					}break;
+
+					// If we are using the bus tool
+					case TInsertionMethod::BUS:	
+					{
+						// get a pointer to the selected wire
+						auto CurrentBus = mLogicBoard->getSelectedBus();
+
+						if (CurrentBus)
+							CurrentBus->placePointTemp(CellPos);
+					}break;
+
+					// If we are not using any tool
+					case TInsertionMethod::NONE:
+						break;
 				}
 			}
 
-			// If we have release the mouse after a click
-			if (mAppEvent.type == sf::Event::MouseButtonReleased)
+			// If we have release the mouse after a left click
+			if (mAppEvent.type == sf::Event::MouseButtonReleased && mAppEvent.mouseButton.button == sf::Mouse::Left)
 			{
-				// get a pointer to the selected track
-				auto CurrentTrackPtr = mLogicBoard->getSelectedTrack();
 
-				// If we have selected a track
-				if (CurrentTrackPtr)
+				switch (mInsertionMethod)
 				{
-					CurrentTrackPtr->confirmPoints();
+					// If we are using the chip tool
+					case TInsertionMethod::CHIP:
+						break;
 
-					// get a pointer to the selected chip
-					auto CurrentChipPtr = mLogicBoard->getSelectedChip();
-					auto FormerChipPtr = mLogicBoard->getFormerSelectedChip();
-
-					// If we have drawn a track between 2 chips, exit track drawing mode, and deselect the currently selected chips and track
-					if (CurrentChipPtr && FormerChipPtr)
+					// If we are using the wire tool
+					case TInsertionMethod::WIRE:
 					{
-						// Stop the drawing mode
-						CurrentTrackPtr->toggleDraw();
+						// get a pointer to the selected wire
+						auto CurrentWire = mLogicBoard->getSelectedWire();
 
-						// Connect the pins
-						auto& PinNumber1 = CurrentChipPtr->getSelectedPinNumber();
-						auto& PinNumber2 = FormerChipPtr->getSelectedPinNumber();
+						// If we have selected a wire
+						if (CurrentWire)
+						{
+							CurrentWire->confirmPoints();
 
-						auto& SelectedPin1 = CurrentChipPtr->getSelectedPin();
-						auto& SelectedPin2 = FormerChipPtr->getSelectedPin();
-						tcomponents::TPinComponentUtility::connectPins(SelectedPin1, SelectedPin2);
+							// get a pointer to the selected chip
+							auto CurrentChip = mLogicBoard->getSelectedChip();
 
-						// Reset the chip's pin selected status
-						CurrentChipPtr->deselectPin();
-						FormerChipPtr->deselectPin();
+							// get a pointer to the former selected chip
+							auto FormerChip = mLogicBoard->getFormerSelectedChip();
 
-						// Deselect the chip and track from the logic board
-						mLogicBoard->deselectChip(true);
-						mLogicBoard->deselectTrack(true);
-					}
+							// get a pointer to the selected bus
+							auto CurrentBus = mLogicBoard->getSelectedBus();
+
+							// Establish if we are drawing from a bus to chip or vice-versa
+							if (CurrentChip && !CurrentBus)
+								mDrawingFromBusToChip = false;
+							else if (!CurrentChip && CurrentBus)
+								mDrawingFromBusToChip = true;
+
+							// If we have drawn a wire between 2 chips, exit wire drawing mode, and deselect the currently selected chips and wire
+							if (CurrentChip && FormerChip)
+							{
+								// Stop the drawing mode
+								CurrentWire->toggleDraw();
+
+								// Connect the pins
+								tcomponents::TPinComponentUtility::connectPins(CurrentChip->getSelectedPin(), FormerChip->getSelectedPin());
+
+								// Reset the chip's pin selected status
+								CurrentChip->deselectPin();
+								FormerChip->deselectPin();
+
+								// Deselect the chip/wire/bus from the logic board
+								mLogicBoard->deselectEverything();
+
+								// Start the drawing of a new wire
+								addWire();
+							}
+
+							// If we have draw a wire between a chip and a bus, exit wire drawing mode, and deselect the currently selected chips and wire
+							if (CurrentChip && CurrentBus)
+							{
+								// Stop the drawing mode
+								CurrentWire->toggleDraw();
+								
+								// Connect the pin to the bus as an entry wire
+								if (mDrawingFromBusToChip)
+									CurrentBus->connectExitWire(CurrentChip->getSelectedPin());
+								else
+									CurrentBus->connectEntryWire(CurrentChip->getSelectedPin());
+
+								// Reset the chip's pin selected status
+								CurrentChip->deselectPin();
+
+								// Deselect the chip/wire/bus from the logic board
+								mLogicBoard->deselectEverything();
+
+								// Start the drawing of a new wire
+								addWire();
+							}
+						
+						}
+					}break;
+
+					// If we are using the bus tool
+					case TInsertionMethod::BUS:
+					{
+						// get a pointer to the selected bus
+						auto CurrentBus = mLogicBoard->getSelectedBus();
+
+						// If we have selected a bus
+						if (CurrentBus)
+							CurrentBus->confirmPoints();
+
+						// Start the drawing of a new bus
+						//addBus();
+					}break;
+
+					// If we are not using any tool
+					case TInsertionMethod::NONE:
+					{
+						mLogicBoard->deselectEverything();
+					}break;
 				}
+			}
 
+			// If we have release the mouse after a right click
+			if (mAppEvent.type == sf::Event::MouseButtonReleased && mAppEvent.mouseButton.button == sf::Mouse::Right)
+			{
+
+				switch (mInsertionMethod)
+				{
+					case TInsertionMethod::WIRE:
+					{
+						// get a pointer to the selected wire
+						auto CurrentWire = mLogicBoard->getSelectedWire();
+						
+						// If we have a valid wire selected we stop the drawing and deselect it
+						if (CurrentWire)
+						{
+							CurrentWire->toggleDraw();
+							mLogicBoard->deselectWire();
+						}
+					}break;
+
+					case TInsertionMethod::BUS:
+					{
+						// get a pointer to the selected bus
+						auto CurrentBus = mLogicBoard->getSelectedBus();
+						if (CurrentBus)
+						{
+							CurrentBus->toggleDraw();
+							mLogicBoard->deselectBus();
+						}
+					}
+
+				}
 			}
 
 			updateDebugInfo();
@@ -318,77 +398,9 @@ namespace nne
 
 	void TNewGameScene::refresh(sf::Time ElapsedTime)
 	{
-		// Deselect the eventually selected chip
-		//mLogicBoard->deselectChip(true);
-
 		mLogicEntity.refresh(ElapsedTime);
 
 		mGraphicEntity.refresh(ElapsedTime);
-
-		// If we pressed the mouse
-		/*if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-		{
-			// get a pointer to the selected chip
-			auto CurrentChipPtr = mLogicBoard->getSelectedChip();
-			auto FormerChipPtr = mLogicBoard->getFormerSelectedChip();
-
-			// get a pointer to the selected track
-			auto CurrentTrackPtr = mLogicBoard->getSelectedTrack();
-
-			// If we are trying to place a track
-			if (mInsertionMethod == TInsertionMethod::TRACK)
-			{
-				// Forward declare the SelectedPin variable
-				std::size_t SelectedPin;
-
-				// If we clicked on top of a pin gets is bound to better place the track
-				if (CurrentChipPtr && (SelectedPin = CurrentChipPtr->getSelectedPin()) != TChipComponent::None)
-				{
-					auto& Bound = CurrentChipPtr->getPinGlobalBounds(SelectedPin);
-
-					CurrentTrackPtr->placePoint({ Bound.left + Bound.width, Bound.top + (Bound.height / 2) });
-				}
-				// Otherwise place it where we clicked on the mouse
-				else
-				{
-					// Get the adjusted mouse position
-					auto AdjustedMouseCoo = convertMouseCoordinate(sf::Mouse::getPosition(*mRenderWindow));
-
-					CurrentTrackPtr->placePoint(AdjustedMouseCoo);
-				}
-			}
-		}*/
-
-		// If we 
-		/*if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && false)
-		{
-			// get a pointer to the selected chip
-			auto CurrentChipPtr = mLogicBoard->getSelectedChip();
-			auto FormerChipPtr = mLogicBoard->getFormerSelectedChip();
-
-			// get a pointer to the selected track
-			auto CurrentTrackPtr = mLogicBoard->getSelectedTrack();
-
-			// Forward declare the value to old the selected pin
-			std::size_t SelectedPin = TChipComponent::None;
-
-			// Check if the mouse is pressed and we selected a chip
-			if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && CurrentChipPtr && CurrentTrackPtr && (SelectedPin = CurrentChipPtr->getSelectedPin()) != TChipComponent::None)
-			{
-				// Get the selected pin bound
-				auto& Bound = CurrentChipPtr->getPinGlobalBounds(SelectedPin);
-
-				// Place the point if we just selected one chip
-				if (!FormerChipPtr)
-				{
-					CurrentTrackPtr->placePoint({ Bound.left + Bound.width, Bound.top + (Bound.height / 2) });
-				}
-				else
-				{
-					CurrentTrackPtr->endTrack({ Bound.left, Bound.top + (Bound.height / 2) });
-				}
-			}
-		}*/
 	}
 
 	void TNewGameScene::update(sf::Time ElapsedTime)
@@ -419,27 +431,54 @@ namespace nne
 		mRenderWindow->display();
 	}
 
-	void TNewGameScene::addConductiveTrack()
+	void TNewGameScene::addWire()
 	{
-		// Create a conductive track entity and add it to the manger
-		mGraphicEntity.addEntity(TFactory::makeConductiveTrack(), "ConductiveTrack_" + std::to_string(mTrackCounter++), this);
+		// Create a wire entity and add it to the manger
+		mGraphicEntity.addEntity(TFactory::makeWire(), "Wire_" + std::to_string(mWireCounter++), this);
 
 		// Retrieve the newly added entity
-		mTempTrack = mGraphicEntity.getEntityByKey("ConductiveTrack_" + std::to_string(mTrackCounter - 1));
+		mTempWire = mGraphicEntity.getEntityByKey("Wire_" + std::to_string(mWireCounter - 1));
 
-		// Init the newly added track
-		mTempTrack->init();
+		// Init the newly added wire
+		mTempWire->init();
 
 		// And adds it to the logic board
-		mLogicBoard->placeTrack(mTempTrack.get());
+		mLogicBoard->placeWire(mTempWire.get());
 
-		// And set it as the active track
-		mLogicBoard->deselectTrack(true);
-		mLogicBoard->deselectChip(true);
-		mLogicBoard->setSelectedTrack(mTempTrack->getComponentAsPtr<TConductiveTracks>());
+		// And set it as the active wire
+		mLogicBoard->deselectEverything();
+		mLogicBoard->setSelectedWire(mTempWire->getComponentAsPtr<TWireComponent>());
+
+		// Allow to draw the wire
+		mLogicBoard->getSelectedWire()->toggleDraw();
 
 		// Change the insertion method
-		mInsertionMethod = TInsertionMethod::TRACK;
+		mInsertionMethod = TInsertionMethod::WIRE;
+	}
+
+	void TNewGameScene::addBus()
+	{
+		// Create a conductive bus entity and add it to the manger
+		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mWireCounter++), this);
+
+		// Retrieve the newly added entity
+		mTempBus = mGraphicEntity.getEntityByKey("Bus_" + std::to_string(mWireCounter - 1));
+
+		// Init the newly added bus
+		mTempBus->init();
+
+		// And adds it to the logic board
+		mLogicBoard->placeBus(mTempBus.get());
+
+		// And set it as the active bus
+		mLogicBoard->deselectEverything();
+		mLogicBoard->setSelectedBus(mTempBus->getComponentAsPtr<TBusComponent>());
+
+		// Allow to draw the bus
+		mLogicBoard->getSelectedBus()->toggleDraw();
+
+		// Change the insertion method
+		mInsertionMethod = TInsertionMethod::BUS;
 	}
 
 	sf::Vector2f TNewGameScene::convertMouseCoordinate(sf::Vector2i MouseCoordinate)

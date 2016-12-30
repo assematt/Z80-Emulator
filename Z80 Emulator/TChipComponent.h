@@ -72,10 +72,10 @@ namespace nne
 		sf::Vector2f computePinSize(const std::size_t& PinIndex);
 
 		/// Check if we clicked on a pin and return that pin index
-		bool checkMouseClickOnPin(const sf::FloatRect& PinBound, const sf::Vector2i Mouse);
+		bool checkMouseClickOnPin(const sf::FloatRect& PinBound, const sf::Vector2f& MousePos);
 
 		/// Check if we clicked on a pin and return that pin index
-		bool checkMouseOverOnPin(const sf::FloatRect& PinBound, const sf::Vector2i Mouse);
+		bool checkMouseOverOnPin(const sf::FloatRect& PinBound, const sf::Vector2f& MousePos);
 
 		/// Create an array of 4 vertices with the appropriate size, position and color based on the passed argument
 		const std::array<sf::Vertex, 4> createPin(const sf::Vector2f& Position, const sf::Vector2f& Size, const sf::Color& Color);

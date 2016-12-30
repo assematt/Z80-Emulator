@@ -3,7 +3,8 @@
 #include "TChipComponent.h"
 #include "TDrawableComponent.h"
 #include "TTextComponent.h"
-#include "TConductiveTracks.h"
+#include "TWireComponent.h"
+#include "TBusComponent.h"
 #include "TLogicBoardComponent.h"
 #include "TZ80Component.h"
 #include "TPinComponent.h"
@@ -21,20 +22,28 @@ namespace nne
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
-			//TempPtr->addComponent<TLogicBoardComponent>();
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TChipComponent>(ChipToRender);
 
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeConductiveTrack()
+		std::shared_ptr<nne::TEntity> makeWire()
 		{
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
-			//TempPtr->addComponent<TLogicBoardComponent>();
-			TempPtr->addComponent<TConductiveTracks>();
+			TempPtr->addComponent<TWireComponent>();
+
+			return std::move(TempPtr);
+		}
+
+		std::shared_ptr<nne::TEntity> makeBus()
+		{
+			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+
+			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TBusComponent>();
 
 			return std::move(TempPtr);
 		}

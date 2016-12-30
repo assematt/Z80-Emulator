@@ -141,17 +141,17 @@ namespace nne
 			InsertChipButton->setToggleable(true);
 			LeftToolsPanel->addWidget(InsertChipButton.get());
 
-			// Insert track button
-			TButton::Ptr InsertTrackButton = std::make_shared<TButton>();
-			InsertTrackButton->setZIndex(3);
-			InsertTrackButton->setName("INSERT_TRACK_BUTTON");
-			InsertTrackButton->setCaption("INSERT TRACK");
-			InsertTrackButton->setCharacterSize(14);
-			InsertTrackButton->setSize({ 300, 35 });
-			InsertTrackButton->move({ 0.f, 55.f });
-			InsertTrackButton->setPadding({ 54u, 9u });
-			InsertTrackButton->setToggleable(true);
-			LeftToolsPanel->addWidget(InsertTrackButton.get());
+			// Insert wire button
+			TButton::Ptr InsertWireButton = std::make_shared<TButton>();
+			InsertWireButton->setZIndex(3);
+			InsertWireButton->setName("INSERT_WIRE_BUTTON");
+			InsertWireButton->setCaption("INSERT WIRE");
+			InsertWireButton->setCharacterSize(14);
+			InsertWireButton->setSize({ 300, 35 });
+			InsertWireButton->move({ 0.f, 55.f });
+			InsertWireButton->setPadding({ 54u, 9u });
+			InsertWireButton->setToggleable(true);
+			LeftToolsPanel->addWidget(InsertWireButton.get());
 
 			// Insert bus button
 			TButton::Ptr InsertBusButton = std::make_shared<TButton>();
@@ -184,7 +184,7 @@ namespace nne
 
 			GuiManager->addWidget(LeftToolsPanel, 1);
 			GuiManager->addWidget(InsertChipButton, 2);
-			GuiManager->addWidget(InsertTrackButton, 2);
+			GuiManager->addWidget(InsertWireButton, 2);
 			GuiManager->addWidget(InsertBusButton, 2);
 		}
 

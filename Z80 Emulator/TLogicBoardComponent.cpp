@@ -9,14 +9,25 @@ namespace nne
 	TLogicBoardComponent::TLogicBoardComponent() :
 		mSelectedChip(nullptr),
 		mFormerSelectedChip(nullptr),
-		mFormerSelectedTrack(nullptr),
-		mSelectedTrack(nullptr)
+
+		mFormerSelectedWire(nullptr),
+		mSelectedWire(nullptr),
+
+		mFormerSelectedBus(nullptr),
+		mSelectedBus(nullptr)
 	{
 	}
 
 	void TLogicBoardComponent::update(const sf::Time& ElapsedTime)
 	{
-		
+	}
+
+	void TLogicBoardComponent::refresh(const sf::Time& ElapsedTime)
+	{
+	}
+
+	void TLogicBoardComponent::init()
+	{
 	}
 
 	void TLogicBoardComponent::placeChip(TChipComponent* Component)
@@ -27,28 +38,37 @@ namespace nne
 
 	void TLogicBoardComponent::placeChip(TEntity* Entity)
 	{
-		//Entity->replaceComponent<TLogicBoardComponent>(this);
+		// Add the logic-board component to the entity
 		Entity->addComponent<TLogicBoardComponent>(this);
 
 		placeChip(Entity->getComponentAsPtr<TChipComponent>());
 	}
 
-	void TLogicBoardComponent::placeTrack(TConductiveTracks* Track)
+	void TLogicBoardComponent::placeWire(TWireComponent* Wire)
 	{
-		mTrackVector.push_back(Track);
+		mWireVector.push_back(Wire);
 	}
 
-	void TLogicBoardComponent::placeTrack(TEntity* Entity)
+	void TLogicBoardComponent::placeWire(TEntity* Entity)
 	{
-		//Entity->replaceComponent<TLogicBoardComponent>(this);
+		// Add the logic-board component to the entity
 		Entity->addComponent<TLogicBoardComponent>(this);
 
-		placeTrack(Entity->getComponentAsPtr<TConductiveTracks>());
+		placeWire(Entity->getComponentAsPtr<TWireComponent>());
 	}
 
-	void TLogicBoardComponent::setLogicBoard(TEntity* Entity)
+	
+	void TLogicBoardComponent::placeBus(TBusComponent* Bus)
 	{
+		mBusVector.push_back(Bus);
+	}
 
+	void TLogicBoardComponent::placeBus(TEntity* Entity)
+	{
+		// Add the logic-board component to the entity
+		Entity->addComponent<TLogicBoardComponent>(this);
+
+		placeBus(Entity->getComponentAsPtr<TBusComponent>());
 	}
 
 	void TLogicBoardComponent::setSelectedChip(TChipComponent* Chip)
@@ -79,42 +99,81 @@ namespace nne
 			mFormerSelectedChip = nullptr;
 	}
 
-	void TLogicBoardComponent::setSelectedTrack(TConductiveTracks* Track)
+	void TLogicBoardComponent::setSelectedWire(TWireComponent* Wire)
 	{
-		// Check if is the first time we are assigning the selected track, if yes also check if have selected a different track
-		if (mSelectedTrack && mSelectedTrack != Track)
-			mFormerSelectedTrack = mSelectedTrack;
+		// Check if is the first time we are assigning the selected wire, if yes also check if have selected a different wire
+		if (mSelectedWire && mSelectedWire != Wire)
+			mFormerSelectedWire = mSelectedWire;
 
-		// Set the selected track
-		mSelectedTrack = Track;
+		// Set the selected wire
+		mSelectedWire = Wire;
 	}
 
-	TConductiveTracks* TLogicBoardComponent::getSelectedTrack() const
+	TWireComponent* TLogicBoardComponent::getSelectedWire() const
 	{
-		return mSelectedTrack;
+		return mSelectedWire;
 	}
 
-	TConductiveTracks* TLogicBoardComponent::getFormerSelectedTrack() const
+	TWireComponent* TLogicBoardComponent::getFormerSelectedWire() const
 	{
-		return mFormerSelectedTrack;
+		return mFormerSelectedWire;
 	}
 
-	void TLogicBoardComponent::deselectTrack(bool DisableFormerTrackToo /*= false*/)
+	void TLogicBoardComponent::deselectWire(bool DisableFormerWireToo /*= false*/)
 	{
-		mSelectedTrack = nullptr;
+		if (mSelectedWire)
+		{
+			mSelectedWire->setSelectedStatus(false);
+			mSelectedWire = nullptr;
+		}
 		
-		if (DisableFormerTrackToo)
-			mFormerSelectedTrack = nullptr;
+		if (DisableFormerWireToo && mFormerSelectedWire)
+		{
+			mFormerSelectedWire->setSelectedStatus(false);
+			mFormerSelectedWire = nullptr;
+		}
 	}
 
-	void TLogicBoardComponent::refresh(const sf::Time& ElapsedTime)
+	void TLogicBoardComponent::setSelectedBus(TBusComponent* Bus)
 	{
-		
+		// Check if is the first time we are assigning the selected bus, if yes also check if have selected a different bus
+		if (mSelectedWire && mSelectedBus != Bus)
+			mFormerSelectedBus = mSelectedBus;
+
+		// Set the selected bus
+		mSelectedBus = Bus;
 	}
 
-	void TLogicBoardComponent::init()
+	nne::TBusComponent* TLogicBoardComponent::getSelectedBus() const
+{
+		return mSelectedBus;
+	}
+
+	nne::TBusComponent* TLogicBoardComponent::getFormerSelectedBus() const
+{
+		return mFormerSelectedBus;
+	}
+
+	void TLogicBoardComponent::deselectBus(bool DisableFormerBusToo /*= false*/)
 	{
-		
+		if (mSelectedBus)
+		{
+			mSelectedBus->setSelectedStatus(false);
+			mSelectedBus = nullptr;
+		}		
+
+		if (DisableFormerBusToo && mFormerSelectedBus)
+		{
+			mFormerSelectedBus->setSelectedStatus(false);
+			mFormerSelectedBus = nullptr;
+		}
+	}	
+
+	void TLogicBoardComponent::deselectEverything()
+	{
+		deselectBus(true);
+		deselectChip(true);
+		deselectWire(true);
 	}
 
 }

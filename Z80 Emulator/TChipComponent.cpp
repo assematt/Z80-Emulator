@@ -99,11 +99,8 @@ namespace nne
 		std::size_t NumberOfPins = mManagedObject->getComponentAsPtr<tcomponents::TPinComponent>()->getPinList().size();
 
 		// Get mouse info
-		auto MousePosition = sf::Mouse::getPosition(mParent->getParentScene()->getRenderWindow());
-		auto RenderSurfacePos = static_cast<sf::Vector2i>(mParent->getParentScene()->getRenderSurface().getPosition());
-		MousePosition -= RenderSurfacePos;
-
-		auto MousePositionAdj = static_cast<sf::Vector2i>(mParent->getParentScene()->getRenderSurface().mapPixelToCoords(MousePosition));
+		auto MousePosition = sf::Mouse::getPosition(mParent->getParentScene()->getRenderWindow()) - static_cast<sf::Vector2i>(mParent->getParentScene()->getRenderSurface().getPosition());
+		auto MousePositionAdj = mParent->getParentScene()->getRenderSurface().mapPixelToCoords(MousePosition);
 		
 		// Swap the status of the selected and over pin
 		mPreviousOverPin = mOverPin;
@@ -285,17 +282,17 @@ namespace nne
 		return { Width, Height };
 	}
 
-	bool TChipComponent::checkMouseClickOnPin(const sf::FloatRect& PinBound, const sf::Vector2i Mouse)
+	bool TChipComponent::checkMouseClickOnPin(const sf::FloatRect& PinBound, const sf::Vector2f& MousePos)
 	{
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && PinBound.contains(static_cast<sf::Vector2f>(Mouse)))
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && PinBound.contains(MousePos))
 			return true;
 
 		return false;
 	}
 
-	bool TChipComponent::checkMouseOverOnPin(const sf::FloatRect& PinBound, const sf::Vector2i Mouse)
+	bool TChipComponent::checkMouseOverOnPin(const sf::FloatRect& PinBound, const sf::Vector2f& MousePos)
 	{
-		if (PinBound.contains(static_cast<sf::Vector2f>(Mouse)))
+		if (PinBound.contains(MousePos))
 			return true;
 
 		return false;

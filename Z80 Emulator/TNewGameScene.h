@@ -19,7 +19,7 @@ namespace nne
 		enum class TInsertionMethod
 		{
 			CHIP,
-			TRACK,
+			WIRE,
 			BUS,
 			NONE
 		};
@@ -40,8 +40,11 @@ namespace nne
 		virtual void draw() override;
 
 	private:
-		/// Add a conductive track in the manager and logic board and set it as the current selected track
-		void addConductiveTrack();
+		/// Add a wire in the manager and logic board and set it as the current selected wire
+		void addWire();
+
+		/// Add a bus in the manager and logic board and set it as the current selected bus
+		void addBus();
 
 		/// Convert the mouse coordinate from window coordinate to the sf::View coordinate
 		sf::Vector2f convertMouseCoordinate(sf::Vector2i MouseCoordinate);
@@ -50,13 +53,22 @@ namespace nne
 		sf::Event				mAppEvent;
 		TManager				mLogicEntity;
 		TManager				mGraphicEntity;
-		std::size_t				mTrackCounter;
 		sf::Uint32				mZoomSteps;
 		TInsertionMethod		mInsertionMethod;
 		tgui::TGuiManager		mGuiManager;
 		TGridComponent*			mGridComponent;
 		TLogicBoardComponent*	mLogicBoard;
+
+		/// Variable to keep track of how many wires/bus/chips we have in the logic board
+		std::size_t				mWireCounter;
+		std::size_t				mBusCounter;
+
+		/// Variable the old a shared_ptr to the last added wires/bus/chips
 		TEntity::EntityPtr		mTempChip;
-		TEntity::EntityPtr		mTempTrack;
+		TEntity::EntityPtr		mTempWire;
+		TEntity::EntityPtr		mTempBus;
+
+		/// Variable to establish if we are drawing from a bus to a chip or viceversa
+		bool mDrawingFromBusToChip;
 	};
 }

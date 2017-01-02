@@ -42,7 +42,13 @@ namespace nne
 				MODE_2
 			};
 
-		public:
+			enum class TMachineCycleMode : TU8BitValue
+			{
+				INSTRUCTION_FETCH,
+				MEMORY_READ,
+				MEMORY_WRITE
+			};
+
 			TZ80Component();
 			~TZ80Component() = default;
 
@@ -57,7 +63,7 @@ namespace nne
 
 			bool loadProgram(const std::string& Program);
 
-			bool connectRam(std::shared_ptr<TEntity> Ram);
+			bool connectRam(std::shared_ptr<TEntity>& Ram);
 
 			/// Pause the program execution
 			void pauseExecution();
@@ -71,7 +77,7 @@ namespace nne
 			/// Fetch the instruction from memory
 			TU8BitValue fetchInstruction(const TU16BitValue& Address = 0);
 
-			// Execute instruction
+			/// Execute instruction
 			TU16BitValue executeInstruction(const TOpCodesMainInstruction& OpCode);
 
 		private:
@@ -87,6 +93,9 @@ namespace nne
 
 			/// Get the data from the data bus
 			TU8BitValue getDataFromDataBus();
+
+			/// Fetch the register type we are addressing
+			TRegisterType fetchRegisterType(const TU8BitValue& OpCode, const TU8BitValue& Shift, const TU8BitValue& Mask);
 
 			/// Helper function for loading data into register
 			template <class T, class S = T>
@@ -108,6 +117,11 @@ namespace nne
 			void call(const TU16BitValue& Address);
 			void returnFromCall();
 
+			///
+			void fetchInstructionMCycle();
+			void memoryReadMCycle();
+			void memoryWriteMCycle();
+
 		private:
 			bool mIsRunning;
 			bool mIsHalted;
@@ -116,11 +130,14 @@ namespace nne
 			TInterruptMode mInterruptMode;
 
 			// Current instruction
+			int			mLowMemoryRWValue;
+			int			mHighMemoryRWValue;
 			TU8BitValue mCurrentInstruction;
 
 			// Clock and T states
-			nne::TClock mClock;
-			TU8BitValue mTStates;
+			nne::TClock			mClock;
+			TU8BitValue			mTStates;
+			TMachineCycleMode	mMachineCycleMode;
 
 			// Cache the value of the address and data bus
 			TU16BitValue mAddressBus;

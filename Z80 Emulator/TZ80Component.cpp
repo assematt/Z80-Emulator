@@ -5,7 +5,7 @@ namespace nne
 	namespace tcomponents
 	{
 		TZ80Component::TZ80Component() :
-			mIsRunning(true),
+			mIsRunning(false),
 			mIsHalted(false),
 			mMaskableInterrupt(true),
 			mAlu(mRegisters),
@@ -14,7 +14,10 @@ namespace nne
 			mRam(nullptr),
 			mAddressBus(0),
 			mDataBus(0),
-			mCurrentInstruction(TOpCodesMainInstruction::NOP)
+			mLowMemoryRWValue(0),
+			mHighMemoryRWValue(0),
+			mCurrentInstruction(TOpCodesMainInstruction::NOP),
+			mMachineCycleMode(TMachineCycleMode::INSTRUCTION_FETCH)
 		{
 		}
 		
@@ -107,65 +110,22 @@ namespace nne
 			if (!mIsRunning)
 				return;
 
-			// Instruction fetch
-			switch (mTStates)
+			switch (mMachineCycleMode)
 			{
-				// T1
-				case 0:
-				{
-					// The Program Counter is placed on the address bus at the beginning of the M1 cycle
-					// Select the instruction by putting the address in the address bus
-					auto& PC = mRegisters.programCounter();
-					pushDataToAddressBus(PC);
-				} break;
-
-				// T2
-				case 1:
-				{
-					// One half clock cycle later, the MREQ signal goes active.At this time, the address to memory has had time to stabilize 
-					// so that the falling edge of MREQ can be used directly as a chip enable clock to dynamic memories.
-					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
-
-					// Get a ref to the PinComponent
-					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
-
-					// Activates MREQ and RD pin
-					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
-					Pins->getPin(21).changePinStatus(tcomponents::TPin::LOW, true); // RD
-				} break;
-
-				// T3
-				case 2:
-				{
-					// The CPU samples the data from the memory space on the data bus with the rising edge of the clock of state T3, and this same edge is used by the
-					// CPU to turn off the RD and MREQ signals. As a result, the data is sampled by the CPU before the RD signal becomes inactive
-
-					// Get the instruction from the bus
-					mCurrentInstruction = getDataFromDataBus();
-
-					// Get a ref to the PinComponent
-					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
-
-					// Deactivates MREQ and RD pin
-					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ
-					Pins->getPin(21).changePinStatus(tcomponents::TPin::HIGH, true); // RD
-				} break;
-
-				// T4
-				case 3:
-				{
-					// Execute the instruction
-					auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
-					executeInstruction(Instruction);
-				} break;
+			case TMachineCycleMode::INSTRUCTION_FETCH:
+				fetchInstructionMCycle();
+				break;
+			case TMachineCycleMode::MEMORY_READ:
+				memoryReadMCycle();
+				break;
+			case TMachineCycleMode::MEMORY_WRITE:
+				memoryWriteMCycle();
+				break;
 			}
 
 			// Get the current instruction Opcode
 			// fetchInstruction();
 
-			// Updated the TStates in which we are
-			if (++mTStates == 4)
-				mTStates = 0;
 		}
 	
 		void TZ80Component::update(const sf::Time& ElapsedTime)
@@ -175,7 +135,8 @@ namespace nne
 				return;
 	
 			// Show the debug window
-			mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
+			if (mRam)
+				mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
 				
 			// Execute the instruction
 			// auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
@@ -216,8 +177,10 @@ namespace nne
 				if (RecordType == 0)
 				{
 					for (std::size_t Index = 0, MemoryIndex = 0; Index < ByteCount * 2; Index += 2, ++MemoryIndex)
-					{	
-						Memory[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
+					{
+						// Write the byte into memory only if the ram section pointed by the HEX file is within the range of the RAM if we using
+						if (StartAddress + MemoryIndex < Memory.size())
+							Memory[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
 					}
 				}
 			}
@@ -227,7 +190,7 @@ namespace nne
 			return true;
 		}
 		
-		bool TZ80Component::connectRam(std::shared_ptr<TEntity> Ram)
+		bool TZ80Component::connectRam(std::shared_ptr<TEntity>& Ram)
 		{
 			// Check the the passed argument points to something
 			if (!Ram)
@@ -238,7 +201,7 @@ namespace nne
 	
 			// Get a ref to the PinComponent of the z80 and ram
 			auto CpuPinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
-			auto RamPinComponent = mRam->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto RamPinComponent = Ram->getComponentAsPtr<tcomponents::TPinComponent>();
 	
 			// Connects the Z80 Address bus to the Ram AddressBus
 			auto& LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::AddressBus, 0, 14);
@@ -251,10 +214,10 @@ namespace nne
 			tcomponents::TPinComponentUtility::connectPins(LeftBus, RightBus);
 	
 			// Connect the MREQ pin to the CE of the ram
-			//tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
+			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
 	
 			// Connect the RD pin to the OE of the ram
-			//tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
+			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
 
 			return true;
 		}
@@ -310,8 +273,14 @@ namespace nne
 	
 		TU16BitValue TZ80Component::executeInstruction(const TOpCodesMainInstruction& OpCode)
 		{
-			// Get a ref to the RAM internal memory for better aces
-			auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
+			// Forward declare TMemory
+			TMemory* Memory = nullptr;
+
+			// Get a ref to the RAM internal memory for better access if we setted one other wise exit the function
+			if (mRam && mRam->hasComponent<TMemoryComponent>())
+				Memory = &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
+			
+			///auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
 
 			switch (OpCode)
 			{
@@ -413,25 +382,24 @@ namespace nne
 			case LD_H_n:
 			case LD_L_n:
 			{
-				TRegisterType DestinationRegister;
-		
-				// Get the source address by looking at the second 3 bits
-				switch (static_cast<TU8BitValue>(OpCode) >> 3 & 7)
+				if (mMachineCycleMode == TMachineCycleMode::INSTRUCTION_FETCH)
 				{
-				case 0: DestinationRegister = TRegisterType::B; break;
-				case 1: DestinationRegister = TRegisterType::C; break;
-				case 2: DestinationRegister = TRegisterType::D; break;
-				case 3: DestinationRegister = TRegisterType::E; break;
-				case 4: DestinationRegister = TRegisterType::H; break;
-				case 5: DestinationRegister = TRegisterType::L; break;
-				case 7: DestinationRegister = TRegisterType::A; break;
+					// Next M cycle it's a memory read cycle
+					mMachineCycleMode = TMachineCycleMode::MEMORY_READ;
+				}
+				else if (mMachineCycleMode == TMachineCycleMode::MEMORY_READ && mTStates == 2)
+				{
+					// Get the source address by looking at the second 3 bits
+					TRegisterType DestinationRegister = fetchRegisterType(OpCode, 3, 7);
+
+					mRegisters.getRegister<T8BitRegister>(DestinationRegister) = mLowMemoryRWValue;
+
+					// Next M cycle it's a fetch instruction
+					mMachineCycleMode = TMachineCycleMode::INSTRUCTION_FETCH;
 				}
 		
-				// Perform the loading operation
-				loadRegisterFromMemory<T8BitRegister>(DestinationRegister, mRegisters.programCounter() + 1);
-		
 				// Increment the PC
-				mRegisters.programCounter() += 2;
+				++mRegisters.programCounter();
 			} break;
 		#pragma endregion
 		
@@ -518,7 +486,8 @@ namespace nne
 				}
 		
 				// Perform the loading operation
-				mRegisters.getRegister<T16BitRegister>(DestinationRegister) = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				auto MemoryToLoad = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
+				mRegisters.getRegister<T16BitRegister>(DestinationRegister) = MemoryToLoad;
 		
 				// Increment the PC
 				ProgramCounter += 3;
@@ -572,7 +541,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Perform the loading operation
-				loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]));
+				loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]));
 		
 				// Increment the PC
 				ProgramCounter += 3;
@@ -586,7 +555,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Perform the loading operation
-				loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]));
+				loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]));
 		
 				// Increment the PC
 				ProgramCounter += 3;
@@ -599,11 +568,11 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Get the destination address
-				auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 				// Perform the loading operation
-				Memory[Address] = mRegisters.getRegister<T8BitRegister>(TRegisterType::L);
-				Memory[Address + 1] = mRegisters.getRegister<T8BitRegister>(TRegisterType::H);
+				(*Memory)[Address] = mRegisters.getRegister<T8BitRegister>(TRegisterType::L);
+				(*Memory)[Address + 1] = mRegisters.getRegister<T8BitRegister>(TRegisterType::H);
 		
 				// Increment PC
 				ProgramCounter += 3;
@@ -616,11 +585,11 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Get the destination address
-				auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 				// Perform the loading operation
-				mRegisters.getRegister<T8BitRegister>(TRegisterType::L) = Memory[Address];
-				mRegisters.getRegister<T8BitRegister>(TRegisterType::H) = Memory[Address + 1];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::L) = (*Memory)[Address];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::H) = (*Memory)[Address + 1];
 		
 				// Increment PC
 				ProgramCounter += 3;
@@ -629,14 +598,22 @@ namespace nne
 			// LD (HL),N
 			case LD_INDIRECT_HL_n:
 			{
-				// Get a ref to PC
-				auto& ProgramCounter = mRegisters.programCounter();
-		
-				// Perform the loading operation
-				Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] = Memory[ProgramCounter + 1];
-		
+				if (mMachineCycleMode == TMachineCycleMode::INSTRUCTION_FETCH)
+				{
+					// Next M cycle it's a memory read cycle
+					mMachineCycleMode = TMachineCycleMode::MEMORY_READ;
+				}
+				else if (mMachineCycleMode == TMachineCycleMode::MEMORY_READ && mTStates == 2)
+				{
+					// Perform the loading operation
+					(*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] = mLowMemoryRWValue;
+
+					// Next M cycle it's a fetch instruction
+					mMachineCycleMode = TMachineCycleMode::INSTRUCTION_FETCH;
+				}
+
 				// Increment the PC
-				ProgramCounter += 2;
+				++mRegisters.programCounter();
 			}break;
 		
 			// LD SP,HL
@@ -722,8 +699,8 @@ namespace nne
 			// EX (SP),HL
 			case EX_INDIRECT_SP_HL:
 			{
-				mRegisters.getRegister<T8BitRegister>(TRegisterType::H) = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
-				mRegisters.getRegister<T8BitRegister>(TRegisterType::L) = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::H) = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
+				mRegisters.getRegister<T8BitRegister>(TRegisterType::L) = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
 				mRegisters.programCounter() += 1;
 			}break;
 		
@@ -771,7 +748,7 @@ namespace nne
 			case ADD_A_INDIRECT_HL:
 			{
 				// Perform the addition
-				mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				// Increment the PC
 				++mRegisters.programCounter();
@@ -781,7 +758,7 @@ namespace nne
 			case ADD_A_n:
 			{
 				// Perform the addition
-				mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.programCounter() + 1]);
+				mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1]);
 		
 				// Increment the PC
 				mRegisters.programCounter() += 2;
@@ -822,7 +799,7 @@ namespace nne
 			case ADC_A_INDIRECT_HL:
 			{
 				// Perform the addition
-				mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] + mAlu.checkFlag(TFlags::C));
+				mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] + mAlu.checkFlag(TFlags::C));
 		
 				// Increment the PC
 				++mRegisters.programCounter();
@@ -832,7 +809,7 @@ namespace nne
 			case ADC_A_n:
 			{
 				// Perform the addition
-				mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.programCounter() + 1] + mAlu.checkFlag(TFlags::C));
+				mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1] + mAlu.checkFlag(TFlags::C));
 		
 				// Increment the PC
 				mRegisters.programCounter() += 2;
@@ -872,7 +849,7 @@ namespace nne
 			// SBC A,(HL)
 			case SBC_A_INDIRECT_HL:
 			{
-				mAlu.aluSub<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] - mAlu.checkFlag(TFlags::C));
+				mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)] - mAlu.checkFlag(TFlags::C));
 		
 				mRegisters.programCounter() += 1;
 			}break;
@@ -880,7 +857,7 @@ namespace nne
 			// SBC A,N
 			case SBC_A_n:
 			{
-				mAlu.aluSub<TU8BitValue>(Memory[mRegisters.programCounter() + 1] - mAlu.checkFlag(TFlags::C));
+				mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1] - mAlu.checkFlag(TFlags::C));
 		
 				mRegisters.programCounter() += 2;
 			}break;
@@ -919,7 +896,7 @@ namespace nne
 			// SUB (HL)
 			case SUB_INDIRECT_HL:
 			{
-				mAlu.aluSub<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				mRegisters.programCounter() += 1;
 			}break;
@@ -927,7 +904,7 @@ namespace nne
 			// SUB N
 			case SUB_n:
 			{
-				mAlu.aluSub<TU8BitValue>(Memory[mRegisters.programCounter() + 1]);
+				mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1]);
 		
 				mRegisters.programCounter() += 2;
 			}break;
@@ -967,7 +944,7 @@ namespace nne
 			case INC_INDIRECT_HL:
 			{
 				// Perform the increment
-				mAlu.aluInc<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluInc<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				// Increment the PC
 				++mRegisters.programCounter();
@@ -1008,7 +985,7 @@ namespace nne
 			case DEC_INDIRECT_HL:
 			{
 				// Perform the increment
-				mAlu.aluDec<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluDec<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				// Increment the PC
 				++mRegisters.programCounter();
@@ -1048,7 +1025,7 @@ namespace nne
 			// AND (HL)
 			case AND_INDIRECT_HL:
 			{
-				mAlu.aluAnd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluAnd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				mRegisters.programCounter() += 1;
 			}break;
@@ -1056,7 +1033,7 @@ namespace nne
 			// AND N
 			case AND_n:
 			{
-				mAlu.aluAnd<TU8BitValue>(Memory[mRegisters.programCounter() + 1]);
+				mAlu.aluAnd<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1]);
 		
 				mRegisters.programCounter() += 2;
 			}break;
@@ -1095,7 +1072,7 @@ namespace nne
 			// OR (HL)
 			case OR_INDIRECT_HL:
 			{
-				mAlu.aluOr<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluOr<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				mRegisters.programCounter() += 1;
 			}break;
@@ -1103,7 +1080,7 @@ namespace nne
 			// OR N
 			case OR_n:
 			{
-				mAlu.aluOr<TU8BitValue>(Memory[mRegisters.programCounter() + 1]);
+				mAlu.aluOr<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1]);
 		
 				mRegisters.programCounter() += 2;
 			}break;
@@ -1142,7 +1119,7 @@ namespace nne
 			// XOR (HL)
 			case XOR_INDIRECT_HL:
 			{
-				mAlu.aluXor<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluXor<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				mRegisters.programCounter() += 1;
 			}break;
@@ -1150,7 +1127,7 @@ namespace nne
 			// XOR N
 			case XOR_n:
 			{
-				mAlu.aluXor<TU8BitValue>(Memory[mRegisters.programCounter() + 1]);
+				mAlu.aluXor<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1]);
 		
 				mRegisters.programCounter() += 2;
 			}break;
@@ -1189,7 +1166,7 @@ namespace nne
 			// CP (HL)
 			case CP_INDIRECT_HL:
 			{
-				mAlu.aluCp<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
+				mAlu.aluCp<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)]);
 		
 				mRegisters.programCounter() += 1;
 			}break;
@@ -1197,7 +1174,7 @@ namespace nne
 			// CP N
 			case CP_n:
 			{
-				mAlu.aluCp<TU8BitValue>(Memory[mRegisters.programCounter() + 1]);
+				mAlu.aluCp<TU8BitValue>((*Memory)[mRegisters.programCounter() + 1]);
 		
 				mRegisters.programCounter() += 2;
 			}break;
@@ -1517,7 +1494,7 @@ namespace nne
 				case RLC_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
 					mAlu.rotateLeft(Register, false);
@@ -1575,7 +1552,7 @@ namespace nne
 				case RL_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
 					mAlu.rotateLeft(Register);
@@ -1635,7 +1612,7 @@ namespace nne
 				case SLA_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					TUtility::rotateLeft(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
@@ -1703,7 +1680,7 @@ namespace nne
 				case SRA_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Get the 7th bit for preservation purpose
 					bool Bit = TUtility::getBit(Register, 7);
@@ -1771,7 +1748,7 @@ namespace nne
 				case SRL_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto& Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto& Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					TUtility::rotateRight(Register) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
@@ -1885,7 +1862,7 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Z is set if specified bit is 0; otherwise, it is reset.
 					TUtility::getBit(Register, BitPosition) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
@@ -1985,7 +1962,7 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Set the specified bit
 					TUtility::setBit(Register, BitPosition, 1);
@@ -2079,7 +2056,7 @@ namespace nne
 					TU8BitValue BitPosition = (static_cast<TU8BitValue>(BitInstruction) >> 3) & 7;
 		
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Reset the specified bit
 					TUtility::setBit(Register, BitPosition, 0);
@@ -2125,7 +2102,7 @@ namespace nne
 				case RC_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
 					mAlu.rotateRight(Register, false);
@@ -2183,7 +2160,7 @@ namespace nne
 				case R_INDIRECT_HL & 0xFF:
 				{
 					// Get a ref to the register
-					auto Register = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto Register = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Perform the operation
 					mAlu.rotateRight(Register);
@@ -2224,7 +2201,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Destination address
-				auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 				// See what flag we have to check and base the jump based on the flag condition
 				switch (static_cast<TU8BitValue>(OpCode) >> 3 & 7)
@@ -2247,7 +2224,7 @@ namespace nne
 				// Get a reference to the PC
 				auto& ProgramCounter = mRegisters.programCounter();
 		
-				ProgramCounter = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				ProgramCounter = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 			} break;
 		
 			// JP (HL)
@@ -2262,7 +2239,7 @@ namespace nne
 				// Get a reference to the PC
 				auto& ProgramCounter = mRegisters.programCounter();
 		
-				ProgramCounter += Memory[ProgramCounter + 1] + 2;
+				ProgramCounter += (*Memory)[ProgramCounter + 1] + 2;
 			} break;
 		
 		#pragma region JR CC,DIS
@@ -2275,7 +2252,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Destination address
-				auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 				// See what flag we have to check
 				bool Flag;
@@ -2288,7 +2265,7 @@ namespace nne
 				}
 		
 				// Displacement
-				const TS8BitValue Displacement = Memory[ProgramCounter + 1] + 2;
+				const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1] + 2;
 		
 				// Base the jump based on the flag condition
 				Flag ? ProgramCounter.getInternalValue() += Displacement : ProgramCounter += 2;
@@ -2301,7 +2278,7 @@ namespace nne
 				// Get a reference to the B and PC registers
 				auto& Register = mRegisters.getRegister<T8BitRegister>(TRegisterType::B);
 				auto& ProgramCounter = mRegisters.programCounter();
-				const TS8BitValue Displacement = Memory[ProgramCounter + 1] + 2;
+				const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1] + 2;
 		
 				// Decrement the B register, if B > 0 add an offset to the PC otherwise goes to the next instruction
 				--Register > 0 ? ProgramCounter.getInternalValue() += Displacement : ProgramCounter += 2;
@@ -2325,7 +2302,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Destination address
-				auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+				auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 				// See what flag we have to check
 				bool Flag;
@@ -2353,7 +2330,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 		
 				// Put the PC on the stack on goes to the memory location specified by the CALL instruction
-				call(TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]));
+				call(TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]));
 			} break;
 		
 		#pragma region RET CC
@@ -2441,7 +2418,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 	
 				// Get the address of the port
-				auto Port = Memory[ProgramCounter + 1];
+				auto Port = (*Memory)[ProgramCounter + 1];
 	
 				// Put the data from the data bus to the accumulator
 				Accumulator = getDataFromDataBus();
@@ -2460,7 +2437,7 @@ namespace nne
 				auto& ProgramCounter = mRegisters.programCounter();
 	
 				// Get the address of the port
-				auto Port = Memory[ProgramCounter + 1];
+				auto Port = (*Memory)[ProgramCounter + 1];
 	
 				// Put the data from the data bus to the accumulator
 				pushDataToDataBus(Accumulator);
@@ -2498,8 +2475,8 @@ namespace nne
 				case EX_INDIRECT_SP_IX:
 				{
 					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					IXRegister.getHighOrderRegister() = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
-					IXRegister.getLowOrderRegister() = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
+					IXRegister.getHighOrderRegister() = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
+					IXRegister.getLowOrderRegister() = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
 					mRegisters.programCounter() += 1;
 				} break;
 		
@@ -2507,9 +2484,9 @@ namespace nne
 				case AND_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluAnd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluAnd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2518,9 +2495,9 @@ namespace nne
 				case OR_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluOr<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluOr<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2529,9 +2506,9 @@ namespace nne
 				case XOR_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluXor<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluXor<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2540,9 +2517,9 @@ namespace nne
 				case CP_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluCp<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluCp<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2639,9 +2616,9 @@ namespace nne
 				case ADD_A_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2650,9 +2627,9 @@ namespace nne
 				case ADC_A_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement] + mAlu.checkFlag(TFlags::C));
+					mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement] + mAlu.checkFlag(TFlags::C));
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2661,9 +2638,9 @@ namespace nne
 				case SBC_A_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluSub<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement] - mAlu.checkFlag(TFlags::C));
+					mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement] - mAlu.checkFlag(TFlags::C));
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2680,9 +2657,9 @@ namespace nne
 				case INC_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluInc<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluInc<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2699,9 +2676,9 @@ namespace nne
 				case DEC_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluDec<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluDec<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -2719,9 +2696,9 @@ namespace nne
 					case RLC_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateLeft<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
+						mAlu.rotateLeft<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -2731,10 +2708,10 @@ namespace nne
 					case BIT_0_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2747,10 +2724,10 @@ namespace nne
 					case BIT_1_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2763,10 +2740,10 @@ namespace nne
 					case BIT_2_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2779,10 +2756,10 @@ namespace nne
 					case BIT_3_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2795,10 +2772,10 @@ namespace nne
 					case BIT_4_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2811,10 +2788,10 @@ namespace nne
 					case BIT_5_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2827,10 +2804,10 @@ namespace nne
 					case BIT_6_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2843,10 +2820,10 @@ namespace nne
 					case BIT_7_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -2861,80 +2838,80 @@ namespace nne
 					case SET_0_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 1);
 					} break;
 		
 					// SET 1, (IX + DIS)
 					case SET_1_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 1);
 					} break;
 		
 					// SET 2, (IX + DIS)
 					case SET_2_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 1);
 					} break;
 		
 					// SET 3, (IX + DIS)
 					case SET_3_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 1);
 					} break;
 		
 					// SET 4, (IX + DIS)
 					case SET_4_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 1);
 					} break;
 		
 					// SET 5, (IX + DIS)
 					case SET_5_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 1);
 					} break;
 		
 					// SET 6, (IX + DIS)
 					case SET_6_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 1);
 					} break;
 		
 					// SET 7, (IX + DIS)
 					case SET_7_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 1);
 					} break;
 		#pragma endregion
 		
@@ -2943,80 +2920,80 @@ namespace nne
 					case RES_0_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 0, 0);
 					} break;
 		
 					// SET 1, (IX + DIS)
 					case RES_1_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 1, 0);
 					} break;
 		
 					// SET 2, (IX + DIS)
 					case RES_2_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 2, 0);
 					} break;
 		
 					// SET 3, (IX + DIS)
 					case RES_3_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 3, 0);
 					} break;
 		
 					// SET 4, (IX + DIS)
 					case RES_4_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 4, 0);
 					} break;
 		
 					// SET 5, (IX + DIS)
 					case RES_5_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 5, 0);
 					} break;
 		
 					// SET 6, (IX + DIS)
 					case RES_6_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 6, 0);
 					} break;
 		
 					// SET 7, (IX + DIS)
 					case RES_7_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], 7, 0);
 					} break;
 		#pragma endregion
 		
@@ -3024,9 +3001,9 @@ namespace nne
 					case RL_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateLeft<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+						mAlu.rotateLeft<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -3035,9 +3012,9 @@ namespace nne
 					case R_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateRight(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+						mAlu.rotateRight((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -3046,9 +3023,9 @@ namespace nne
 					case RC_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateRight(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
+						mAlu.rotateRight((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement], false);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -3057,9 +3034,9 @@ namespace nne
 					case SLA_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						TUtility::rotateLeft(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
+						TUtility::rotateLeft((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Set flags
 						mAlu.resetFlag(TFlags::N | TFlags::H);
@@ -3071,7 +3048,7 @@ namespace nne
 					case SRA_INDIRECT_IX_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 						auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
 		
 						// Get the 7th bit for preservation purpose
@@ -3111,7 +3088,7 @@ namespace nne
 					// Get a ref to the PC
 					auto& ProgramCounter = mRegisters.programCounter();
 		
-					mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -3122,10 +3099,10 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+					const auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
-					Memory[Address + 1] = IXRegister.getHighOrderRegister();
-					Memory[Address] = IXRegister.getLowOrderRegister();
+					(*Memory)[Address + 1] = IXRegister.getHighOrderRegister();
+					(*Memory)[Address] = IXRegister.getLowOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3136,9 +3113,9 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+					const auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
-					IXRegister = TUtility::to16BitValue(Memory[Address + 1], Memory[Address]);
+					IXRegister = TUtility::to16BitValue((*Memory)[Address + 1], (*Memory)[Address]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -3149,10 +3126,10 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
-					const auto Number = Memory[ProgramCounter + 2];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
+					const auto Number = (*Memory)[ProgramCounter + 2];
 		
-					Memory[IXRegister + Displacement] = Number;
+					(*Memory)[IXRegister + Displacement] = Number;
 		
 					ProgramCounter += 3;
 				} break;
@@ -3163,7 +3140,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
 		
@@ -3176,7 +3153,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
 		
@@ -3189,7 +3166,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
 		
@@ -3202,7 +3179,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
 		
@@ -3215,7 +3192,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
 		
@@ -3228,7 +3205,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
 		
@@ -3241,7 +3218,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::B, IXRegister + Displacement);
 		
@@ -3254,7 +3231,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::C, IXRegister + Displacement);
 		
@@ -3267,7 +3244,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::D, IXRegister + Displacement);
 		
@@ -3280,7 +3257,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::E, IXRegister + Displacement);
 		
@@ -3293,7 +3270,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::H, IXRegister + Displacement);
 		
@@ -3306,7 +3283,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::L, IXRegister + Displacement);
 		
@@ -3319,7 +3296,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
 		
@@ -3332,7 +3309,7 @@ namespace nne
 					// Get a ref to the PC and IX and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IXRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IX);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, IXRegister + Displacement);
 		
@@ -3345,9 +3322,9 @@ namespace nne
 				case SUB_INDIRECT_IX_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluSub<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
+					mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IX) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -3376,7 +3353,7 @@ namespace nne
 					// LDI
 				case LDI:
 				{
-					Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					(*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 					++mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 					++mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
@@ -3393,7 +3370,7 @@ namespace nne
 				// LDIR
 				case LDIR:
 				{
-					Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					(*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 					++mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 					++mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
@@ -3408,7 +3385,7 @@ namespace nne
 				// LDD
 				case LDD:
 				{
-					Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					(*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
@@ -3425,7 +3402,7 @@ namespace nne
 				// LDDR
 				case LDDR:
 				{
-					Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					(*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::DE)] = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::DE);
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::HL);
 					--mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
@@ -3447,7 +3424,7 @@ namespace nne
 					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.accumulator() == Memory[HLRegister];
+					bool Result = mRegisters.accumulator() == (*Memory)[HLRegister];
 		
 					// Increment HL and decrement BC
 					++HLRegister;
@@ -3480,7 +3457,7 @@ namespace nne
 					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.accumulator() == Memory[HLRegister];
+					bool Result = mRegisters.accumulator() == (*Memory)[HLRegister];
 		
 					// Increment HL and decrement BC
 					++HLRegister;
@@ -3513,7 +3490,7 @@ namespace nne
 					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.accumulator() == Memory[HLRegister];
+					bool Result = mRegisters.accumulator() == (*Memory)[HLRegister];
 		
 					// Decrement BC and HL
 					--HLRegister;
@@ -3546,7 +3523,7 @@ namespace nne
 					auto& BCRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::BC);
 		
 					// Test if the content of the accumulator is equal to the content of the memory location pointed by HL
-					bool Result = mRegisters.accumulator() == Memory[HLRegister];
+					bool Result = mRegisters.accumulator() == (*Memory)[HLRegister];
 		
 					// Decrement BC and HL
 					--HLRegister;
@@ -3686,7 +3663,7 @@ namespace nne
 				{
 					// Get a ref to the accumulator and HL
 					auto& Accumulator = mRegisters.accumulator();
-					auto& IndirectMemory = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto& IndirectMemory = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Swap low nibble of (HL) with high nibble of (HL)
 					{
@@ -3731,7 +3708,7 @@ namespace nne
 				{
 					// Get a ref to the accumulator and HL
 					auto& Accumulator = mRegisters.accumulator();
-					auto& IndirectMemory = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
+					auto& IndirectMemory = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::HL)];
 		
 					// Swap low nibble of (HL) with low nibble of Accumulator
 					{
@@ -3841,8 +3818,8 @@ namespace nne
 					// Get the address destination
 					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					Memory[Address] = SourceRegister.getLowOrderRegister();
-					Memory[Address + 1] = SourceRegister.getHighOrderRegister();
+					(*Memory)[Address] = SourceRegister.getLowOrderRegister();
+					(*Memory)[Address + 1] = SourceRegister.getHighOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3860,8 +3837,8 @@ namespace nne
 					// Get the address source
 					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					DestinationRegister.getLowOrderRegister() = Memory[Address];
-					DestinationRegister.getHighOrderRegister() = Memory[Address + 1];
+					DestinationRegister.getLowOrderRegister() = (*Memory)[Address];
+					DestinationRegister.getHighOrderRegister() = (*Memory)[Address + 1];
 		
 					ProgramCounter += 3;
 				} break;
@@ -3879,8 +3856,8 @@ namespace nne
 					// Get the address destination
 					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					Memory[Address] = SourceRegister.getLowOrderRegister();
-					Memory[Address + 1] = SourceRegister.getHighOrderRegister();
+					(*Memory)[Address] = SourceRegister.getLowOrderRegister();
+					(*Memory)[Address + 1] = SourceRegister.getHighOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3898,8 +3875,8 @@ namespace nne
 					// Get the address source
 					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					DestinationRegister.getLowOrderRegister() = Memory[Address];
-					DestinationRegister.getHighOrderRegister() = Memory[Address + 1];
+					DestinationRegister.getLowOrderRegister() = (*Memory)[Address];
+					DestinationRegister.getHighOrderRegister() = (*Memory)[Address + 1];
 		
 					ProgramCounter += 3;
 				} break;
@@ -3917,8 +3894,8 @@ namespace nne
 					// Get the address destination
 					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					Memory[Address] = SourceRegister.getLowOrderRegister();
-					Memory[Address + 1] = SourceRegister.getHighOrderRegister();
+					(*Memory)[Address] = SourceRegister.getLowOrderRegister();
+					(*Memory)[Address + 1] = SourceRegister.getHighOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -3933,8 +3910,8 @@ namespace nne
 					// Get the address source
 					auto Address = TUtility::to16BitValue(ProgramCounter + 2, ProgramCounter + 1);
 		
-					DestinationRegister.getLowOrderRegister() = Memory[Address];
-					DestinationRegister.getHighOrderRegister() = Memory[Address + 1];
+					DestinationRegister.getLowOrderRegister() = (*Memory)[Address];
+					DestinationRegister.getHighOrderRegister() = (*Memory)[Address + 1];
 		
 					ProgramCounter += 3;
 				} break;
@@ -3972,8 +3949,8 @@ namespace nne
 				case EX_INDIRECT_SP_IY:
 				{
 					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					IYRegister.getHighOrderRegister() = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
-					IYRegister.getLowOrderRegister() = Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
+					IYRegister.getHighOrderRegister() = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP) + 1];
+					IYRegister.getLowOrderRegister() = (*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::SP)];
 					mRegisters.programCounter() += 1;
 				} break;
 		
@@ -3981,9 +3958,9 @@ namespace nne
 				case AND_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluAnd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluAnd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -3992,9 +3969,9 @@ namespace nne
 				case OR_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluOr<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluOr<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4003,9 +3980,9 @@ namespace nne
 				case XOR_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluXor<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluXor<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4014,9 +3991,9 @@ namespace nne
 				case CP_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluCp<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluCp<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4113,9 +4090,9 @@ namespace nne
 				case ADD_A_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4124,9 +4101,9 @@ namespace nne
 				case ADC_A_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluAdd<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement] + mAlu.checkFlag(TFlags::C));
+					mAlu.aluAdd<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement] + mAlu.checkFlag(TFlags::C));
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4135,9 +4112,9 @@ namespace nne
 				case SBC_A_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluSub<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement] - mAlu.checkFlag(TFlags::C));
+					mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement] - mAlu.checkFlag(TFlags::C));
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4154,9 +4131,9 @@ namespace nne
 				case INC_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluInc<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluInc<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4173,9 +4150,9 @@ namespace nne
 				case DEC_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluDec<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluDec<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4193,9 +4170,9 @@ namespace nne
 					case RLC_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateLeft<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
+						mAlu.rotateLeft<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -4205,10 +4182,10 @@ namespace nne
 					case BIT_0_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4221,10 +4198,10 @@ namespace nne
 					case BIT_1_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4237,10 +4214,10 @@ namespace nne
 					case BIT_2_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4253,10 +4230,10 @@ namespace nne
 					case BIT_3_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4269,10 +4246,10 @@ namespace nne
 					case BIT_4_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4285,10 +4262,10 @@ namespace nne
 					case BIT_5_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4301,10 +4278,10 @@ namespace nne
 					case BIT_6_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4317,10 +4294,10 @@ namespace nne
 					case BIT_7_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Z is set if specified bit is 0; otherwise, it is reset.
-						TUtility::getBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
+						TUtility::getBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7) == 0 ? mAlu.setFlag(TFlags::Z) : mAlu.resetFlag(TFlags::Z);
 		
 						// H is set.
 						mAlu.setFlag(TFlags::H);
@@ -4335,80 +4312,80 @@ namespace nne
 					case SET_0_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 1);
 					} break;
 		
 					// SET 1, (IY + DIS)
 					case SET_1_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 1);
 					} break;
 		
 					// SET 2, (IY + DIS)
 					case SET_2_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 1);
 					} break;
 		
 					// SET 3, (IY + DIS)
 					case SET_3_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 1);
 					} break;
 		
 					// SET 4, (IY + DIS)
 					case SET_4_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 1);
 					} break;
 		
 					// SET 5, (IY + DIS)
 					case SET_5_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 1);
 					} break;
 		
 					// SET 6, (IY + DIS)
 					case SET_6_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 1);
 					} break;
 		
 					// SET 7, (IY + DIS)
 					case SET_7_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 1);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 1);
 					} break;
 		#pragma endregion
 		
@@ -4417,80 +4394,80 @@ namespace nne
 					case RES_0_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 0, 0);
 					} break;
 		
 					// SET 1, (IY + DIS)
 					case RES_1_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 1, 0);
 					} break;
 		
 					// SET 2, (IY + DIS)
 					case RES_2_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 2, 0);
 					} break;
 		
 					// SET 3, (IY + DIS)
 					case RES_3_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 3, 0);
 					} break;
 		
 					// SET 4, (IY + DIS)
 					case RES_4_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 4, 0);
 					} break;
 		
 					// SET 5, (IY + DIS)
 					case RES_5_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 5, 0);
 					} break;
 		
 					// SET 6, (IY + DIS)
 					case RES_6_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 6, 0);
 					} break;
 		
 					// SET 7, (IY + DIS)
 					case RES_7_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
 						// Set the specified bit
-						TUtility::setBit(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 0);
+						TUtility::setBit((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], 7, 0);
 					} break;
 		#pragma endregion
 		
@@ -4498,9 +4475,9 @@ namespace nne
 					case RL_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateLeft<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+						mAlu.rotateLeft<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -4509,9 +4486,9 @@ namespace nne
 					case R_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateRight(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+						mAlu.rotateRight((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -4520,9 +4497,9 @@ namespace nne
 					case RC_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						mAlu.rotateRight(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
+						mAlu.rotateRight((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement], false);
 		
 						mRegisters.programCounter() += 2;
 					} break;
@@ -4531,9 +4508,9 @@ namespace nne
 					case SLA_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 		
-						TUtility::rotateLeft(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
+						TUtility::rotateLeft((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]) == 0 ? mAlu.resetFlag(TFlags::C) : mAlu.setFlag(TFlags::C);
 		
 						// Set flags
 						mAlu.resetFlag(TFlags::N | TFlags::H);
@@ -4545,7 +4522,7 @@ namespace nne
 					case SRA_INDIRECT_IY_dis:
 					{
 						// Get the displacement value
-						TS8BitValue Displacement = Memory[mRegisters.programCounter()];;
+						TS8BitValue Displacement = (*Memory)[mRegisters.programCounter()];;
 						auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
 		
 						// Get the 7th bit for preservation purpose
@@ -4585,7 +4562,7 @@ namespace nne
 					// Get a ref to the PC
 					auto& ProgramCounter = mRegisters.programCounter();
 		
-					mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+					mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -4596,10 +4573,10 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+					const auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
-					Memory[Address + 1] = IYRegister.getHighOrderRegister();
-					Memory[Address] = IYRegister.getLowOrderRegister();
+					(*Memory)[Address + 1] = IYRegister.getHighOrderRegister();
+					(*Memory)[Address] = IYRegister.getLowOrderRegister();
 		
 					ProgramCounter += 3;
 				} break;
@@ -4610,9 +4587,9 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const auto Address = TUtility::to16BitValue(Memory[ProgramCounter + 2], Memory[ProgramCounter + 1]);
+					const auto Address = TUtility::to16BitValue((*Memory)[ProgramCounter + 2], (*Memory)[ProgramCounter + 1]);
 		
-					IYRegister = TUtility::to16BitValue(Memory[Address + 1], Memory[Address]);
+					IYRegister = TUtility::to16BitValue((*Memory)[Address + 1], (*Memory)[Address]);
 		
 					ProgramCounter += 3;
 				} break;
@@ -4623,10 +4600,10 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
-					const auto Number = Memory[ProgramCounter + 2];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
+					const auto Number = (*Memory)[ProgramCounter + 2];
 		
-					Memory[IYRegister + Displacement] = Number;
+					(*Memory)[IYRegister + Displacement] = Number;
 		
 					ProgramCounter += 3;
 				} break;
@@ -4637,7 +4614,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
 		
@@ -4650,7 +4627,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
 		
@@ -4663,7 +4640,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
 		
@@ -4676,7 +4653,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
 		
@@ -4689,7 +4666,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
 		
@@ -4702,7 +4679,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
 		
@@ -4715,7 +4692,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::B, IYRegister + Displacement);
 		
@@ -4728,7 +4705,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::C, IYRegister + Displacement);
 		
@@ -4741,7 +4718,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::D, IYRegister + Displacement);
 		
@@ -4754,7 +4731,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::E, IYRegister + Displacement);
 		
@@ -4767,7 +4744,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::H, IYRegister + Displacement);
 		
@@ -4780,7 +4757,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::L, IYRegister + Displacement);
 		
@@ -4793,7 +4770,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadMemoryFromRegister<T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
 		
@@ -4806,7 +4783,7 @@ namespace nne
 					// Get a ref to the PC and IY and the address of destination
 					auto& ProgramCounter = mRegisters.programCounter();
 					const auto& IYRegister = mRegisters.getRegister<T16BitRegister>(TRegisterType::IY);
-					const TS8BitValue Displacement = Memory[ProgramCounter + 1];
+					const TS8BitValue Displacement = (*Memory)[ProgramCounter + 1];
 		
 					loadRegisterFromMemory<T8BitRegister>(TRegisterType::A, IYRegister + Displacement);
 		
@@ -4819,9 +4796,9 @@ namespace nne
 				case SUB_INDIRECT_IY_dis:
 				{
 					// Get the displacement value
-					TS8BitValue Displacement = Memory[mRegisters.programCounter() + 1];;
+					TS8BitValue Displacement = (*Memory)[mRegisters.programCounter() + 1];;
 		
-					mAlu.aluSub<TU8BitValue>(Memory[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
+					mAlu.aluSub<TU8BitValue>((*Memory)[mRegisters.getRegister<T16BitRegister>(TRegisterType::IY) + Displacement]);
 		
 					mRegisters.programCounter() += 2;
 				} break;
@@ -4849,6 +4826,20 @@ namespace nne
 			return mDataBus;
 		}
 	
+		nne::TRegisterType TZ80Component::fetchRegisterType(const TU8BitValue& OpCode, const TU8BitValue& Shift, const TU8BitValue& Mask)
+		{
+			switch (static_cast<TU8BitValue>(OpCode) >> Shift & Mask)
+			{
+				case 0: return TRegisterType::B; break;
+				case 1: return TRegisterType::C; break;
+				case 2: return TRegisterType::D; break;
+				case 3: return TRegisterType::E; break;
+				case 4: return TRegisterType::H; break;
+				case 5: return TRegisterType::L; break;
+				case 7: return TRegisterType::A; break;
+			}
+		}
+
 		void TZ80Component::pushDataToDataBus(const TU8BitValue & Value)
 		{
 			mDataBus = Value;
@@ -4926,5 +4917,129 @@ namespace nne
 			// Pop the old PC value from the SP
 			popMemory(TRegisterType::PC);
 		}
+
+		void TZ80Component::fetchInstructionMCycle()
+		{
+			// Instruction fetch
+			switch (mTStates)
+			{
+				// T1
+				case 0:
+				{
+					// The Program Counter is placed on the address bus at the beginning of the M1 cycle
+					// Select the instruction by putting the address in the address bus
+					auto& PC = mRegisters.programCounter();
+					pushDataToAddressBus(PC);
+				} break;
+
+				// T2
+				case 1:
+				{
+					// One half clock cycle later, the MREQ signal goes active.At this time, the address to memory has had time to stabilize 
+					// so that the falling edge of MREQ can be used directly as a chip enable clock to dynamic memories.
+					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
+
+					// Get a ref to the PinComponent
+					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+
+					// Activates MREQ and RD pin
+					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
+					Pins->getPin(21).changePinStatus(tcomponents::TPin::LOW, true); // RD
+				} break;
+
+				// T3
+				case 2:
+				{
+					// The CPU samples the data from the memory space on the data bus with the rising edge of the clock of state T3, and this same edge is used by the
+					// CPU to turn off the RD and MREQ signals. As a result, the data is sampled by the CPU before the RD signal becomes inactive
+
+					// Get the instruction from the bus
+					mCurrentInstruction = getDataFromDataBus();
+
+					// Get a ref to the PinComponent
+					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+
+					// Deactivates MREQ and RD pin
+					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ
+					Pins->getPin(21).changePinStatus(tcomponents::TPin::HIGH, true); // RD
+				} break;
+
+				// T4
+				case 3:
+				{
+					// Execute the instruction
+					auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
+					executeInstruction(Instruction);
+				} break;
+			}
+		
+			// Reset the TState
+			if (++mTStates == 4)
+				mTStates = 0;
+			
+		}
+
+		void TZ80Component::memoryReadMCycle()
+		{
+			// Instruction fetch
+			switch (mTStates)
+			{
+				
+				// T1
+				case 0:
+				{
+					// The Program Counter is placed on the address bus at the beginning of the M1 cycle
+					// Select the instruction by putting the address in the address bus
+					auto& PC = mRegisters.programCounter();
+					pushDataToAddressBus(PC);
+				} break;
+
+				// T2
+				case 1:
+				{
+					// One half clock cycle later, the MREQ signal goes active.At this time, the address to memory has had time to stabilize 
+					// so that the falling edge of MREQ can be used directly as a chip enable clock to dynamic memories.
+					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
+
+					// Get a ref to the PinComponent
+					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+
+					// Activates MREQ and RD pin
+					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
+					Pins->getPin(21).changePinStatus(tcomponents::TPin::LOW, true); // RD
+				} break;
+
+				// T3
+				case 2:
+				{
+					// The CPU samples the data from the memory space on the data bus with the rising edge of the clock of state T3, and this same edge is used by the
+					// CPU to turn off the RD and MREQ signals. As a result, the data is sampled by the CPU before the RD signal becomes inactive
+
+					// Get the instruction from the bus
+					mLowMemoryRWValue = getDataFromDataBus();
+
+					// Get a ref to the PinComponent
+					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+
+					// Deactivates MREQ and RD pin
+					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ
+					Pins->getPin(21).changePinStatus(tcomponents::TPin::HIGH, true); // RD
+
+					// Execute the instruction
+					auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
+					executeInstruction(Instruction);
+				} break;
+			}
+
+			// Reset the TState
+			if (++mTStates == 3)
+				mTStates = 0;
+		}
+
+		void TZ80Component::memoryWriteMCycle()
+		{
+
+		}
+
 	}
 }

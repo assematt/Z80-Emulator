@@ -1,7 +1,9 @@
 #include "TLogicBoardComponent.h"
+
+#include <SFML/Graphics.hpp>
+
 #include "TSceneManager.h"
 #include "TCacheManager.h"
-#include <SFML/Graphics.hpp>
 
 namespace nne
 {
@@ -32,7 +34,7 @@ namespace nne
 
 	void TLogicBoardComponent::placeChip(TChipComponent* Component)
 	{
-		mComponentVector.push_back(Component);
+		mChipVector.push_back(Component);
 	}
 
 
@@ -69,6 +71,23 @@ namespace nne
 		Entity->addComponent<TLogicBoardComponent>(this);
 
 		placeBus(Entity->getComponentAsPtr<TBusComponent>());
+	}
+
+	bool TLogicBoardComponent::checkCollisions(TChipComponent* Chip)
+	{
+		bool CollisionFound = false;
+		auto ChipsNumber = mChipVector.size();
+		auto Index = 0u;
+
+		while (Index < ChipsNumber && CollisionFound == false)
+		{
+			if (Chip != mChipVector[Index])
+				CollisionFound = Chip->checkCollision(*mChipVector[Index]);
+
+			++Index;
+		}
+
+		return CollisionFound;
 	}
 
 	void TLogicBoardComponent::setSelectedChip(TChipComponent* Chip)
@@ -174,6 +193,21 @@ namespace nne
 		deselectBus(true);
 		deselectChip(true);
 		deselectWire(true);
+	}
+
+	const std::vector<TChipComponent*>& TLogicBoardComponent::getChipVector() const
+	{
+		return mChipVector;
+	}
+
+	const std::vector<TBusComponent*>& TLogicBoardComponent::getBusVector() const
+	{
+		return mBusVector;
+	}
+
+	const std::vector<TWireComponent*>& TLogicBoardComponent::getWireVector() const
+	{
+		return mWireVector;
 	}
 
 }

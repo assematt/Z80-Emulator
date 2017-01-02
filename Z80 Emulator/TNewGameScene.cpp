@@ -20,28 +20,8 @@ namespace nne
 
 	void TNewGameScene::init()
 	{
-		// Create a Z80 and RAM entity
-		mLogicEntity.addEntity(TFactory::makeZ80(), "Z80");
-		mLogicEntity.addEntity(TFactory::makeRam(), "Ram");
-		mLogicEntity.initEntities();
-
-		// Get the Z80 and the ram entity
-		auto Z80 = mLogicEntity.getEntityByKey("Z80");
-		auto Ram = mLogicEntity.getEntityByKey("Ram");
-
-		Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
-		if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
-		{
-			std::cout << "Error! Could not open the file" << std::endl;
-
-			// Something went bad :(
-			return;
-		}
-
 		// Create some graphic entity
 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", this);
-		mGraphicEntity.addEntity(TFactory::makeChip(Z80.get()), "Z80Chip", this);
-		mGraphicEntity.addEntity(TFactory::makeChip(Ram.get()), "RamChip", this);
 		mGraphicEntity.initEntities();
 
 		// Get the grid component
@@ -49,23 +29,15 @@ namespace nne
 		mGridComponent->setCellSize({ 23.f, 23.f });
 		mGridComponent->setSize({ 1570.f, 980.f });
 		mGridComponent->setView(mRenderSurface.getView());
-
-		// Create a Z80 chip and set some property
-		auto Z80Chip = mGraphicEntity.getEntityByKey("Z80Chip");
-		Z80Chip->getComponentAsPtr<TDrawableComponent>()->setPosition(mGridComponent->transformCellCoords({ 10, 5 }) + sf::Vector2f(0.f, -1.f));
-
-		// Create a RAM chip and set some property
-		auto RamChip = mGraphicEntity.getEntityByKey("RamChip");
-		RamChip->getComponentAsPtr<TDrawableComponent>()->setPosition(mGridComponent->transformCellCoords({ 30, 5 }) + sf::Vector2f(0.f, -1.f));
 		
 		// Create the logic board who will contain all the chip and set some property
 		mLogicBoard = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>();
-		mLogicBoard->placeChip(Z80Chip.get());
-		mLogicBoard->placeChip(RamChip.get());
 		
+		// Create a surface where to render all our graphic entities
 		mRenderSurface.create(mRenderWindow->getSize().x - 300u, mRenderWindow->getSize().y - 50u);
 		mRenderSurface.move(300.f, 50.f);
 
+		// Init the GUI
 		mGuiManager.addWidget<tgui::TNewGameMenu>();
 		mGuiManager.getLastAdded();
 		std::dynamic_pointer_cast<tgui::TNewGameMenu>(mGuiManager.getLastAdded())->init(&mGuiManager);
@@ -113,7 +85,36 @@ namespace nne
 					case sf::Keyboard::Y:
 					{
 						addBus();
-					}break;					
+					}break;
+
+					// See if we are trying to place a z80
+					case sf::Keyboard::G:
+					{
+						addChip("Z80");
+					}break;
+
+					// See if we are trying to place a ram
+					case sf::Keyboard::F:
+					{
+						addChip("RAM");
+					}break;
+					
+					// See if we are trying to load a program
+					case sf::Keyboard::V:
+					{
+						// Get the Z80 and the ram entity
+						auto Z80 = mLogicEntity.getEntityByKey("Z80");
+						auto Ram = mLogicEntity.getEntityByKey("Ram");
+
+						// Se if both the CPU and the RAM are placed into the logic board
+						if (Z80 && Ram)
+						{
+							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
+							if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
+								std::cout << "Error! Could not open the file" << std::endl;
+						}
+						
+					}break;
 
 					// Reset the insertion method
 					case sf::Keyboard::R:
@@ -122,23 +123,39 @@ namespace nne
 
 					// Reset the CPU
 					case sf::Keyboard::M:
-						mLogicEntity.getEntityByKey("Z80")->getComponentAsPtr<tcomponents::TZ80Component>()->reset();
-						break;
+					{
+						auto Z80 = mLogicEntity.getEntityByKey("Z80");
+
+						if (Z80)
+							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->reset();
+					}break;
 
 					// Pause CPU execution
 					case sf::Keyboard::K:
-						mLogicEntity.getEntityByKey("Z80")->getComponentAsPtr<tcomponents::TZ80Component>()->pauseExecution();
-						break;
+					{
+						auto Z80 = mLogicEntity.getEntityByKey("Z80");
+
+						if (Z80)
+							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->pauseExecution();
+					}break;
 
 					// Resume CPU execution
 					case sf::Keyboard::J:
-						mLogicEntity.getEntityByKey("Z80")->getComponentAsPtr<tcomponents::TZ80Component>()->resumeExecution();
-						break;
+					{
+						auto Z80 = mLogicEntity.getEntityByKey("Z80");
+
+						if (Z80)
+							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->resumeExecution();
+					}break;
 
 					// Restart CPU execution
 					case sf::Keyboard::L:
-						mLogicEntity.getEntityByKey("Z80")->getComponentAsPtr<tcomponents::TZ80Component>()->restartExecution();
-						break;
+					{
+						auto Z80 = mLogicEntity.getEntityByKey("Z80");
+
+						if (Z80)
+							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->restartExecution();
+					}break;
 				
 					// Zoom in
 					case sf::Keyboard::Add:
@@ -226,7 +243,18 @@ namespace nne
 				{
 					// If we are using the chip tool
 					case TInsertionMethod::CHIP:
-						break;
+					{
+						// get a pointer to the selected wire
+						auto CurrentChip = mLogicBoard->getSelectedChip();
+
+						if (CurrentChip && !CurrentChip->isPlaced())
+						{
+							mTempChip->getComponentAsPtr<TDrawableComponent>()->setPosition(CellPos);
+
+							/// Does the collision check
+							mLogicBoard->checkCollisions(CurrentChip);
+						}
+					}break;
 
 					// If we are using the wire tool
 					case TInsertionMethod::WIRE:
@@ -262,7 +290,15 @@ namespace nne
 				{
 					// If we are using the chip tool
 					case TInsertionMethod::CHIP:
-						break;
+					{
+						// get a pointer to the selected wire
+						auto CurrentChip = mLogicBoard->getSelectedChip();
+
+						if (CurrentChip && !CurrentChip->isPlaced() && CurrentChip->isValid())
+						{
+							CurrentChip->setPlacedStatus(true);
+						}
+					}break;
 
 					// If we are using the wire tool
 					case TInsertionMethod::WIRE:
@@ -459,10 +495,10 @@ namespace nne
 	void TNewGameScene::addBus()
 	{
 		// Create a conductive bus entity and add it to the manger
-		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mWireCounter++), this);
+		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mBusCounter++), this);
 
 		// Retrieve the newly added entity
-		mTempBus = mGraphicEntity.getEntityByKey("Bus_" + std::to_string(mWireCounter - 1));
+		mTempBus = mGraphicEntity.getEntityByKey("Bus_" + std::to_string(mBusCounter - 1));
 
 		// Init the newly added bus
 		mTempBus->init();
@@ -479,6 +515,70 @@ namespace nne
 
 		// Change the insertion method
 		mInsertionMethod = TInsertionMethod::BUS;
+	}
+
+	void TNewGameScene::addChip(const std::string& ChipToAdd)
+	{
+		// If we are creating a z80 chip
+		if (ChipToAdd == "Z80")
+		{
+			// Create a logic z80 chip
+			mLogicEntity.addEntity(TFactory::makeZ80(), "Z80");
+
+			// Get newly create z80 logic entity and initialize it
+			auto Z80 = mLogicEntity.getEntityByKey("Z80");
+			Z80->init();
+
+			// Create a graphic z80 chip
+			mGraphicEntity.addEntity(TFactory::makeChip(Z80.get()), "Z80Chip", this);
+
+			// Get newly create z80 graphic entity and initialize it
+			auto Z80Chip = mGraphicEntity.getEntityByKey("Z80Chip");
+			Z80Chip->init();
+			Z80Chip->getComponent<TChipComponent>().setPlacedStatus(false);
+			
+			// And adds it to the logic board
+			mLogicBoard->placeChip(Z80Chip.get());
+
+			// And set it as the active chip
+			mLogicBoard->deselectEverything();
+			mLogicBoard->setSelectedChip(Z80Chip->getComponentAsPtr<TChipComponent>());
+
+			mTempChip = Z80Chip;
+
+			// Change the insertion method
+			mInsertionMethod = TInsertionMethod::CHIP;
+		}
+		// If we are creating a RAM chip
+		else if (ChipToAdd == "RAM")
+		{
+			// Create a logic z80 chip
+			mLogicEntity.addEntity(TFactory::makeRam(), "Ram");
+
+			// Get newly create z80 logic entity and initialize it
+			auto Ram = mLogicEntity.getEntityByKey("Ram");
+			Ram->init();
+
+			// Create a graphic z80 chip
+			mGraphicEntity.addEntity(TFactory::makeChip(Ram.get()), "RamChip", this);
+
+			// Get newly create z80 graphic entity and initialize it
+			auto RamChip = mGraphicEntity.getEntityByKey("RamChip");
+			RamChip->init();
+			RamChip->getComponent<TChipComponent>().setPlacedStatus(false);
+
+			// And adds it to the logic board
+			mLogicBoard->placeChip(RamChip.get());
+
+			// And set it as the active chip
+			mLogicBoard->deselectEverything();
+			mLogicBoard->setSelectedChip(RamChip->getComponentAsPtr<TChipComponent>());
+
+			mTempChip = RamChip;
+
+			// Change the insertion method
+			mInsertionMethod = TInsertionMethod::CHIP;
+		}
 	}
 
 	sf::Vector2f TNewGameScene::convertMouseCoordinate(sf::Vector2i MouseCoordinate)

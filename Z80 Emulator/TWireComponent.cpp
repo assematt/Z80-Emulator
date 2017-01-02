@@ -52,7 +52,7 @@ namespace nne
 		auto& VertexArray = mDrawableComponent->getVertexArray();
 		auto VerticesNumber = VertexArray.getVertexCount();
 
-		// We this wire doesn't have any wire skip the update function
+		// We this wire doesn't have any vertices skip the update function
 		if (!VerticesNumber)
 			return;
 		

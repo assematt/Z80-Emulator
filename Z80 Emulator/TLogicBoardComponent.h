@@ -25,7 +25,6 @@ namespace nne
 
 		virtual void update(const sf::Time& ElapsedTime) override;
 
-
 		/// Function to place a component in the board
 		void placeChip(TChipComponent* Component);
 		void placeChip(TEntity* Entity);
@@ -37,6 +36,9 @@ namespace nne
 		/// Function to place a wire in the board
 		void placeBus(TBusComponent* Bus);
 		void placeBus(TEntity* Entity);
+
+		/// Check if the chip we are trying to place is colliding with another chip already on the logic board
+		bool checkCollisions(TChipComponent* Chip);
 
 		/// Function to set/get the currently selected component
 		void setSelectedChip(TChipComponent* Chip);
@@ -59,6 +61,15 @@ namespace nne
 		/// Helper function to deselect everything
 		void deselectEverything();
 
+		/// get the chip vector
+		const std::vector<TChipComponent*>& getChipVector() const;
+
+		/// get the bus vector
+		const std::vector<TBusComponent*>& getBusVector() const;
+
+		/// get the wire vector
+		const std::vector<TWireComponent*>& getWireVector() const;
+		
 	private:
 		TChipComponent*					mSelectedChip;
 		TChipComponent*					mFormerSelectedChip;
@@ -70,7 +81,7 @@ namespace nne
 		TBusComponent*					mFormerSelectedBus;
 
 		std::vector<TBusComponent*>		mBusVector;
-		std::vector<TChipComponent*>	mComponentVector;
+		std::vector<TChipComponent*>	mChipVector;
 		std::vector<TWireComponent*>	mWireVector;
 	};
 }

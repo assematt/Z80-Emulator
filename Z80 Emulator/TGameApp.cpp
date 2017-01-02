@@ -10,7 +10,7 @@ namespace nne
 		mAppName(PROGRAM_NAME),
 		mAppWindow(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default)
 	{
-		//mAppWindow.setFramerateLimit(2);
+		//mAppWindow.setFramerateLimit(1);
 		//mAppWindow.setFramerateLimit(60);
 	}
 

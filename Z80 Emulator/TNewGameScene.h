@@ -46,6 +46,9 @@ namespace nne
 		/// Add a bus in the manager and logic board and set it as the current selected bus
 		void addBus();
 
+		/// Add a chip in the manager and logic board 
+		void addChip(const std::string& ChipToAdd);
+
 		/// Convert the mouse coordinate from window coordinate to the sf::View coordinate
 		sf::Vector2f convertMouseCoordinate(sf::Vector2i MouseCoordinate);
 

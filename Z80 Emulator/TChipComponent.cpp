@@ -20,6 +20,8 @@ namespace nne
 	TChipComponent::TChipComponent(TEntity* ManagedObject) :
 		mManagedObject(ManagedObject),
 		mOverPin(None),
+		mIsPlaced(false),
+		mIsValid(true),
 		mPreviousOverPin(None),
 		mSelectedPin(None),
 		mPreviousSelectedPin(None)
@@ -87,6 +89,14 @@ namespace nne
 			setPinColor(PinColorNormal, mPreviousSelectedPin);
 		}
 				
+
+		// Set the chip color if this chip is colliding with another one
+		if (!mIsPlaced && !mIsValid)
+			mDrawableComponent->setColor({ 84, 04, 04, 200u });
+		else if (!mIsPlaced && mIsValid)
+			mDrawableComponent->setColor({ 30u, 30u, 30u, 200u });
+		else if (mIsPlaced)
+			mDrawableComponent->setColor({ 30u, 30u, 30u, 255u });
 	}
 
 	void TChipComponent::refresh(const sf::Time& ElapsedTime)
@@ -132,6 +142,19 @@ namespace nne
 		}
 	}
 
+	void TChipComponent::setPlacedStatus(const bool& IsPlaced /*= true*/)
+	{
+		mIsPlaced = IsPlaced;
+
+		if (mIsPlaced)
+			mIsValid = true;
+	}
+
+	const bool& TChipComponent::isPlaced() const
+	{
+		return mIsPlaced;
+	}
+
 	void TChipComponent::setPinsColor(const sf::Color& Color)
 	{
 		// Get a ref to vertex array
@@ -172,6 +195,19 @@ namespace nne
 		return mDrawableComponent->getVertexArray()[PinIndex * 4 + 4].color.toInteger();
 	}
 
+	sf::FloatRect TChipComponent::getLocalBound() const
+	{
+		auto& Position = mParent->getComponent<TDrawableComponent>().getPosition();
+		auto& Size = mParent->getComponent<TDrawableComponent>().getVertexArray()[2].position;	
+
+		return{ Position, Size };
+	}
+
+	sf::FloatRect TChipComponent::getGlobalBound() const
+	{
+		return mParent->getComponent<TDrawableComponent>().getTransform().transformRect(getLocalBound());
+	}
+
 	sf::FloatRect TChipComponent::getPinLocalBounds(const std::size_t& PinIndex)
 	{
 		auto& Vertices = mDrawableComponent->getVertexArray();
@@ -187,6 +223,22 @@ namespace nne
 	sf::FloatRect TChipComponent::getPinGlobalBounds(const std::size_t& PinIndex)
 	{
 		return mDrawableComponent->getTransform().transformRect(getPinLocalBounds(PinIndex));
+	}
+
+	bool TChipComponent::checkCollision(const TChipComponent& Chip)
+	{
+		auto ThisBound = getLocalBound();
+		auto OtherBound = Chip.getLocalBound();
+
+		// Check if the 2 bounds intersect with eachother
+		mIsValid = !ThisBound.intersects(OtherBound);
+
+		return mIsValid;
+	}
+
+	const bool& TChipComponent::isValid() const
+	{
+		return mIsValid;
 	}
 
 	void TChipComponent::deselectPin()

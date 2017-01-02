@@ -42,6 +42,10 @@ namespace nne
 
 		void refresh(const sf::Time& ElapsedTime) override;
 
+		/// Toggle the ability to draw the chip
+		void setPlacedStatus(const bool& IsPlaced = true);
+		const bool& isPlaced() const;
+
 		/// Function to set the color for all the pins in the chip
 		void setPinsColor(const sf::Color& Color);
 
@@ -54,13 +58,25 @@ namespace nne
 		/// Return the selected pin color as an unsigned 32 bit integer for fast comparison
 		sf::Uint32 getPinColor(const std::size_t& PinIndex);
 
+		/// Get the local/global bound of the chip
+		sf::FloatRect getLocalBound() const;
+		sf::FloatRect getGlobalBound() const;
+
+		/// Get the local/global bound of a single PIN
 		sf::FloatRect getPinLocalBounds(const std::size_t& PinIndex);
 		sf::FloatRect getPinGlobalBounds(const std::size_t& PinIndex);
 
+		/// Check if this chip is overllapping with another chip
+		bool checkCollision(const TChipComponent& Chip);
+		const bool& isValid() const;
+
+		/// Function to reset the state of the selected PIN
 		void deselectPin();
+
+		/// Return the selected PIN number
 		const std::size_t& getSelectedPinNumber() const;
 
-		// Get the selected pin
+		/// Get the selected pin
 		tcomponents::TPin& getSelectedPin();
 		const tcomponents::TPin& getSelectedPin() const;
 
@@ -81,6 +97,8 @@ namespace nne
 		const std::array<sf::Vertex, 4> createPin(const sf::Vector2f& Position, const sf::Vector2f& Size, const sf::Color& Color);
 
 	private:
+		bool				mIsPlaced;
+		bool				mIsValid;
 		std::size_t			mPreviousOverPin;
 		std::size_t			mOverPin;
 		std::size_t			mPreviousSelectedPin;

@@ -23,6 +23,8 @@ namespace nne
 		using EntityIterator = EntityVector::iterator;
 		using EntityConstIterator = EntityVector::const_iterator;
 
+		const std::size_t NotFound = std::numeric_limits<std::size_t>::max();
+
 		TManager();
 
 		/// Function to add an entity to the manager

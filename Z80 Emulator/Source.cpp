@@ -23,17 +23,18 @@ int main()
 // 	EntitiesManager.initEntities();
 // 
 // 	// Get the Z80 and the ram entity
-// 	auto Z80 = EntitiesManager.getEntityByKey("Z80");
+// 	auto Z80 = EntitiesManager.getEntityByKey("Z80")->getComponentAsPtr<nne::tcomponents::TZ80Component>();
 // 	auto Ram = EntitiesManager.getEntityByKey("Ram");
 // 
-// 	Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->connectRam(Ram);
-// 	if (!Z80->getComponentAsPtr<nne::tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
+// 	Z80->connectRam(Ram);
+// 	if (!Z80->loadProgram("resources/programs/INDIR.A01"))
 // 	{
 // 		std::cout << "Error! Could not open the file" << std::endl;
 // 
 // 		// Something went bad :(
 // 		return 1;
 // 	}
+// 	Z80->resumeExecution();
 // 
 // 	do 
 // 	{
@@ -43,7 +44,7 @@ int main()
 // 		// update the entities
 // 		EntitiesManager.update(sf::Time::Zero);
 // 
-// 		sf::sleep(sf::seconds(1.f));
+// 		sf::sleep(sf::seconds(0.25f));
 // 	} while (true);
 	
 	nne::TGameApp App;

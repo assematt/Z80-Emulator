@@ -24,7 +24,7 @@ namespace nne
 		auto EntityPos = getEntityPos(IDToRemove);
 
 		// If we can find the entity in the array return early
-		if (EntityPos == mEntityVector.size())
+		if (EntityPos == NotFound)
 			return;
 
 		// Remove the element from the array by swapping it with the last valid element and popping back
@@ -36,9 +36,9 @@ namespace nne
 	{
 		// Get the position of the element to remove
 		auto EntityPos = getEntityPos(IDToSearch);
-
-		// If we can find the entity in the array return early
-		if (EntityPos == mEntityVector.size())
+		
+		// If we couldn't find the entity return an empty pointer
+		if (EntityPos == NotFound)
 			return std::shared_ptr<TEntity>(nullptr);
 
 		return mEntityVector[EntityPos];
@@ -102,13 +102,16 @@ namespace nne
 
 	std::size_t TManager::getEntityPos(const TEntity::EntityID& IDToSearch)
 	{
+		if (mEntityVector.size() == 0)
+			return NotFound;
+
 		auto VectorSize = mEntityVector.size();
 		std::size_t EntityPos = 0;
 
 		// Iterate trough the vector until we find what we are looking for
 		while (mEntityVector[EntityPos]->getEntityID() != IDToSearch && ++EntityPos < VectorSize);
 
-		return EntityPos;
+		return EntityPos == mEntityVector.size() ? NotFound : EntityPos;
 	}
 
 	void TManager::addSorted(TEntity::EntityPtr& Entity)

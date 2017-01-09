@@ -82,7 +82,7 @@ namespace nne
 		while (Index < ChipsNumber && CollisionFound == false)
 		{
 			if (Chip != mChipVector[Index])
-				CollisionFound = Chip->checkCollision(*mChipVector[Index]);
+				CollisionFound = !Chip->checkCollision(*mChipVector[Index]);
 
 			++Index;
 		}

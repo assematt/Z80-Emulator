@@ -3,14 +3,11 @@
 #include <memory>
 #include "TEntity.h"
 
-
-
 namespace nne
 {
 	namespace TFactory
 	{
-		std::shared_ptr<TEntity> makeChip(TEntity* ChipToRender);
-
+	
 		std::shared_ptr<TEntity> makeWire();
 
 		std::shared_ptr<TEntity> makeBus();
@@ -21,6 +18,9 @@ namespace nne
 
 		std::shared_ptr<TEntity> makeRam();
 
+		std::shared_ptr<TEntity> makeLed();
+
 		std::shared_ptr<TEntity> makeGuiWidget();
+
 	};
 }

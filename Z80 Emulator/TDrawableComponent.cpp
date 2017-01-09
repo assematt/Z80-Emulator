@@ -32,10 +32,10 @@ namespace nne
 	{
 		auto& VertexArray = *mVertexArray;
 
-		VertexArray[0].color.a = Opacity;
-		VertexArray[1].color.a = Opacity;
-		VertexArray[2].color.a = Opacity;
-		VertexArray[3].color.a = Opacity;
+		auto VerticesCount = VertexArray.getVertexCount();
+		
+		for (auto Index = 0u; Index < VerticesCount; ++Index)
+			VertexArray[Index].color.a = Opacity;
 	}
 
 	const sf::Texture& TDrawableComponent::getTexture() const

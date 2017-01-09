@@ -53,9 +53,8 @@ namespace nne
 		sf::Vector2f convertMouseCoordinate(sf::Vector2i MouseCoordinate);
 
 	private:
-		sf::Event				mAppEvent;
-		TManager				mLogicEntity;
 		TManager				mGraphicEntity;
+		sf::Event				mAppEvent;
 		sf::Uint32				mZoomSteps;
 		TInsertionMethod		mInsertionMethod;
 		tgui::TGuiManager		mGuiManager;
@@ -64,6 +63,7 @@ namespace nne
 
 		/// Variable to keep track of how many wires/bus/chips we have in the logic board
 		std::size_t				mWireCounter;
+		std::size_t				mChipCounter;
 		std::size_t				mBusCounter;
 
 		/// Variable the old a shared_ptr to the last added wires/bus/chips

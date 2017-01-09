@@ -108,9 +108,6 @@
     <ClCompile Include="TPin.cpp">
       <Filter>Source Files\src\components</Filter>
     </ClCompile>
-    <ClCompile Include="TPinComponent.cpp">
-      <Filter>Source Files\src\components</Filter>
-    </ClCompile>
     <ClCompile Include="TLogicGateComponent.cpp">
       <Filter>Source Files\src\components</Filter>
     </ClCompile>
@@ -207,6 +204,15 @@
     <ClCompile Include="TBusComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
+    <ClCompile Include="TLedComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TPinComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
+    <ClCompile Include="TPackageComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -220,9 +226,6 @@
     </ClInclude>
     <ClInclude Include="TInstruction.h">
       <Filter>Header Files\include\Z80 Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="TPinComponent.h">
-      <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TClock.h">
       <Filter>Header Files\include\internals</Filter>
@@ -375,6 +378,15 @@
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
     <ClInclude Include="TBusComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TLedComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TPinComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TPackageComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>

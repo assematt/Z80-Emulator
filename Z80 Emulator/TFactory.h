@@ -21,6 +21,8 @@ namespace nne
 
 		std::shared_ptr<TEntity> makeLed();
 
+		std::shared_ptr<TEntity> makeNandChip();
+
 		std::shared_ptr<TEntity> makePowerConnector(const TPowerComponent::Type& Mode);
 
 		std::shared_ptr<TEntity> makeGuiWidget();

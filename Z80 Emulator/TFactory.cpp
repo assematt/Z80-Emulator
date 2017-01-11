@@ -7,6 +7,7 @@
 #include "TBusComponent.h"
 #include "TLogicBoardComponent.h"
 #include "TPackageComponent.h"
+#include "TLogicGateComponent.h"
 #include "TLedComponent.h"
 #include "TZ80Component.h"
 #include "TPinComponent.h"
@@ -88,6 +89,20 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TLedComponent>();
 			TempPtr->addComponent<TChipComponent>();
+
+			return std::move(TempPtr);
+		}
+
+		std::shared_ptr<nne::TEntity> makeNandChip()
+		{
+			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+
+			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TPinComponent>();
+			TempPtr->addComponent<TLogicGateComponent>();
+			TempPtr->addComponent<TTextComponent>();
+			TempPtr->addComponent<TChipComponent>();
+			TempPtr->addComponent<TPackageComponent>();
 
 			return std::move(TempPtr);
 		}

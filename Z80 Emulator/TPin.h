@@ -62,7 +62,7 @@ namespace nne
 			const TPinID& getPinID();
 
 			/// Return true if the PIN it's connected to at least another PIN
-			bool hasConnections();
+			bool hasConnections() const;
 
 			/// Check if this PIN it's valid, meaning that is not the "NotFound" PIN
 			bool isValid();

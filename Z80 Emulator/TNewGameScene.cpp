@@ -106,6 +106,12 @@ namespace nne
 						addChip("RAM");
 					}break;
 
+					// See if we are trying to place a NAND Chip
+					case sf::Keyboard::Numpad4:
+					{
+						addChip("NAND");
+					}break;
+
 					// If we are trying to place a VCC
 					case sf::Keyboard::Numpad1:
 					{
@@ -425,8 +431,8 @@ namespace nne
 					// Stop the chip tool
 					case TInsertionMethod::CHIP:
 					{
-						// Call the addChip function with an empty parameter so it just remove the temp placed entity
-						addChip("");
+						// Remove temporary Entity
+						removeTemporaryEntity();
 					}break;
 
 					// Stop the wire tool
@@ -602,6 +608,29 @@ namespace nne
 			// Change the insertion method
 			mInsertionMethod = TInsertionMethod::CHIP;
 		}
+		// If we are creating a NAND chip
+		else if (ChipToAdd == "NAND")
+		{
+			// Create a graphic NAND chip
+			mGraphicEntity.addEntity(TFactory::makeNandChip(), "NAND_" + std::to_string(mChipCounter++), this);
+
+			// Get newly create NAND graphic entity and initialize it
+			auto NandChip = mGraphicEntity.getEntityByKey("NAND_" + std::to_string(mChipCounter - 1));
+			NandChip->init();
+			NandChip->getComponent<TChipComponent>().setPlacedStatus(false);
+
+			// And adds it to the logic board
+			mLogicBoard->placeChip(NandChip.get());
+
+			// And set it as the active chip
+			mLogicBoard->deselectEverything();
+			mLogicBoard->setSelectedChip(NandChip->getComponentAsPtr<TChipComponent>());
+
+			mTempChip = NandChip;
+
+			// Change the insertion method
+			mInsertionMethod = TInsertionMethod::CHIP;
+		}		
 		// If we are creating a LED
 		else if (ChipToAdd == "LED")
 		{

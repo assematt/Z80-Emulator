@@ -59,6 +59,10 @@ namespace nne
 			{
 				fastDelete(mChipVector, Index);
 
+				// If the chip we are removing it's the one selected it, deselect it
+				if (ChipToRemove == mSelectedChip)
+					deselectChip();
+
 				return;
 			}
 		}
@@ -102,6 +106,10 @@ namespace nne
 			{
 				fastDelete(mWireVector, Index);
 
+				// If the wire we are removing it's the one selected it, deselect it
+				if (WireToRemove == mSelectedWire)
+					deselectWire();
+
 				return;
 			}
 		}
@@ -144,6 +152,10 @@ namespace nne
 			if (mBusVector[Index] == BusToRemove)
 			{
 				fastDelete(mBusVector, Index);
+
+				// If the bus we are removing it's the one selected it, deselect it
+				if (BusToRemove == mSelectedBus)
+					deselectBus();
 
 				return;
 			}

@@ -55,7 +55,7 @@ namespace nne
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
-			TempPtr->addComponent<tcomponents::TPinComponent>();
+			TempPtr->addComponent<TPinComponent>();
 			TempPtr->addComponent<tcomponents::TZ80Component>();
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TChipComponent>();
@@ -69,7 +69,7 @@ namespace nne
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
-			TempPtr->addComponent<tcomponents::TPinComponent>();
+			TempPtr->addComponent<TPinComponent>();
 			TempPtr->addComponent<tcomponents::TRamComponent>();
 			TempPtr->addComponent<tcomponents::TMemoryComponent>();
 			TempPtr->addComponent<TTextComponent>();
@@ -84,14 +84,23 @@ namespace nne
 			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
 
 			TempPtr->addComponent<TDrawableComponent>();
-			TempPtr->addComponent<tcomponents::TPinComponent>();
+			TempPtr->addComponent<TPinComponent>();
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TLedComponent>();
 			TempPtr->addComponent<TChipComponent>();
 
-// 			TempPtr->addComponent<TDrawableComponent>();
-// 			TempPtr->addComponent<TLedComponent>();
-// 			TempPtr->addComponent<TTextComponent>();
+			return std::move(TempPtr);
+		}
+
+		std::shared_ptr<nne::TEntity> makePowerConnector(const TPowerComponent::Type& Mode)
+		{
+			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+
+			TempPtr->addComponent<TDrawableComponent>();
+			TempPtr->addComponent<TPinComponent>();
+			TempPtr->addComponent<TTextComponent>();
+			TempPtr->addComponent<TPowerComponent>(Mode);
+			TempPtr->addComponent<TChipComponent>();
 
 			return std::move(TempPtr);
 		}

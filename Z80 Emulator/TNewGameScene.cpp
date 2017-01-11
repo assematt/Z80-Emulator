@@ -105,6 +105,18 @@ namespace nne
 					{
 						addChip("RAM");
 					}break;
+
+					// If we are trying to place a VCC
+					case sf::Keyboard::Numpad1:
+					{
+						addChip("VCC");
+					}break;
+
+					// If we are trying to place a GND
+					case sf::Keyboard::Numpad2:
+					{
+						addChip("GND");
+					}break;
 					
 					// See if we are trying to load a program
 					case sf::Keyboard::V:
@@ -125,8 +137,12 @@ namespace nne
 
 					// Reset the insertion method
 					case sf::Keyboard::R:
+					{
+						// Remove temporary Entity
+						removeTemporaryEntity();
+
 						mInsertionMethod = TInsertionMethod::NONE;
-						break;
+					}break;
 
 					// Reset the CPU
 					case sf::Keyboard::M:
@@ -340,7 +356,7 @@ namespace nne
 								CurrentWire->toggleDraw();
 
 								// Connect the pins
-								tcomponents::TPinComponentUtility::connectPins(CurrentChip->getSelectedPin(), FormerChip->getSelectedPin());
+								TPinComponentUtility::connectPins(CurrentChip->getSelectedPin(), FormerChip->getSelectedPin());
 
 								// Reset the chip's pin selected status
 								CurrentChip->deselectPin();
@@ -406,6 +422,14 @@ namespace nne
 
 				switch (mInsertionMethod)
 				{
+					// Stop the chip tool
+					case TInsertionMethod::CHIP:
+					{
+						// Call the addChip function with an empty parameter so it just remove the temp placed entity
+						addChip("");
+					}break;
+
+					// Stop the wire tool
 					case TInsertionMethod::WIRE:
 					{
 						// get a pointer to the selected wire
@@ -419,6 +443,7 @@ namespace nne
 						}
 					}break;
 
+					// Stop the bus tool
 					case TInsertionMethod::BUS:
 					{
 						// get a pointer to the selected bus
@@ -472,6 +497,9 @@ namespace nne
 
 	void TNewGameScene::addWire()
 	{
+		// Remove temporary Entity
+		removeTemporaryEntity();
+
 		// Create a wire entity and add it to the manger
 		mGraphicEntity.addEntity(TFactory::makeWire(), "Wire_" + std::to_string(mWireCounter++), this);
 
@@ -497,6 +525,9 @@ namespace nne
 
 	void TNewGameScene::addBus()
 	{
+		// Remove temporary Entity
+		removeTemporaryEntity();
+
 		// Create a conductive bus entity and add it to the manger
 		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mBusCounter++), this);
 
@@ -522,7 +553,8 @@ namespace nne
 
 	void TNewGameScene::addChip(const std::string& ChipToAdd)
 	{
-		std::to_string(mChipCounter++);
+		// Remove temporary Entity
+		removeTemporaryEntity();
 
 		// If we are creating a z80 chip and we didn't do it before
 		if (ChipToAdd == "Z80" && !mGraphicEntity.getEntityByKey("Z80"))
@@ -573,10 +605,10 @@ namespace nne
 		// If we are creating a LED
 		else if (ChipToAdd == "LED")
 		{
-			// Create a graphic z80 chip
+			// Create a led
 			mGraphicEntity.addEntity(TFactory::makeLed(), "LED_" + std::to_string(mChipCounter++), this);
 
-			// Get newly create z80 graphic entity and initialize it
+			// Get newly create led entity and initialize it
 			auto RamChip = mGraphicEntity.getEntityByKey("LED_" + std::to_string(mChipCounter - 1));
 			RamChip->init();
 			RamChip->getComponent<TChipComponent>().setPlacedStatus(false);
@@ -592,6 +624,100 @@ namespace nne
 
 			// Change the insertion method
 			mInsertionMethod = TInsertionMethod::CHIP;
+		}
+		// If we are creating a VCC
+		else if (ChipToAdd == "VCC")
+		{
+			// Create a graphic vcc chip
+			mGraphicEntity.addEntity(TFactory::makePowerConnector(TPowerComponent::Type::POWER), "VCC_" + std::to_string(mChipCounter++), this);
+
+			// Get newly create vcc entity and initialize it
+			auto PowerChip = mGraphicEntity.getEntityByKey("VCC_" + std::to_string(mChipCounter - 1));
+			PowerChip->init();
+			PowerChip->getComponent<TChipComponent>().setPlacedStatus(false);
+
+			// And adds it to the logic board
+			mLogicBoard->placeChip(PowerChip.get());
+
+			// And set it as the active chip
+			mLogicBoard->deselectEverything();
+			mLogicBoard->setSelectedChip(PowerChip->getComponentAsPtr<TChipComponent>());
+
+			mTempChip = PowerChip;
+
+			// Change the insertion method
+			mInsertionMethod = TInsertionMethod::CHIP;
+		}
+		// If we are creating a GND
+		else if (ChipToAdd == "GND")
+		{
+			// Create a graphic gnd chip
+			mGraphicEntity.addEntity(TFactory::makePowerConnector(TPowerComponent::Type::GROUND), "GND_" + std::to_string(mChipCounter++), this);
+
+			// Get newly create gnd entity and initialize it
+			auto PowerChip = mGraphicEntity.getEntityByKey("GND_" + std::to_string(mChipCounter - 1));
+			PowerChip->init();
+			PowerChip->getComponent<TChipComponent>().setPlacedStatus(false);
+
+			// And adds it to the logic board
+			mLogicBoard->placeChip(PowerChip.get());
+
+			// And set it as the active chip
+			mLogicBoard->deselectEverything();
+			mLogicBoard->setSelectedChip(PowerChip->getComponentAsPtr<TChipComponent>());
+
+			mTempChip = PowerChip;
+
+			// Change the insertion method
+			mInsertionMethod = TInsertionMethod::CHIP;
+		}
+	}
+
+	void TNewGameScene::removeTemporaryEntity()
+	{
+		// Bus part
+		// If we were trying to place another wire but we haven't placed any point or only  before trying to add a new one point
+		// Remove that wire from the logic board and delete the entity associated with it
+		if (mTempBus && mTempBus->getComponent<TBusComponent>().isDrawing())
+		{
+			// Remove the chip from the logic board
+			mLogicBoard->removeBus(mTempBus.get());
+
+			// Remove the entity
+			mGraphicEntity.removeEntity(mTempBus->getEntityID());
+
+			// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
+			mTempBus.reset();
+		}
+
+		// Wire part
+		// If we were trying to place another wire but we haven't placed any point or only  before trying to add a new one point
+		// Remove that wire from the logic board and delete the entity associated with it
+		if (mTempWire && mTempWire->getComponent<TWireComponent>().isDrawing())
+		{
+			// Remove the chip from the logic board
+			mLogicBoard->removeWire(mTempWire.get());
+
+			// Remove the entity
+			mGraphicEntity.removeEntity(mTempWire->getEntityID());
+
+			// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
+			mTempWire.reset();
+		}
+	
+		// Chip part
+		// If we were trying to place another component before trying to add a new one
+		// Remove that component from the logic board and delete the entity associated with it
+		if (mTempChip && !mTempChip->getComponent<TChipComponent>().isPlaced())
+		{
+			// Remove the chip from the logic board
+			mLogicBoard->removeChip(mTempChip.get());
+
+			// Remove the entity
+			mGraphicEntity.removeEntity(mTempChip->getEntityID());
+
+			// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
+			mTempChip.reset();
 		}
 	}
 

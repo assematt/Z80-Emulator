@@ -5,6 +5,8 @@ namespace nne
 	namespace tcomponents
 	{
 
+		TPin& TPin::NotFound = TPin(TMode::INPUT, "NOT_FOUND", tcomponents::TPin::TStatus::LOW, 0, 0, 0);
+
 		TPin::TPin() :
 			mPinMode(TMode::INPUT),
 			mPinName(""),
@@ -60,6 +62,16 @@ namespace nne
 		const TPin::TPinID& TPin::getPinID()
 		{
 			return mPinID;
+		}
+
+		bool TPin::hasConnections()
+		{
+			return static_cast<bool>(mPinConnections.size());
+		}
+
+		bool TPin::isValid()
+		{
+			return mPinName != "NOT_FOUND";
 		}
 
 		TPin::TPinID TPin::generateID()

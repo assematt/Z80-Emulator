@@ -277,6 +277,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TLedComponent.cpp" />
     <ClCompile Include="TPackageComponent.cpp" />
+    <ClCompile Include="TPowerComponent.cpp" />
     <ClCompile Include="TWireComponent.cpp" />
     <ClCompile Include="TDebugger.cpp" />
     <ClCompile Include="TEntity.cpp" />
@@ -321,6 +322,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TLedComponent.h" />
     <ClInclude Include="TPackageComponent.h" />
+    <ClInclude Include="TPowerComponent.h" />
     <ClInclude Include="TWireComponent.h" />
     <ClInclude Include="TButton.h" />
     <ClInclude Include="TContainer.h" />

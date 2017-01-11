@@ -1,5 +1,7 @@
 #include "TZ80Component.h"
 
+#include "TPackageComponent.h"
+
 namespace nne
 {
 	namespace tcomponents
@@ -41,7 +43,7 @@ namespace nne
 			// Add the right Components to make a CPU
 
 			// Setup the CPU Pins
-			auto& PinComponent = *mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto& PinComponent = *mParent->getComponentAsPtr<TPinComponent>();
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
@@ -95,8 +97,8 @@ namespace nne
 
 				// CPUPinGroup::Others
 				{ tcomponents::TPin::TMode::CLOCK, "CLK", tcomponents::TPin::TStatus::LOW,  6, CPUPinGroup::Others }, // CLK
-				{ tcomponents::TPin::TMode::POWER, "VCC", tcomponents::TPin::TStatus::LOW, 11, CPUPinGroup::Others }, // VCC
-				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 29, CPUPinGroup::Others }, // GND
+				{ tcomponents::TPin::TMode::INPUT, "VCC", tcomponents::TPin::TStatus::LOW, 11, CPUPinGroup::Others }, // VCC
+				{ tcomponents::TPin::TMode::INPUT, "GND", tcomponents::TPin::TStatus::LOW, 29, CPUPinGroup::Others }, // GND
 
 			}, 40);
 
@@ -107,7 +109,7 @@ namespace nne
 		void TZ80Component::refresh(const sf::Time& ElapsedTime)
 		{
 			// Before check if the z80 is still active
-			if (!mIsRunning)
+			if (!mIsRunning || !mParent->getComponent<TPackageComponent>().isPoweredOn())
 				return;
 
 			switch (mMachineCycleMode)
@@ -123,25 +125,18 @@ namespace nne
 				break;
 			}
 
-			// Get the current instruction Opcode
-			// fetchInstruction();
-
 		}
 	
 		void TZ80Component::update(const sf::Time& ElapsedTime)
 		{
 			// Before check if the z80 is still active
-			if (!mIsRunning)
+			if (!mIsRunning || !mParent->getComponent<TPackageComponent>().isPoweredOn())
 				return;
 	
 			// Show the debug window
 			if (mRam)
 				mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
-				
-			// Execute the instruction
-			// auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
-			// executeInstruction(Instruction);
-	
+					
 			//mClock.wait();
 		}
 	
@@ -200,24 +195,24 @@ namespace nne
 			mRam = Ram;
 	
 			// Get a ref to the PinComponent of the z80 and ram
-			auto CpuPinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
-			auto RamPinComponent = Ram->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto CpuPinComponent = mParent->getComponentAsPtr<TPinComponent>();
+			auto RamPinComponent = Ram->getComponentAsPtr<TPinComponent>();
 	
 			// Connects the Z80 Address bus to the Ram AddressBus
 			auto& LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::AddressBus, 0, 14);
 			auto& RightBus = RamPinComponent->getPinBus(tcomponents::TRamPinGroup::AddressBus);
-			tcomponents::TPinComponentUtility::connectPins(LeftBus, RightBus);
+			TPinComponentUtility::connectPins(LeftBus, RightBus);
 	
 			// Connects the Z80 data bus to the Ram data bus
 			LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::DataBus);
 			RightBus = RamPinComponent->getPinBus(tcomponents::TRamPinGroup::DataBus);
-			tcomponents::TPinComponentUtility::connectPins(LeftBus, RightBus);
+			TPinComponentUtility::connectPins(LeftBus, RightBus);
 	
 			// Connect the MREQ pin to the CE of the ram
-			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
+			TPinComponentUtility::connectPins(CpuPinComponent->getPin(19), RamPinComponent->getPin(20));
 	
 			// Connect the RD pin to the OE of the ram
-			tcomponents::TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
+			TPinComponentUtility::connectPins(CpuPinComponent->getPin(21), RamPinComponent->getPin(22));
 
 			return true;
 		}
@@ -248,7 +243,7 @@ namespace nne
 				return static_cast<TOpCodesMainInstruction>(TOpCodesMainInstruction::NOP);
 	
 			// Get a ref to the PinComponent
-			auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto Pins = mParent->getComponentAsPtr<TPinComponent>();
 	
 			// Activates MREQ and RD pin
 			Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true);
@@ -4821,7 +4816,7 @@ namespace nne
 	
 		TU8BitValue TZ80Component::getDataFromDataBus()
 		{
-			mDataBus = mParent->getComponentAsPtr<tcomponents::TPinComponent>()->pinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
+			mDataBus = mParent->getComponentAsPtr<TPinComponent>()->pinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
 	
 			return mDataBus;
 		}
@@ -4844,19 +4839,19 @@ namespace nne
 		{
 			mDataBus = Value;
 	
-			mParent->getComponentAsPtr<tcomponents::TPinComponent>()->valueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
+			mParent->getComponentAsPtr<TPinComponent>()->valueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
 		}
 		
 		void TZ80Component::pushDataToAddressBus(const TU16BitValue& Value)
 		{
 			mAddressBus = Value;
 	
-			mParent->getComponentAsPtr<tcomponents::TPinComponent>()->valueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
+			mParent->getComponentAsPtr<TPinComponent>()->valueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
 		}
 	
 		TU16BitValue TZ80Component::getDataFromAddressBus()
 		{
-			mAddressBus = mParent->getComponentAsPtr<tcomponents::TPinComponent>()->pinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
+			mAddressBus = mParent->getComponentAsPtr<TPinComponent>()->pinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
 	
 			return mAddressBus;
 		}
@@ -4940,7 +4935,7 @@ namespace nne
 					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
 
 					// Get a ref to the PinComponent
-					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
 
 					// Activates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
@@ -4957,7 +4952,7 @@ namespace nne
 					mCurrentInstruction = getDataFromDataBus();
 
 					// Get a ref to the PinComponent
-					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
 
 					// Deactivates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ
@@ -5002,7 +4997,7 @@ namespace nne
 					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
 
 					// Get a ref to the PinComponent
-					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
 
 					// Activates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
@@ -5019,7 +5014,7 @@ namespace nne
 					mLowMemoryRWValue = getDataFromDataBus();
 
 					// Get a ref to the PinComponent
-					auto Pins = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
 
 					// Deactivates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ

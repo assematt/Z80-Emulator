@@ -15,8 +15,6 @@ namespace nne
 	class TComponentArray
 	{
 	public:
-		//using TComponentPtr = std::shared_ptr<IComponent>;
-
 		TComponentArray(TEntity* ParentEntity) :
 			mComponentsParent(ParentEntity)
 		{
@@ -104,6 +102,25 @@ namespace nne
 		{
 			// Delete the component and flag the component as dead
 			mComponents[mComponentsArray[ID]].reset();
+			mComponentsArray[ID] = 0;
+			mComponentsState[ID] = false;
+		}
+
+		/// Function to soft remove a component by component type
+		/// This function it's useful when we have a component shared by many entity
+		/// (which it's a brilliant idea considering we are storing all the component with unique_ptr (EPIC FAIL))
+		template <class T>
+		inline void softRemoveComponent()
+		{
+			softRemoveComponent(idgenerator::GenerateByType::getUniqueID<TComponentID, T>());
+		}
+
+		/// Function to soft remove a component by component ID 
+		/// look the "removeComponent(TComponentID ID)" for the reasoning of why this function exist
+		inline void softRemoveComponent(TComponentID ID)
+		{
+			// Release the component and flag the component as dead
+			mComponents[mComponentsArray[ID]].release();
 			mComponentsArray[ID] = 0;
 			mComponentsState[ID] = false;
 		}

@@ -57,6 +57,9 @@ namespace nne
 		/// Toggle the ability to draw the wire
 		void toggleDraw();
 
+		/// Return the number of placed point
+		const bool& isDrawing() const;
+
 		/// Connect a wire from a chip/another wire to the bus (so we can assume it's entering the wire)
 		void connectEntryWire(TPin& PinToConnect);
 

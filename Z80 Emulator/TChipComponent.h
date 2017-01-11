@@ -54,14 +54,7 @@ namespace nne
 		/// Get the selected pin
 		tcomponents::TPin& getSelectedPin();
 		const tcomponents::TPin& getSelectedPin() const;
-
-	private:
-		/// Render a chip in the DIP format
-		void renderDipChip();
-
-		/// Render a LED
-		void renderLed();
-		
+				
 	private:
 		bool				mIsPlaced;
 		bool				mIsValid;

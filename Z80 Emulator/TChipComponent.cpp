@@ -26,11 +26,6 @@ namespace nne
 		mLabels->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
 		mLabels->setCharacterSize(13);
 		mLabels->setFillColor({ 171,171,171 });
-
-// 		if (!mParent->hasComponent<TLedComponent>())
-// 			renderDipChip();
-// 		else
-// 			renderLed();
 	}
 
 	void TChipComponent::update(const sf::Time& ElapsedTime)
@@ -92,90 +87,22 @@ namespace nne
 
 	void TChipComponent::deselectPin()
 	{
-		mParent->getComponent<tcomponents::TPinComponent>().deselectPin();
+		mParent->getComponent<TPinComponent>().deselectPin();
 	}
 
 	const std::size_t& TChipComponent::getSelectedPinNumber() const
 	{
-		return mParent->getComponent<tcomponents::TPinComponent>().getSelectedPinNumber();
+		return mParent->getComponent<TPinComponent>().getSelectedPinNumber();
 	}
 
 	const nne::tcomponents::TPin& TChipComponent::getSelectedPin() const
 	{		
-		return mParent->getComponent<tcomponents::TPinComponent>().getSelectedPin();
+		return mParent->getComponent<TPinComponent>().getSelectedPin();
 	}
 
 	nne::tcomponents::TPin& TChipComponent::getSelectedPin()
 	{
-		return mParent->getComponent<tcomponents::TPinComponent>().getSelectedPin();
+		return mParent->getComponent<TPinComponent>().getSelectedPin();
 	}
-
-	void TChipComponent::renderDipChip()
-	{
-		/*// Get a ref to the PIN component
-		auto& PinComponent = mParent->getComponent<tcomponents::TPinComponent>();
-
-		// Get the number of pins
-		std::size_t NumberOfPins = PinComponent.getPinList().size();
-
-		// Set the chip's base properties
-		mDrawableComponent->setSize({ 185, (9 * NumberOfPins / 2 + 14 * (NumberOfPins / 2 - 1)) + 38 });
-
-		mChipSize = mDrawableComponent->getSize();
-
-		// Set the chip color
-		mDrawableComponent->setColor({ 30, 30, 30 });
-
-		// Define pin size
-		sf::Vector2f PinSize = { 15.f, 9.f };
-
-		// Get the chip position
-		sf::Vector2f ChipPosition = mDrawableComponent->getPosition();
-
-		// Get a ref to the drawable component vertex array for cache purposes
-		auto& Vertices = mDrawableComponent->getVertexArray();
-
-		std::string ChipTotalString = "";
-		
-		// Set the chip's pins properties
-		for (std::size_t PinCounter = 0; PinCounter < NumberOfPins; ++PinCounter)
-		{
-			float LabelOffsetX = PinCounter < NumberOfPins / 2 ? 22 : -23.f;
-
-			sf::Vector2f PinPosition;
-			if (PinCounter < NumberOfPins / 2)
-				PinPosition = { -PinSize.x, 23.f * PinCounter + 19.f };
-			else
-				PinPosition = { static_cast<float>(mChipSize.x), 23.f * (NumberOfPins - PinCounter) - 4.f };
-
-			// Create a pin and put the info in the main vertex array
-			createPin(PinPosition + ChipPosition, PinSize, PinColorNormal, Vertices);
-			
-			// Create the pin label			
-			auto& PinName = PinComponent.getPin(PinCounter + 1).mPinName; //PinComponent[PinCounter].mPinName; //
-			ChipTotalString += PinName + "  ";
-			mLabels->setString(ChipTotalString);
-			mLabels->setCharacterPosition(PinName + " ", { LabelOffsetX + PinPosition.x, PinPosition.y - 3.f });
-		}*/
-	}
-
-	void TChipComponent::renderLed()
-	{
-		/*// Get a ref to the drawable component vertex array for cache purposes
-		auto& Vertices = mDrawableComponent->getVertexArray();
-
-		// Define pin size
-		sf::Vector2f PinSize = { 10.f, 9.f };
-
-		// Get the size of the texture
-		auto LedBound = mDrawableComponent->getLocalBounds();
-
-		// Create the anode PIN
-		createPin({ -PinSize.x, LedBound.height / 2.f - PinSize.y / 2.f }, PinSize, PinColorNormal, Vertices);
-
-		// Create the cathode PIN
-		createPin({ LedBound.width, LedBound.height / 2.f - PinSize.y / 2.f }, PinSize, PinColorNormal, Vertices);*/
-	}
-
 
 }

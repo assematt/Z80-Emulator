@@ -213,6 +213,9 @@
     <ClCompile Include="TPackageComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
+    <ClCompile Include="TPowerComponent.cpp">
+      <Filter>Source Files\src\graphics\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -387,6 +390,9 @@
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
     <ClInclude Include="TPackageComponent.h">
+      <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TPowerComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
     </ClInclude>
   </ItemGroup>

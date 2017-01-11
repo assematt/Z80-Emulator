@@ -32,11 +32,11 @@ namespace nne
 	{
 	}
 
-	void TLogicBoardComponent::placeChip(TChipComponent* Component)
+	/// Chip function
+	void TLogicBoardComponent::placeChip(TChipComponent* ChipToPlace)
 	{
-		mChipVector.push_back(Component);
+		mChipVector.push_back(ChipToPlace);
 	}
-
 
 	void TLogicBoardComponent::placeChip(TEntity* Entity)
 	{
@@ -46,6 +46,36 @@ namespace nne
 		placeChip(Entity->getComponentAsPtr<TChipComponent>());
 	}
 
+	void TLogicBoardComponent::removeChip(TChipComponent* ChipToRemove)
+	{
+		// Number of chip in the chip vector
+		auto Chips = mChipVector.size();
+		
+		// Iterate the vector
+		for (auto Index = 0u; Index < Chips; ++Index)
+		{
+			// If we found the CHip to remove, remove it from the vector and return early
+			if (mChipVector[Index] == ChipToRemove)
+			{
+				fastDelete(mChipVector, Index);
+
+				return;
+			}
+		}
+
+		// TODO
+		// Remove the logic board component from the parent entity to avoid unwanted deletion
+	}
+
+	void TLogicBoardComponent::removeChip(TEntity* Entity)
+	{
+		removeChip(Entity->getComponentAsPtr<TChipComponent>());
+
+		// Remove the logic board component from the parent entity to avoid unwanted deletion
+		Entity->softRemoveComponent<TLogicBoardComponent>();
+	}
+
+	/// Wire function
 	void TLogicBoardComponent::placeWire(TWireComponent* Wire)
 	{
 		mWireVector.push_back(Wire);
@@ -58,8 +88,37 @@ namespace nne
 
 		placeWire(Entity->getComponentAsPtr<TWireComponent>());
 	}
+		
+	void TLogicBoardComponent::removeWire(TWireComponent* WireToRemove)
+	{
+		// Number of chip in the wire vector
+		auto Wires = mWireVector.size();
 
-	
+		// Iterate the vector
+		for (auto Index = 0u; Index < Wires; ++Index)
+		{
+			// If we found the wire to remove, remove it from the vector and return early
+			if (mWireVector[Index] == WireToRemove)
+			{
+				fastDelete(mWireVector, Index);
+
+				return;
+			}
+		}
+
+		// TODO
+		// Remove the logic board component from the parent entity to avoid unwanted deletion
+	}
+
+	void TLogicBoardComponent::removeWire(TEntity* Entity)
+	{
+		removeWire(Entity->getComponentAsPtr<TWireComponent>());
+
+		// Remove the logic board component from the parent entity to avoid unwanted deletion
+		Entity->softRemoveComponent<TLogicBoardComponent>();
+	}
+
+	/// Bus function
 	void TLogicBoardComponent::placeBus(TBusComponent* Bus)
 	{
 		mBusVector.push_back(Bus);
@@ -72,7 +131,37 @@ namespace nne
 
 		placeBus(Entity->getComponentAsPtr<TBusComponent>());
 	}
+	
+	void TLogicBoardComponent::removeBus(TBusComponent* BusToRemove)
+	{
+		// Number of chip in the wire vector
+		auto Busses = mBusVector.size();
 
+		// Iterate the vector
+		for (auto Index = 0u; Index < Busses; ++Index)
+		{
+			// If we found the wire to remove, remove it from the vector and return early
+			if (mBusVector[Index] == BusToRemove)
+			{
+				fastDelete(mBusVector, Index);
+
+				return;
+			}
+		}
+
+		// TODO
+		// Remove the logic board component from the parent entity to avoid unwanted deletion
+	}
+
+	void TLogicBoardComponent::removeBus(TEntity* Entity)
+	{
+		removeBus(Entity->getComponentAsPtr<TBusComponent>());
+
+		// Remove the logic board component from the parent entity to avoid unwanted deletion
+		Entity->softRemoveComponent<TLogicBoardComponent>();
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 	bool TLogicBoardComponent::checkCollisions(TChipComponent* Chip)
 	{
 		bool CollisionFound = false;

@@ -6,26 +6,24 @@
 namespace nne
 {
 
-	TPackageComponent::TPackageComponent()
+	TPackageComponent::TPackageComponent() :
+		mPackageColor({ 30u, 30u, 30u })
 	{
 
 	}
 
 	void TPackageComponent::update(const sf::Time& ElapsedTime)
 	{
-		// 
-		auto& IsPlaced = mParent->getComponent<TChipComponent>().isPlaced();
-
-		// Update the LED color only if the component it's placed
-		if (IsPlaced)
-		{
-			mParent->getComponent<TDrawableComponent>().setColor({ 30u, 30u, 30u, 255u });
-		}
+		// Update the package color only if the component it's placed
+		if (mParent->getComponent<TChipComponent>().isPlaced())
+			mParent->getComponent<TDrawableComponent>().setColor(mPackageColor);
 	}
 
 	void TPackageComponent::refresh(const sf::Time& ElapsedTime)
 	{
-
+		// Check if the package it's powered on if the chip is placed
+		if (mParent->getComponent<TChipComponent>().isPlaced())
+			checkPowerStatus();
 	}
 
 	void TPackageComponent::init()
@@ -36,7 +34,7 @@ namespace nne
 	void TPackageComponent::renderDipChip()
 	{
 		// Get a ref to the PIN, drawable and text component
-		auto& PinComponent = mParent->getComponent<tcomponents::TPinComponent>();
+		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
 		auto& Labels = mParent->getComponent<TTextComponent>();
 
@@ -82,6 +80,28 @@ namespace nne
 			Labels.setString(ChipTotalString);
 			Labels.setCharacterPosition(PinName + " ", { LabelOffsetX + PinPosition.x, PinPosition.y - 3.f });
 		}
+	}
+
+	void TPackageComponent::checkPowerStatus()
+	{
+		// Get a ref to the PIN Component
+		auto& PinComponent = mParent->getComponent<TPinComponent>();
+
+		// Get the anode and the cathode
+		auto& VCC = PinComponent.getPin("VCC");
+		auto& GND = PinComponent.getPin("GND");
+
+		// If both pin are connected to something
+		if (VCC.hasConnections() && GND.hasConnections())
+		{
+			// If the anode is positive and the cathode is 0
+			mIsPowered = (VCC.getPinStatus() == TPin::HIGH && GND == TPin::LOW) ? true : false;
+		}
+	}
+
+	const bool& TPackageComponent::isPoweredOn() const
+	{
+		return mIsPowered;
 	}
 
 }

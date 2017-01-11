@@ -25,17 +25,29 @@ namespace nne
 
 		virtual void update(const sf::Time& ElapsedTime) override;
 
-		/// Function to place a component in the board
-		void placeChip(TChipComponent* Component);
+		/// Function to place a chip in the board
+		void placeChip(TChipComponent* ChipToPlace);
 		void placeChip(TEntity* Entity);
+		
+		/// Function to remove a chip from the board
+		void removeChip(TChipComponent* ChipToRemove);
+		void removeChip(TEntity* Entity);
 
 		/// Function to place a wire in the board
 		void placeWire(TWireComponent* Wire);
 		void placeWire(TEntity* Entity);
 
+		/// Function to remove a wire from the board
+		void removeWire(TWireComponent* WireToRemove);
+		void removeWire(TEntity* Entity);
+
 		/// Function to place a wire in the board
 		void placeBus(TBusComponent* Bus);
 		void placeBus(TEntity* Entity);
+
+		/// Function to remove a bus from the board
+		void removeBus(TBusComponent* BusToRemove);
+		void removeBus(TEntity* Entity);
 
 		/// Check if the chip we are trying to place is colliding with another chip already on the logic board
 		bool checkCollisions(TChipComponent* Chip);
@@ -69,6 +81,14 @@ namespace nne
 
 		/// get the wire vector
 		const std::vector<TWireComponent*>& getWireVector() const;
+
+	private:
+		
+		/// Template function for a fast delete of an element pointed by Index in Vector
+		/// Done by taking the element to remove, swapping it with the last element in the vector
+		/// And then popping back, this way we avoid vector shuffling of the elements from Index to Vector.size()
+		template <class T>
+		void fastDelete(T& Vector, const std::size_t& Index);
 		
 	private:
 		TChipComponent*					mSelectedChip;
@@ -84,4 +104,12 @@ namespace nne
 		std::vector<TChipComponent*>	mChipVector;
 		std::vector<TWireComponent*>	mWireVector;
 	};
+
+	template <class T>
+	void nne::TLogicBoardComponent::fastDelete(T& Vector, const std::size_t& Index)
+	{
+		std::swap(Vector.begin() + Index, Vector.end() - 1);
+		Vector.pop_back();
+	}
+
 }

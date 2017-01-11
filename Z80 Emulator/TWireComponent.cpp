@@ -33,7 +33,7 @@ namespace nne
 	TWireComponent::TWireComponent() :
 		mDrawableComponent(nullptr),
 		mFixedPoints(0u),
-		mThickness(4.f),
+		mThickness(3.f),
 		mEnableDraw(false),
 		mIsSelected(false),
 		mLastPointPos(0.f, 0.f),
@@ -378,10 +378,10 @@ namespace nne
 		// In case of vertical alignment
 		else
 		{
-			VertexArray.append({ { LineBegin.x - (mThickness / 2), LineBegin.y }, mWireColor });
-			VertexArray.append({ { LineBegin.x + (mThickness / 2), LineBegin.y }, mWireColor });
-			VertexArray.append({ { LineEnd.x + (mThickness / 2), LineEnd.y }, mWireColor });
-			VertexArray.append({ { LineEnd.x - (mThickness / 2), LineEnd.y }, mWireColor });
+			VertexArray.append({ { LineBegin.x - (mThickness / 2) + 1.f, LineBegin.y }, mWireColor });
+			VertexArray.append({ { LineBegin.x + (mThickness / 2) + 1.f, LineBegin.y }, mWireColor });
+			VertexArray.append({ { LineEnd.x + (mThickness / 2) + 1.f, LineEnd.y }, mWireColor });
+			VertexArray.append({ { LineEnd.x - (mThickness / 2) + 1.f, LineEnd.y }, mWireColor });
 		}
 
 		mLastPointPosTemp = LineEnd;
@@ -407,6 +407,11 @@ namespace nne
 
 		// Removes all the temp points
 		mDrawableComponent->getVertexArray().resize(mFixedPoints);
+	}
+
+	const bool& TWireComponent::isDrawing() const
+	{
+		return mEnableDraw;
 	}
 
 	sf::FloatRect TWireComponent::getLocalBound()

@@ -1,5 +1,7 @@
 #include "TRamComponent.h"
 
+#include "TPackageComponent.h"
+
 namespace nne
 {
 	namespace tcomponents
@@ -16,6 +18,9 @@ namespace nne
 
 		void TRamComponent::update(const sf::Time& ElapsedTime)
 		{
+			if (!mParent->getComponent<TPackageComponent>().isPoweredOn())
+				return;
+
 			refreshMemory();
 		}
 
@@ -56,7 +61,7 @@ namespace nne
 			mMemoryComponent->resize(mMemorySize);
 
 			// Get a ref to the pin component
-			auto PinComponent = mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
 
 			// Setup the RAM pins
 			PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{
@@ -96,8 +101,8 @@ namespace nne
 				{ tcomponents::TPin::TMode::INPUT, "WE", tcomponents::TPin::TStatus::HIGH, 27, TRamPinGroup::ChipControl }, // WE 
 
 																															// Others
-				{ tcomponents::TPin::TMode::POWER, "VCC", tcomponents::TPin::TStatus::LOW, 28, TRamPinGroup::Others }, // VCC
-				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 14, TRamPinGroup::Others }, // GND
+				{ tcomponents::TPin::TMode::INPUT, "VCC", tcomponents::TPin::TStatus::LOW, 28, TRamPinGroup::Others }, // VCC
+				{ tcomponents::TPin::TMode::INPUT, "GND", tcomponents::TPin::TStatus::LOW, 14, TRamPinGroup::Others }, // GND
 			}, 28);
 
 			// Cache some pins
@@ -108,6 +113,9 @@ namespace nne
 
 		void TRamComponent::refresh(const sf::Time& ElapsedTime)
 		{
+			if (!mParent->getComponent<TPackageComponent>().isPoweredOn())
+				return;
+
 			refreshMemory();
 		}
 
@@ -124,7 +132,7 @@ namespace nne
 			// If we arrive at this point we are sure we are performing a read/write operation
 
 			// Get a ref to the pin component
-			auto& PinComponent = *mParent->getComponentAsPtr<tcomponents::TPinComponent>();
+			auto& PinComponent = *mParent->getComponentAsPtr<TPinComponent>();
 
 			// Get a ref to the memory component
 			auto& MemoryComponent = *mMemoryComponent;

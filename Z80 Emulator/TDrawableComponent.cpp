@@ -81,7 +81,7 @@ namespace nne
 	sf::Vector2u TDrawableComponent::getSize()
 	{
 		if (mVertexArray->getVertexCount() == 4)
-			return static_cast<sf::Vector2u>((*mVertexArray)[3].position);
+			return static_cast<sf::Vector2u>((*mVertexArray)[2].position);
 
 		auto Bound = static_cast<sf::Rect<unsigned int>>(computeComplexLocalBound());
 

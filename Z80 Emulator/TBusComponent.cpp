@@ -408,6 +408,11 @@ namespace nne
 		mDrawableComponent->getVertexArray().resize(mFixedPoints);
 	}
 
+	const bool& TBusComponent::isDrawing() const
+	{
+		return mEnableDraw;
+	}
+
 	void TBusComponent::connectEntryWire(TPin& PinToConnect)
 	{
 		LOG_VALUE("We are connecting an entry wire number #" + std::to_string(PinToConnect.mPinNumber));

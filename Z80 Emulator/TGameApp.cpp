@@ -25,6 +25,8 @@ namespace nne
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/new_crt_monitor_shadow.png"), "monitor_shadow"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/test_Image.png"), "test_image"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/grid_pattern.png"), "grid_pattern"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/ground.png"), "ground"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/power.png"), "power"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
 
 		mSceneManager.addScene(std::unique_ptr<IScene>(new TMainMenuScene()), "main_scene");		
@@ -43,8 +45,6 @@ namespace nne
 	{
 		mAppClock.restart();
 
-		LOG_VALUE("Log App");
-		
 		// Run the app and 
 		while (mAppWindow.isOpen())
 			mSceneManager.run(mAppClock.restart());

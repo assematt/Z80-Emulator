@@ -49,6 +49,9 @@ namespace nne
 		/// Add a chip in the manager and logic board 
 		void addChip(const std::string& ChipToAdd);
 
+		/// Check for temporary object we are currently trying to place and eventually remove it if we are trying to place another object
+		void removeTemporaryEntity();
+
 		/// Convert the mouse coordinate from window coordinate to the sf::View coordinate
 		sf::Vector2f convertMouseCoordinate(sf::Vector2i MouseCoordinate);
 

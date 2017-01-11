@@ -6,9 +6,10 @@
 
 namespace nne
 {
+	struct TPinComponent;
+
 	namespace tcomponents
 	{
-		struct TPinComponent;
 
 		struct TPin
 		{
@@ -35,6 +36,9 @@ namespace nne
 				CLOCK
 			};
 
+			/// Empty pin for function the return a PIN value 
+			static TPin& NotFound;
+
 			TPin();
 			
 			TPin(const TMode& PinMode, const TPinName& PinName, const TStatus& PinStatus = TStatus::LOW, const TPinNumber& PinNumber = 0, const TPinGroupID& PinGroupID = 0, const TPinNumber& PinGroupNumber = 0);
@@ -56,6 +60,12 @@ namespace nne
 
 			/// Get Pin ID
 			const TPinID& getPinID();
+
+			/// Return true if the PIN it's connected to at least another PIN
+			bool hasConnections();
+
+			/// Check if this PIN it's valid, meaning that is not the "NotFound" PIN
+			bool isValid();
 
 		private:
 			static TPinID generateID();

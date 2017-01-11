@@ -54,6 +54,9 @@ namespace nne
 		/// Toggle the ability to draw the wire
 		void toggleDraw();
 
+		/// Return the number of placed point
+		const bool& isDrawing() const;
+
 		/// Get the bound of the wire
 		sf::FloatRect getLocalBound();
 		sf::FloatRect getGlobalBound();

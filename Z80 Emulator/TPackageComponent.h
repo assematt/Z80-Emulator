@@ -22,10 +22,19 @@ namespace nne
 		///
 		virtual void init() override;
 
+		/// Check if the chip is powered on or not
+		const bool& isPoweredOn() const;
+
 	private:
 
 		/// Render a chip in the DIP format
 		void renderDipChip();
 
+		/// Check the status of the package (if it is ON or OFF)
+		void checkPowerStatus();
+
+	private:
+		bool		mIsPowered;
+		sf::Color	mPackageColor;
 	};
 }

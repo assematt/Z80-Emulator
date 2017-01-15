@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "IMenu.h"
+#include "IScene.h"
 #include "TWidget.h"
 
 namespace nne
@@ -72,11 +73,20 @@ namespace nne
 			/// Subscript operator to access an widget by index
 			TWidget::Ptr& operator[] (const int Index);
 			const TWidget::Ptr& operator[] (const int Index) const;
+			
+			/// update all the widget in the manager
+			void update(const sf::Time& ElapsedTime);
 
 			/// Process sf::Event's events and change the widget states accordingly and fires the widgets event
-			void processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow);
+			IScene::ID processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow);
+
+			/// Change the current displayed scene
+			void changeScene(const IScene::ID& NewScene) const;
 
 		private:
+
+		private:
+			mutable IScene::ID			mNextScene;
 			std::size_t					mLastAddedPosition;
 			std::vector<std::size_t>	mWidgetsZIndex;
 			std::vector<TWidget::Ptr>	mWidgetsContainer;

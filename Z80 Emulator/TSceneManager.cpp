@@ -4,7 +4,7 @@ namespace nne
 {
 
 	TSceneManager::TSceneManager() :
-		mSelectedScene(1),
+		mSelectedScene(0),
 		mNextMenu(mSelectedScene)
 	{
 	}
@@ -47,7 +47,7 @@ namespace nne
 	void TSceneManager::run(const sf::Time& ElapsedTime)
 	{
 		// Run the scene code
-		mSceneVector[mSelectedScene]->run(ElapsedTime);
+		mNextMenu = mSceneVector[mSelectedScene]->run(ElapsedTime);
 
 		mSelectedScene = mNextMenu;
 	}

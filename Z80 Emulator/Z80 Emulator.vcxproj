@@ -275,7 +275,9 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TBusComponent.cpp" />
     <ClCompile Include="TChipComponent.cpp" />
     <ClCompile Include="TClock.cpp" />
+    <ClCompile Include="TComplexText.cpp" />
     <ClCompile Include="TLedComponent.cpp" />
+    <ClCompile Include="TMenuButton.cpp" />
     <ClCompile Include="TPackageComponent.cpp" />
     <ClCompile Include="TPowerComponent.cpp" />
     <ClCompile Include="TWireComponent.cpp" />
@@ -320,9 +322,12 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TCacheManager.h" />
     <ClInclude Include="TChipComponent.h" />
     <ClInclude Include="ILoadingScreen.h" />
+    <ClInclude Include="TComplexText.h" />
     <ClInclude Include="TLedComponent.h" />
+    <ClInclude Include="TMenuButton.h" />
     <ClInclude Include="TPackageComponent.h" />
     <ClInclude Include="TPowerComponent.h" />
+    <ClInclude Include="TSceneManager.h" />
     <ClInclude Include="TWireComponent.h" />
     <ClInclude Include="TButton.h" />
     <ClInclude Include="TContainer.h" />
@@ -336,8 +341,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TResourceLoader.h" />
     <ClInclude Include="TResourceVector.h" />
     <ClInclude Include="TLoaders.h" />
-    <ClInclude Include="TSceneManager.h" />
-    <ClInclude Include="TStateManager.h" />
     <ClInclude Include="TZ80Component.h" />
     <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TFactory.h" />

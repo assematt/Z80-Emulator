@@ -13,6 +13,7 @@ namespace nne
 			mInputEnable(true),
 			mIsToggleable(false),
 			mIsSelected(false),
+			mIsEnabled(true),
 			mGuiManager(nullptr),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>())
@@ -28,6 +29,7 @@ namespace nne
 			mInputEnable(true),
 			mIsToggleable(false),
 			mIsSelected(false),
+			mIsEnabled(true),
 			mGuiManager(&GuiManager),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>())
@@ -43,6 +45,7 @@ namespace nne
 			mInputEnable(true),
 			mIsToggleable(false),
 			mIsSelected(false),
+			mIsEnabled(true),
 			mGuiManager(nullptr),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>()),
@@ -58,6 +61,7 @@ namespace nne
 			mInputEnable(true),
 			mIsToggleable(false),
 			mIsSelected(false),
+			mIsEnabled(true),
 			mGuiManager(&GuiManager),
 			mParent(&Parent),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>())
@@ -88,6 +92,7 @@ namespace nne
 			mInputEnable(true),
 			mIsToggleable(false),
 			mIsSelected(false),
+			mIsEnabled(true),
 			mGuiManager(&GuiManager),
 			mParent(&Parent),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>()),
@@ -102,6 +107,7 @@ namespace nne
 			mInputEnable(Copy.mInputEnable),
 			mIsToggleable(Copy.mIsToggleable),
 			mIsSelected(Copy.mIsSelected),
+			mIsEnabled(Copy.mIsEnabled),
 			mTexture(Copy.mTexture),
 			mGuiManager(Copy.mGuiManager),
 			mParent(Copy.mParent),
@@ -117,6 +123,7 @@ namespace nne
 			mInputEnable(std::move(Move.mInputEnable)),
 			mIsToggleable(std::move(Move.mIsToggleable)),
 			mIsSelected(std::move(Move.mIsSelected)),
+			mIsEnabled(std::move(Move.mIsEnabled)),
 			mTexture(std::move(Move.mTexture)),
 			mGuiManager(std::move(Move.mGuiManager)),
 			mParent(std::move(Move.mParent)),
@@ -142,7 +149,7 @@ namespace nne
 
 		const bool& TWidget::isEnabled() const
 		{
-			return mInputEnable;
+			return mIsEnabled && mInputEnable;
 		}
 
 		void TWidget::setTexture(const sf::Texture* Texture, bool UpdateBounds /*= true*/)
@@ -301,6 +308,15 @@ namespace nne
 			Target.draw(mVertices, States);
 		}
 
+		void TWidget::update(const sf::Time& ElapsedTime)
+		{
+		}
+
+		void TWidget::changeState(const TState& NewState)
+		{
+			mState = NewState;
+		}
+
 		void TWidget::updateTextureBounds(const sf::IntRect& TextureRect)
 		{
 			sf::FloatRect TextureBound = static_cast<sf::FloatRect>(TextureRect);
@@ -366,9 +382,59 @@ namespace nne
 			return mIsToggleable;
 		}
 
-		const bool& TWidget::IsHovered() const
+		void TWidget::setHovered(const bool& Hovered)
+		{
+			mIsHovered = true;
+		}
+
+		const bool& TWidget::isHovered() const
 {
 			return mIsHovered;
+		}
+
+		const nne::tgui::TWidget::TState& TWidget::getState() const
+		{
+			return mState;
+		}
+
+		const nne::tgui::events::TEventSlot& TWidget::attachEvent(const events::List& EventType, const events::TEvent& EventToAttach)
+		{
+			// Insert the event in his slot and
+			//mEventsList.push_back(EventToAttach);
+
+			auto NewIt = mEventsList.emplace(EventType, EventToAttach);
+
+			// If we added the element in the array return the iterator to the currently added element otherwise return end()
+			return NewIt.second ? NewIt.first : mEventsList.end();
+		}
+
+		void TWidget::detachEvent(const events::List& EventType)
+		{
+			mEventsList.erase(EventType);
+		}
+
+		void TWidget::fireEvent(const events::List& EventToFire, TWidget* Sender, const sf::Event& EventData)
+		{
+			auto It = mEventsList.find(EventToFire);
+
+			if (It != mEventsList.end())
+			{
+				It->second(Sender, EventData);
+			}
+		}
+
+		void TWidget::disableWidget()
+		{
+			mIsEnabled = false;
+
+			changeState(TState::DISABLED);
+		}
+
+		void TWidget::enableWidget()
+		{
+			mIsEnabled = true;
+
+			changeState(TState::NORMAL);
 		}
 
 	}

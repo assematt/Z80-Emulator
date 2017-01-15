@@ -19,7 +19,7 @@ namespace nne
 		void setup(sf::RenderWindow& RenderTarget);
 
 		void addScene(std::unique_ptr<IScene>& Scene, const std::string& SceneKey);
-		
+
 		IScene::Ptr& getScene(const IScene::ID& Scene);
 
 		void initScenes();
@@ -27,7 +27,7 @@ namespace nne
 		void changeScene(IScene::ID NewScene);
 
 		void run(const sf::Time& ElapsedTime);
-			
+
 		sf::RenderWindow& getRenderWindow();
 
 	private:

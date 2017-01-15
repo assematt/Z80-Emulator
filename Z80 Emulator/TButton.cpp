@@ -38,12 +38,12 @@ namespace nne
 			return mText.getString();
 		}
 
-		void TButton::setColor(const sf::Color& Color)
+		void TButton::setFillColor(const sf::Color& Color, const bool& OverrideOtherColor /*= true*/)
 		{
-			mText.setFillColor(Color);
+			mText.setFillColor(Color, OverrideOtherColor);
 		}
 
-		const sf::Color& TButton::getColor() const
+		const sf::Color& TButton::getFillColor() const
 		{
 			return mText.getFillColor();
 		}
@@ -74,41 +74,6 @@ namespace nne
 
 			// draw this widget
 			Target.draw(mText, States);
-		}
-
-		void TButton::onStateNormal()
-		{
-			TWidget::setColor(NormalColor);
-
-			changeState(TStateManager::NORMAL);
-		}
-
-		void TButton::onStateHover()
-		{
-			TWidget::setColor(HoverColor);
-
-			changeState(TStateManager::HOVER);
-		}
-
-		void TButton::onStateSelected()
-		{
-			TWidget::setColor(SelectedColorColor);
-
-			changeState(TStateManager::SELECTED);
-		}
-
-		void TButton::onStateClicked()
-		{
-			TWidget::setColor(ClickedColor);
-			
-			changeState(TStateManager::CLICKED);
-		}
-
-		void TButton::onStateDisabled()
-		{
-			TWidget::setColor(DisabledColorColor);
-
-			changeState(TStateManager::DISABLED);
 		}
 
 		sf::Vector2f TButton::getTextSize()

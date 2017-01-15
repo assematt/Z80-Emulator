@@ -8,7 +8,8 @@ namespace nne
 	{
 
 		TGuiManager::TGuiManager() :
-			mLastAddedPosition(0)
+			mLastAddedPosition(0),
+			mNextScene(IScene::Same)
 		{
 		}
 
@@ -122,11 +123,16 @@ namespace nne
 			return mWidgetsContainer[Index];
 		}
 
-		void TGuiManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow)
+		void TGuiManager::update(const sf::Time& ElapsedTime)
 		{
-			// First reset the state of all the widgets
-// 			for (auto& Widget : mWidgetsContainer)
-// 				Widget->onStateNormal();
+			for (auto& Widget : mWidgetsContainer)
+				Widget->update(ElapsedTime);
+		}
+
+		nne::IScene::ID TGuiManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow)
+		{
+			// By default we return the same scene
+			//mNextScene = IScene::Same;
 
 			// Loop all the widget until we find an object to fire an event on
 			// We loop in revers order (since we want to check the widget with the highest ZIndex first)
@@ -155,98 +161,36 @@ namespace nne
 				// See if the widget is selected
 				const bool& IsSelected = Widget.isSelected();
 
-				// See if the widget is being selected
-				const bool& IsHovered = Widget.IsHovered();
+				// See if the widget is being hovered
+				const bool& IsHovered = Widget.isHovered();
 
-// 				switch (Event.type)
-// 				{
-// 
-// 				case sf::Event::MouseMoved:
-// 				{
-// 					if (!IsInsideWidget && !IsHovered)
-// 					{
-// 						Widget.onStateNormal();
-// 					}
-// 					else
-// 					{
-// 						Widget.onStateHover();
-// 					}
-// 				} break;
-// 
-// 				case sf::Event::MouseButtonPressed:
-// 				{
-// 					// If we didn't clicked on the widget and the widget isn't toggleable once we click outside reset the state of the widget (goes back to normal)
-// 					if (!IsInsideWidget)
-// 					{
-// 						if (!IsToggleable)
-// 							Widget.onStateNormal();						
-// 					}
-// 					// If we clicked on the widget and the widget isn't toggleable once we click outside reset the state of the widget (goes back to normal)
-// 					else
-// 					{
-// 						Widget.setSelected(!IsSelected);
-// 
-// 						if (Widget.isSelected())
-// 							Widget.onStateSelected();
-// 						else
-// 							Widget.onStateClicked();
-// 					}
-// 				} break;
-// 				
-// 				}
+				// Handle mouse move event
+				!IsInsideWidget ? Widget.changeState(TWidget::NORMAL) : Widget.changeState(TWidget::HOVER);
 
-				/*// If we pressed the mouse
-				if (Event.type == sf::Event::MouseButtonPressed && IsInsideWidget)
-				{
-					Widget.onStateClicked();
+				// Handle mouse press event
+				if (Event.type == sf::Event::MouseButtonPressed)
 
-					EventFire = true;
-				}
-				else if (Event.type == sf::Event::MouseButtonReleased && IsInsideWidget)
-				{
-					Widget.onStateSelected();
-
-					EventFire = true;
-				}
-				else if (Event.type == sf::Event::MouseMoved && IsInsideWidget)
-				{
-					Widget.onStateHover();
-
-					EventFire = true;
-				}
-				else if (!Widget.isToggleable() && !Widget.isSelected())
-				{
-					Widget.onStateNormal();
-				}*/
-/*
-
-				// If the mouse is above the widget
-				if (WidgetBound.contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(EventWindow))))
-				{
-					if (Event.type == sf::Event::MouseButtonPressed)
+					if (!IsInsideWidget)
 					{
-						Widget.onStateClicked();
+						Widget.changeState(TWidget::NORMAL);
+					}
+					else
+					{
+						Widget.changeState(TWidget::CLICKED);
 
-						EventFire = true;
+						Widget.fireEvent(events::CLICKED, &Widget, Event);
 					}
 
-					if (Event.type == sf::Event::MouseButtonReleased)
-					{
-						Widget.onStateSelected();
-
-						EventFire = true;
-					}
-
-					if (Event.type == sf::Event::MouseMoved)
-					{
-						Widget.onStateHover();
-						
-						EventFire = true;
-					}
-				}
-*/
+					//!IsInsideWidget ? Widget.changeState(TWidget::NORMAL) : Widget.changeState(TWidget::CLICKED);
 
 			}
+
+			return mNextScene;
+		}
+
+		void TGuiManager::changeScene(const IScene::ID& NewScene) const
+		{
+			mNextScene = NewScene;
 		}
 
 	}

@@ -19,26 +19,32 @@ namespace nne
 
 	nne::IScene::ID TMainMenuScene::eventLoop()
 	{
+		nne::IScene::ID NewSceneID = IScene::Same;
+
 		while (mRenderWindow->pollEvent(mAppEvent))
 		{
-			mGuiManager.processEvents(mAppEvent, *mRenderWindow);
+			NewSceneID = mGuiManager.processEvents(mAppEvent, *mRenderWindow);
 
 			if (mAppEvent.type == sf::Event::Closed)
 				mRenderWindow->close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
 				mRenderWindow->close();
+
+			if (NewSceneID == IScene::Exit)
+				mRenderWindow->close();
 		}
 
-		return IScene::Same;
+		return NewSceneID;
 	}
 
 	void TMainMenuScene::refresh(sf::Time ElapsedTime)
-	{
+	{		
 	}
 
 	void TMainMenuScene::update(sf::Time ElapsedTime)
 	{
+		mGuiManager.update(ElapsedTime);
 	}
 
 	void TMainMenuScene::draw()

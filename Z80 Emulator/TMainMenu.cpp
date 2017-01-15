@@ -1,8 +1,11 @@
 #include "TMainMenu.h"
+
 #include <SFML/Graphics/Texture.hpp>
+#include <Windows.h>
+
 #include "TCacheManager.h"
 #include "TGuiManager.h"
-#include "TButton.h"
+#include "TMenuButton.h"
 #include "TImage.h"
 
 namespace nne
@@ -34,35 +37,58 @@ namespace nne
 			MonitorFrame->enableInput(false);
 			MonitorFrame->setSize({ 1600u, 900u });
 
-			TButton::Ptr StoryMode = std::make_shared<TButton>();
+			TMenuButton::Ptr StoryMode = std::make_shared<TMenuButton>();
 			StoryMode->setName("STORY_MODE");
 			StoryMode->setCaption("STORY MODE");
+			StoryMode->setFillColor(sf::Color::White);
+			StoryMode->setCharacterFillColor({ 51u, 51u, 51u }, 0);
 			StoryMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) - sf::Vector2f(StoryMode->getSize().x / 2.f, 0.f));
-			//StoryMode->connectSignal(std::bind(&TMainMenu::onNewGameButtonClick, this, std::placeholders::_1), tevent::_OnMouseClick);
+			StoryMode->disableWidget();
 
-			TButton::Ptr SandboxMode = std::make_shared<TButton>();
+			TMenuButton::Ptr SandboxMode = std::make_shared<TMenuButton>();
 			SandboxMode->setName("SANDBOX_MODE");
 			SandboxMode->setCaption("SANDBOX MODE");
+			SandboxMode->setFillColor(sf::Color::White);
+			SandboxMode->setCharacterFillColor({ 170u, 0u, 0u }, 1);
+			SandboxMode->attachEvent(events::CLICKED, [](TWidget* Sender, const sf::Event& EventData) {
+				// Goes to the editor
+				Sender->getManager().changeScene(1);
+			});
 			SandboxMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(SandboxMode->getSize().x / 2.f), 50.f));
 
-			TButton::Ptr ChallangeMode = std::make_shared<TButton>();
+			TMenuButton::Ptr ChallangeMode = std::make_shared<TMenuButton>();
 			ChallangeMode->setName("CHALLANGE_MODE");
 			ChallangeMode->setCaption("CHALLANGE MODE");
+			ChallangeMode->disableWidget();
+			ChallangeMode->setFillColor(sf::Color::White);
+			ChallangeMode->setCharacterFillColor({ 51u, 51u, 51u }, 0);
 			ChallangeMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(ChallangeMode->getSize().x / 2.f), 100.f));
 
-			TButton::Ptr Options = std::make_shared<TButton>();
+			TMenuButton::Ptr Options = std::make_shared<TMenuButton>();
 			Options->setName("OPTIONS");
 			Options->setCaption("OPTIONS");
+			Options->disableWidget();
+			Options->setFillColor(sf::Color::White);
+			Options->setCharacterFillColor({ 51u, 51u, 51u }, 0);
 			Options->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Options->getSize().x / 2.f), 150.f));
 
-			TButton::Ptr Credits = std::make_shared<TButton>();
+			TMenuButton::Ptr Credits = std::make_shared<TMenuButton>();
 			Credits->setName("CREDITS");
 			Credits->setCaption("CREDITS");
+			Credits->disableWidget();
+			Credits->setFillColor(sf::Color::White);
+			Credits->setCharacterFillColor({ 51u, 51u, 51u }, 0);
 			Credits->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Credits->getSize().x / 2.f), 200.f));
 
-			TButton::Ptr Quit = std::make_shared<TButton>();
+			TMenuButton::Ptr Quit = std::make_shared<TMenuButton>();
 			Quit->setName("QUIT");
 			Quit->setCaption("QUIT");
+			Quit->setFillColor(sf::Color::White);
+			Quit->setCharacterFillColor({ 170u, 0u, 0u }, 0);
+			Quit->attachEvent(events::CLICKED, [](TWidget* Sender, const sf::Event& EventData) {
+				// Quit the program
+				Sender->getManager().changeScene(IScene::Exit);
+			});
 			Quit->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Quit->getSize().x / 2.f), 250.f));
 
 			// Adds the widgets to the menu

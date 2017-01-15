@@ -24,8 +24,9 @@ namespace nne
 		using ID = std::size_t;
 		using Ptr = std::unique_ptr<IScene>;
 
-		const ID Same = std::numeric_limits<ID>::max();
-		const ID NotFound = std::numeric_limits<ID>::max() - 1;
+		const static ID Same = std::numeric_limits<ID>::max();
+		const static ID NotFound = std::numeric_limits<ID>::max() - 1;
+		const static ID Exit = std::numeric_limits<ID>::max() - 2;
 
 		IScene();
 

@@ -216,6 +216,12 @@
     <ClCompile Include="TPowerComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
     </ClCompile>
+    <ClCompile Include="TMenuButton.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TComplexText.cpp">
+      <Filter>Source Files\src\gui\base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -323,9 +329,6 @@
     <ClInclude Include="TRamComponent.h">
       <Filter>Header Files\include\components</Filter>
     </ClInclude>
-    <ClInclude Include="TSceneManager.h">
-      <Filter>Header Files\include\scenes</Filter>
-    </ClInclude>
     <ClInclude Include="IDGenerator.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>
@@ -368,9 +371,6 @@
     <ClInclude Include="TStaticText.h">
       <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
-    <ClInclude Include="TStateManager.h">
-      <Filter>Header Files\include\gui\base</Filter>
-    </ClInclude>
     <ClInclude Include="IMenu.h">
       <Filter>Header Files\include\gui\base</Filter>
     </ClInclude>
@@ -394,6 +394,15 @@
     </ClInclude>
     <ClInclude Include="TPowerComponent.h">
       <Filter>Header Files\include\graphics\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TMenuButton.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TSceneManager.h">
+      <Filter>Header Files\include\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="TComplexText.h">
+      <Filter>Header Files\include\gui\base</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

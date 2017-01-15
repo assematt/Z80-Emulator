@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics/Text.hpp>
+#include "TComplexText.h"
 #include "TWidget.h"
 
 namespace nne
@@ -19,6 +20,7 @@ namespace nne
 			const sf::Color DisabledColorColor = { 19, 19, 19 };
 
 			TButton();
+			virtual ~TButton() = default;
 
 			/// Set some of the widget properties
 			void setCharacterSize(const std::size_t& CharacterSize);
@@ -27,8 +29,8 @@ namespace nne
 			void setCaption(const sf::String& Caption);
 			const sf::String& getCaption() const;
 
-			void setColor(const sf::Color& Color);
-			const sf::Color& getColor() const;
+			void setFillColor(const sf::Color& Color, const bool& OverrideOtherColor = true);
+			const sf::Color& getFillColor() const;
 
 			void setPadding(const sf::Vector2u& Padding);
 			const sf::Vector2u& getPadding() const;
@@ -36,27 +38,13 @@ namespace nne
 		protected:
 			virtual void draw(sf::RenderTarget& Target, sf::RenderStates States) const override;
 
-
-			virtual void onStateNormal() override;
-
-
-			virtual void onStateHover() override;
-
-
-			virtual void onStateSelected() override;
-
-
-			virtual void onStateClicked() override;
-
-
-			virtual void onStateDisabled() override;
-
 		private:
 			/// Get the size of the displayed text string
 			sf::Vector2f getTextSize();
 
-		private:
-			sf::Text		mText;
+		protected:
+			//sf::Text		mText;
+			TComplexText	mText;
 			sf::Vector2u	mTextPadding;
 		};
 	}

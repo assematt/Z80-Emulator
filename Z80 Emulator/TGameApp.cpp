@@ -27,6 +27,12 @@ namespace nne
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/grid_pattern.png"), "grid_pattern"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/ground.png"), "ground"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/power.png"), "power"));
+
+		// Image BTN
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/bus_btn.png"), "bus_btn"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/chip_btn.png"), "chip_btn"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/track_btn.png"), "track_btn"));
+
 		CacheManager.addResource(nne::TResourceLoader<sf::Font>(nne::SFPathLoader<sf::Font>("resources/fonts/font.ttf"), "font_1"));
 
 		mSceneManager.addScene(std::unique_ptr<IScene>(new TMainMenuScene()), "main_scene");		

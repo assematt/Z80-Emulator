@@ -7,23 +7,16 @@
 #include "TManager.h"
 #include "TFactory.h"
 #include "TGuiManager.h"
-#include "TLogicBoardComponent.h"
+#include "TRenderCanvas.h"
 #include "TGridComponent.h"
+#include "TLogicBoardComponent.h"
 
 namespace nne
 {
 	class TNewGameScene : public IScene
 	{
 	public:
-
-		enum class TInsertionMethod
-		{
-			CHIP,
-			WIRE,
-			BUS,
-			NONE
-		};
-
+		
 		TNewGameScene();
 
 		virtual void init() override;
@@ -49,19 +42,28 @@ namespace nne
 		/// Add a chip in the manager and logic board 
 		void addChip(const std::string& ChipToAdd);
 
+		/// Handle all the mouse move event for the RenderSurface/LogicBoard
+		void handleMouseMoveEvent(const sf::Vector2f& MousePos);
+
+		/// Handle all the right mouse up event for the RenderSurface/LogicBoard
+		void handleRightMouseUpEvent();
+
+		/// Handle all the left mouse up event for the RenderSurface/LogicBoard
+		void handleLeftMouseUpEvent();
+
+		/// Handle all the keyboard inputs for the RenderSurface/LogicBoard
+		void handleKeyboardInputs(const sf::Keyboard::Key& KeyCode);
+
 		/// Check for temporary object we are currently trying to place and eventually remove it if we are trying to place another object
 		void removeTemporaryEntity();
-
-		/// Convert the mouse coordinate from window coordinate to the sf::View coordinate
-		sf::Vector2f convertMouseCoordinate(sf::Vector2i MouseCoordinate);
 
 	private:
 		TManager				mGraphicEntity;
 		sf::Event				mAppEvent;
 		sf::Uint32				mZoomSteps;
-		TInsertionMethod		mInsertionMethod;
 		tgui::TGuiManager		mGuiManager;
 		TGridComponent*			mGridComponent;
+		tgui::TRenderCanvas*	mRenderCanvas;
 		TLogicBoardComponent*	mLogicBoard;
 
 		/// Variable to keep track of how many wires/bus/chips we have in the logic board

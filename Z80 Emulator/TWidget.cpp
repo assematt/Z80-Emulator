@@ -399,9 +399,7 @@ namespace nne
 
 		const nne::tgui::events::TEventSlot& TWidget::attachEvent(const events::List& EventType, const events::TEvent& EventToAttach)
 		{
-			// Insert the event in his slot and
-			//mEventsList.push_back(EventToAttach);
-
+			// Insert the event in his slot and get a pair of the inserted iterator and whatever it's valid or not
 			auto NewIt = mEventsList.emplace(EventType, EventToAttach);
 
 			// If we added the element in the array return the iterator to the currently added element otherwise return end()

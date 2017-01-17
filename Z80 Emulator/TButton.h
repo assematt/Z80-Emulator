@@ -14,9 +14,9 @@ namespace nne
 			using Ptr = std::shared_ptr<TButton>;
 
 			const sf::Color NormalColor = { 0, 35, 64 };
-			const sf::Color HoverColor = { 0, 28, 52 };
-			const sf::Color ClickedColor = { 0, 21, 38 };
-			const sf::Color SelectedColorColor = { 0, 70, 128 };
+			const sf::Color HoverColor = { 0, 70, 128 }/*{ 0, 28, 52 }*/;
+			const sf::Color ClickedColor = { 0, 105, 191 }/*{ 0, 21, 38 }*/;
+			const sf::Color SelectedColorColor = { 0, 105, 191 }/*{ 0, 70, 128 }*/;
 			const sf::Color DisabledColorColor = { 19, 19, 19 };
 
 			TButton();
@@ -37,6 +37,9 @@ namespace nne
 
 		protected:
 			virtual void draw(sf::RenderTarget& Target, sf::RenderStates States) const override;
+			
+			/// Update the button looks
+			virtual void update(const sf::Time& ElapsedTime) override;
 
 		private:
 			/// Get the size of the displayed text string

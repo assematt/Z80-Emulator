@@ -1,6 +1,7 @@
 #pragma once
 
-#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/Event.hpp>
 #include <SFML/System/Time.hpp>
 #include <functional>
 #include <algorithm>
@@ -39,6 +40,10 @@ namespace nne
 		/// Get an entity by type, return nullptr if the entity isn't found
 		TEntity::EntityPtr& getEntityByKey(const std::string& EntityKey);
 
+		/// Process sf::Event's events and change the widget states accordingly and fires the widgets event
+		void processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow);
+		void processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow, const sf::RenderTarget& EventCanvas);
+
 		/// Function to init all the entity in the array (useful in bulk creation of multiple entity)
 		void initEntities();
 
@@ -50,6 +55,9 @@ namespace nne
 
 		/// refreshes every entity in the container
 		void refresh(const sf::Time& ElapsedTime);
+
+		/// Get the number of alive entities in the array
+		const std::size_t& getAliveEntities() const;
 
 		/// Helper function for for-each style loop
 		EntityIterator begin();

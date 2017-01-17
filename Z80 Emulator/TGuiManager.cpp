@@ -130,13 +130,9 @@ namespace nne
 		}
 
 		nne::IScene::ID TGuiManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow)
-		{
-			// By default we return the same scene
-			//mNextScene = IScene::Same;
-
+		{			
 			// Loop all the widget until we find an object to fire an event on
 			// We loop in revers order (since we want to check the widget with the highest ZIndex first)
-			bool EventFire = false;
 			for (auto& WidgetIterator = rbegin(); WidgetIterator != rend(); ++WidgetIterator)
 			{
 				// First get a ref to the shared_ptr<TWidget> inside the reverse iterator
@@ -164,25 +160,59 @@ namespace nne
 				// See if the widget is being hovered
 				const bool& IsHovered = Widget.isHovered();
 
+				// If the mouse it's not on the widget reset the widget state to Normal and skip the rest of the loop
+				if (!IsInsideWidget)
+				{
+					Widget.changeState(TWidget::NORMAL);
+
+					continue;
+				}
+
 				// Handle mouse move event
 				!IsInsideWidget ? Widget.changeState(TWidget::NORMAL) : Widget.changeState(TWidget::HOVER);
 
 				// Handle mouse press event
 				if (Event.type == sf::Event::MouseButtonPressed)
+				{
+					// Change the Widget state
+					Widget.changeState(TWidget::CLICKED);
 
-					if (!IsInsideWidget)
-					{
-						Widget.changeState(TWidget::NORMAL);
-					}
-					else
-					{
-						Widget.changeState(TWidget::CLICKED);
+					// Fire the click event
+					Widget.fireEvent(events::onClick, &Widget, Event);
 
-						Widget.fireEvent(events::CLICKED, &Widget, Event);
-					}
+					// Mouse down event
+					Widget.fireEvent(events::onMouseDown, &Widget, Event);
+				}
+				// Handle mouse up event
+				else if (Event.type == sf::Event::MouseButtonReleased)
+				{
+					// Change the Widget state
+					Widget.changeState(TWidget::CLICKED);
 
-					//!IsInsideWidget ? Widget.changeState(TWidget::NORMAL) : Widget.changeState(TWidget::CLICKED);
+					// Mouse down event
+					Widget.fireEvent(events::onMouseUp, &Widget, Event);
+				}
+				// Handle the mouse wheel event
+				else if (Event.type == sf::Event::MouseWheelScrolled)
+				{
+					// Mouse wheel event
+					Widget.fireEvent(events::onMouseWheel, &Widget, Event);
 
+					// If the delta it's more than 0 we scrolled the wheel up, otherwise we scrolled down and call the appropriate event's
+					Event.mouseWheelScroll.delta > 0.f ? Widget.fireEvent(events::onMouseWheelUp, &Widget, Event) : Widget.fireEvent(events::onMouseWheelDown, &Widget, Event);
+				}
+				// Handle key press event
+				else if (Event.type == sf::Event::KeyPressed)
+				{
+					// Key press event
+					Widget.fireEvent(events::onKeyPress, &Widget, Event);
+				}
+				// Mouse move event
+				else
+				{
+					// Mouse mouve event
+					Widget.fireEvent(events::onMouseMove, &Widget, Event);
+				}
 			}
 
 			return mNextScene;

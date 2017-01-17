@@ -7,8 +7,6 @@
 #include <limits>
 #include <memory>
 
-#include "TRenderSurface.h"
-
 namespace nne
 {
 	class TSceneManager;
@@ -32,15 +30,15 @@ namespace nne
 
 		virtual void init() = 0;
 
-		// Set/get the size of the scene (basically it's the size of the render window)
+		/// Set/get the size of the scene (basically it's the size of the render window)
 		void setSize(const sf::Vector2u& Size);
 		const sf::Vector2u getSize() const;
 
-		// Get the current utilized view
-		const TRenderSurface& getRenderSurface() const;
-
+		/// Get the used sf::RenderWindow
 		const sf::RenderWindow& getRenderWindow() const;
 		
+		sf::Vector2f getMousePosition() const;
+		sf::Vector2f getMousePosition(const sf::View& View) const;
 
 		ID& run(const sf::Time& ElapsedTimem);
 
@@ -58,7 +56,6 @@ namespace nne
 		sf::Event			mAppEvent;
 		sf::Vector2u		mSize;
 		TSceneManager*		mParent;
-		TRenderSurface		mRenderSurface;
 		sf::RenderWindow*	mRenderWindow;
 
 		friend class TSceneManager;

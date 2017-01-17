@@ -16,7 +16,10 @@ namespace nne
 		mSelectedWire(nullptr),
 
 		mFormerSelectedBus(nullptr),
-		mSelectedBus(nullptr)
+		mSelectedBus(nullptr),
+
+		mInsertionMethod(TInsertionMethod::NONE),
+		mLastAddedChip("")
 	{
 	}
 
@@ -173,6 +176,17 @@ namespace nne
 		Entity->softRemoveComponent<TLogicBoardComponent>();
 	}
 
+	/// Set/Get insertion mode
+	void TLogicBoardComponent::setInsertionMethod(const TInsertionMethod& Method)
+	{
+		mInsertionMethod = Method;
+	}
+
+	const TLogicBoardComponent::TInsertionMethod& TLogicBoardComponent::getInsertionMethod() const
+	{
+		return mInsertionMethod;
+	}
+
 	//////////////////////////////////////////////////////////////////////////
 	bool TLogicBoardComponent::checkCollisions(TChipComponent* Chip)
 	{
@@ -199,6 +213,10 @@ namespace nne
 
 		// Set the selected chip
 		mSelectedChip = Chip;
+
+		// 
+		if (mFormerSelectedChip && mInsertionMethod != TInsertionMethod::WIRE)
+			mFormerSelectedChip->deselectPin();
 	}
 
 	TChipComponent* TLogicBoardComponent::getSelectedChip() const
@@ -213,10 +231,18 @@ namespace nne
 
 	void TLogicBoardComponent::deselectChip(bool DisableFormerChipToo /*= false*/)
 	{
-		mSelectedChip = nullptr;
+		if (mSelectedChip)
+		{
+			mSelectedChip->deselectPin();
 
-		if (DisableFormerChipToo)
+			mSelectedChip = nullptr;
+		}		
+
+		if (DisableFormerChipToo && mFormerSelectedChip)
+		{
+			mFormerSelectedChip->deselectPin();
 			mFormerSelectedChip = nullptr;
+		}
 	}
 
 	void TLogicBoardComponent::setSelectedWire(TWireComponent* Wire)

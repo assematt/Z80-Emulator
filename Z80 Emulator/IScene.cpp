@@ -1,5 +1,7 @@
 #include "IScene.h"
 
+#include <SFML/Window/Mouse.hpp>
+
 namespace nne
 {
 	
@@ -25,14 +27,19 @@ namespace nne
 		return mSize;
 	}
 
-	const nne::TRenderSurface& IScene::getRenderSurface() const
-	{
-		return mRenderSurface;
-	}
-
 	const sf::RenderWindow& IScene::getRenderWindow() const
 	{
 		return *mRenderWindow;
+	}
+
+	sf::Vector2f IScene::getMousePosition() const
+	{
+		return static_cast<sf::Vector2f>(sf::Mouse::getPosition(*mRenderWindow));
+	}
+
+	sf::Vector2f IScene::getMousePosition(const sf::View& View) const
+	{
+		return getMousePosition();
 	}
 
 	nne::IScene::ID& IScene::run(const sf::Time& ElapsedTime)

@@ -2,7 +2,6 @@
 
 #include <SFML/Graphics/Text.hpp>
 #include "TButton.h"
-#include "TTextComponent.h"
 
 namespace nne
 {

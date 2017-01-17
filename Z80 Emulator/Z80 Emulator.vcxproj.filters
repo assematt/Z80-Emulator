@@ -126,9 +126,6 @@
     <ClCompile Include="TManager.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
-    <ClCompile Include="TEventContainer.cpp">
-      <Filter>Source Files\src\component_system</Filter>
-    </ClCompile>
     <ClCompile Include="IComponent.cpp">
       <Filter>Source Files\src\component_system</Filter>
     </ClCompile>
@@ -167,9 +164,6 @@
     </ClCompile>
     <ClCompile Include="TLogicBoardComponent.cpp">
       <Filter>Source Files\src\graphics\components</Filter>
-    </ClCompile>
-    <ClCompile Include="TRenderSurface.cpp">
-      <Filter>Source Files\src\graphics</Filter>
     </ClCompile>
     <ClCompile Include="TGuiManager.cpp">
       <Filter>Source Files\src\gui</Filter>
@@ -222,6 +216,15 @@
     <ClCompile Include="TComplexText.cpp">
       <Filter>Source Files\src\gui\base</Filter>
     </ClCompile>
+    <ClCompile Include="TImageButton.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TRenderCanvas.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TEventComponent.cpp">
+      <Filter>Source Files\src\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -273,9 +276,6 @@
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
     <ClInclude Include="TComponentArray.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
-    <ClInclude Include="TEventContainer.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
     <ClInclude Include="TManager.h">
@@ -344,9 +344,6 @@
     <ClInclude Include="IScene.h">
       <Filter>Header Files\include\scenes</Filter>
     </ClInclude>
-    <ClInclude Include="TRenderSurface.h">
-      <Filter>Header Files\include\graphics</Filter>
-    </ClInclude>
     <ClInclude Include="TGuiManager.h">
       <Filter>Header Files\include\gui</Filter>
     </ClInclude>
@@ -403,6 +400,18 @@
     </ClInclude>
     <ClInclude Include="TComplexText.h">
       <Filter>Header Files\include\gui\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TImageButton.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TRenderCanvas.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TEventComponent.h">
+      <Filter>Header Files\include\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TStateComponent.h">
+      <Filter>Header Files\include\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

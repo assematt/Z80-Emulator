@@ -36,12 +36,12 @@ namespace nne
 		/// Toggle the ability to draw the chip
 		void setPlacedStatus(const bool& IsPlaced = true);
 		const bool& isPlaced() const;
-
+		
 		/// Get the local/global bound of the chip
 		sf::FloatRect getLocalBound() const;
 		sf::FloatRect getGlobalBound() const;
 
-		/// Check if this chip is overllapping with another chip
+		/// Check if this chip is overlapping with another chip
 		bool checkCollision(const TChipComponent& Chip);
 		const bool& isValid() const;
 

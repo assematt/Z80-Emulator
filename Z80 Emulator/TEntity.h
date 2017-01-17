@@ -7,9 +7,7 @@
 
 #include "IComponent.h"
 #include "TComponentArray.h"
-#include "TEventContainer.h"
 #include "IDGenerator.h"
-
 
 namespace nne
 {

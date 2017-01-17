@@ -3,8 +3,10 @@
 #include <SFML/Window/Event.hpp>
 
 #include "TSceneManager.h"
-#include "TLogicBoardComponent.h"
+#include "TEventComponent.h"
+#include "TStateComponent.h"
 #include "TDrawableComponent.h"
+#include "TLogicBoardComponent.h"
 
 namespace nne
 {
@@ -384,48 +386,52 @@ namespace nne
 		if (!mParent->getComponent<TChipComponent>().isPlaced())
 			return;
 
-		// Iterates 
-		bool PinFound = false;
-		bool PinSelectedFound = false;
+		// Get a ref to the logic board component
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
 
 		// Get the number of pins
 		std::size_t NumberOfPins = mPins.size();
 
-		// Get a ref to TRenderSurface
-		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
-		auto& RenderSurface = mParent->getParentScene()->getRenderSurface();
-
 		// Get mouse info
-		auto MousePosition = sf::Mouse::getPosition(RenderWindow) - static_cast<sf::Vector2i>(RenderSurface.getPosition());
-		auto MousePositionAdj = RenderSurface.mapPixelToCoords(MousePosition);
+		auto MousePos = mParent->getComponent<tcomponents::TEventComponent>().getMousePosition();
 
 		// Swap the status of the selected and over pin
 		mPreviousOverPin = mOverPin;
 
-		// Reset the status of the selected pin and the hover pin
+		// Reset the status of the hover pin
 		mOverPin = None;
-
-		for (size_t Index = 0; Index < NumberOfPins && !PinFound; ++Index)
+		
+		// Iterate through all the PINS
+		for (size_t Index = 0; Index < NumberOfPins; ++Index)
 		{
-			auto& PinBound = getPinGlobalBounds(Index);
-
-			if (checkMouseClickOnPin(PinBound, MousePositionAdj))
+			// Get the pin bound of the selected PIN
+			auto PinBound = getPinGlobalBounds(Index);
+			
+			// If we clicked on the entity
+			if (checkMouseClickOnPin(PinBound, MousePos))
 			{
 				mPreviousSelectedPin = mSelectedPin;
 				mSelectedPin = Index;
 
 				// Inform the logic board component that we selected this component
-				mParent->getComponentAsPtr<TLogicBoardComponent>()->setSelectedChip(&mParent->getComponent<TChipComponent>());
+				LogicBoard.setSelectedChip(&mParent->getComponent<TChipComponent>());
 
-				PinFound = true;
+				return;
 			}
-
-			if (checkMouseOverOnPin(PinBound, MousePositionAdj))
+			// If we are just hovering the entity
+			else if (checkMouseOverOnPin(PinBound, MousePos))
 			{
 				mOverPin = Index;
 
-				PinFound = true;
+				return;
 			}
+		}
+	
+		// If we arrive at this point maybe we have to deselect the chip
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TLogicBoardComponent::TInsertionMethod::WIRE)
+		{
+			if (LogicBoard.getSelectedChip() == mParent->getComponentAsPtr<TChipComponent>())
+				LogicBoard.deselectChip();
 		}
 	}
 }

@@ -35,7 +35,6 @@ namespace nne
 		{
 			mIsValid ? mDrawableComponent->setColor({ 4u, 85u, 6u, 175u }) : mDrawableComponent->setColor({ 84u, 4u, 4u, 175u });
 		}
-
 	}
 
 	void TChipComponent::refresh(const sf::Time& ElapsedTime)
@@ -104,5 +103,5 @@ namespace nne
 	{
 		return mParent->getComponent<TPinComponent>().getSelectedPin();
 	}
-
+	
 }

@@ -76,6 +76,36 @@ namespace nne
 			Target.draw(mText, States);
 		}
 
+		void TButton::update(const sf::Time& ElapsedTime)
+		{
+			// Get the current widget state
+			const auto& State = getState();
+
+			switch (State)
+			{
+			case TWidget::NORMAL:
+			{
+				TWidget::setColor(NormalColor);
+			} break;
+			case TWidget::HOVER:
+			{
+				TWidget::setColor(HoverColor);
+			} break;
+			case TWidget::SELECTED:
+			{
+				TWidget::setColor(SelectedColorColor);
+			} break;
+			case TWidget::CLICKED:
+			{
+				TWidget::setColor(ClickedColor);
+			} break;
+			case TWidget::DISABLED:
+			{
+				TWidget::setColor(DisabledColorColor);
+			} break;
+			}
+		}
+
 		sf::Vector2f TButton::getTextSize()
 		{
 			// Bounding box

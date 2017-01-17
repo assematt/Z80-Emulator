@@ -99,7 +99,11 @@ namespace nne
 	}
 
 	sf::FloatRect TDrawableComponent::getLocalBounds() const
-{
+	{
+		// If we don't have any vertices return an empty rectangle
+		if (mVertexArray->getVertexCount() == 0)
+			return{ 0.f, 0.f, 0.f, 0.f };
+
 		auto& Position = getPosition();
 		sf::Vector2f Size = (*mVertexArray)[2].position;
 
@@ -107,7 +111,7 @@ namespace nne
 	}
 
 	sf::FloatRect TDrawableComponent::getGlobalBounds() const
-{
+	{
 		return getTransform().transformRect(getLocalBounds());
 	}
 
@@ -133,18 +137,30 @@ namespace nne
 	}
 
 	sf::FloatRect TDrawableComponent::computeComplexLocalBound() const
-{
-		float Width = 0.f, Height = 0.f;
+	{
+
+		sf::Vector2f Size = { 0.f, 0.f };
+		sf::Vector2f Position = { 0.f, 0.f };
 
 		for (std::size_t Index = 0; Index < mVertexArray->getVertexCount(); ++Index)
 		{
 			auto& VertexPos = (*mVertexArray)[Index].position;
 
-			Width = std::max(Width, VertexPos.x);
-			Height = std::max(Height, VertexPos.y);
+			Size.x = std::max(Size.x, VertexPos.x);
+			Size.y = std::max(Size.y, VertexPos.y);
+
+			Position.x = std::min(Position.x, VertexPos.x);
+			Position.y = std::min(Position.y, VertexPos.y);
 		}
 
-		return sf::FloatRect(0.f, 0.f, Width, Height);
+		// Adjust the size if we have negative coordinate in the position
+		if (Position.x < 0.f)
+			Size.x += -Position.x;
+
+		if (Position.y < 0.f)
+			Size.y += -Position.y;
+
+		return sf::FloatRect(Position, Size);
 	}
 
 	void TDrawableComponent::draw(sf::RenderTarget& Target, sf::RenderStates States) const

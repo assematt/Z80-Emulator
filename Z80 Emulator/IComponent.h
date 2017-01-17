@@ -2,7 +2,6 @@
 
 #include <SFML/System/Time.hpp>
 
-#include "TEventContainer.h"
 #include "TUtility.h"
 
 namespace nne
@@ -11,8 +10,6 @@ namespace nne
 
 	class TEntity;
 
-// 	template <class TType, class TParent, class TID>
-// 	class TComponentArray;
 	class TComponentArray;
 
 	class IComponent

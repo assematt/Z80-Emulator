@@ -17,6 +17,14 @@ namespace nne
 	{
 	public:
 
+		enum class TInsertionMethod
+		{
+			CHIP,
+			WIRE,
+			BUS,
+			NONE
+		};
+
 		TLogicBoardComponent();
 
 		virtual void init() override;
@@ -48,6 +56,10 @@ namespace nne
 		/// Function to remove a bus from the board
 		void removeBus(TBusComponent* BusToRemove);
 		void removeBus(TEntity* Entity);
+
+		/// Set/Get insertion mode
+		void setInsertionMethod(const TInsertionMethod& Method);
+		const TInsertionMethod& getInsertionMethod() const;
 
 		/// Check if the chip we are trying to place is colliding with another chip already on the logic board
 		bool checkCollisions(TChipComponent* Chip);
@@ -91,14 +103,18 @@ namespace nne
 		void fastDelete(T& Vector, const std::size_t& Index);
 		
 	private:
+		std::string						mLastAddedChip;
+
+		TBusComponent*					mSelectedBus;
+		TBusComponent*					mFormerSelectedBus;
+
 		TChipComponent*					mSelectedChip;
 		TChipComponent*					mFormerSelectedChip;
 
 		TWireComponent*					mSelectedWire;
 		TWireComponent*					mFormerSelectedWire;
 
-		TBusComponent*					mSelectedBus;
-		TBusComponent*					mFormerSelectedBus;
+		TInsertionMethod				mInsertionMethod;
 
 		std::vector<TBusComponent*>		mBusVector;
 		std::vector<TChipComponent*>	mChipVector;

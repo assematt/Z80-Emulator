@@ -50,7 +50,7 @@ namespace nne
 			SandboxMode->setCaption("SANDBOX MODE");
 			SandboxMode->setFillColor(sf::Color::White);
 			SandboxMode->setCharacterFillColor({ 170u, 0u, 0u }, 1);
-			SandboxMode->attachEvent(events::CLICKED, [](TWidget* Sender, const sf::Event& EventData) {
+			SandboxMode->attachEvent(events::onMouseUp, [](TWidget* Sender, const sf::Event& EventData) {
 				// Goes to the editor
 				Sender->getManager().changeScene(1);
 			});
@@ -85,7 +85,7 @@ namespace nne
 			Quit->setCaption("QUIT");
 			Quit->setFillColor(sf::Color::White);
 			Quit->setCharacterFillColor({ 170u, 0u, 0u }, 0);
-			Quit->attachEvent(events::CLICKED, [](TWidget* Sender, const sf::Event& EventData) {
+			Quit->attachEvent(events::onClick, [](TWidget* Sender, const sf::Event& EventData) {
 				// Quit the program
 				Sender->getManager().changeScene(IScene::Exit);
 			});

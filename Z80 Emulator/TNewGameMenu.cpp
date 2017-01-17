@@ -1,4 +1,10 @@
 #include "TNewGameMenu.h"
+
+#include <Windows.h>
+
+#include "TRenderCanvas.h"
+#include "TCacheManager.h"
+#include "TImageButton.h"
 #include "TGuiManager.h"
 #include "TStaticText.h"
 #include "TButton.h"
@@ -10,7 +16,7 @@ namespace nne
 
 		void TNewGameMenu::init(TGuiManager* GuiManager)
 		{
-#pragma region TOP PANEL
+		#pragma region TOP PANEL
 			// Top panel
 			TContainer::Ptr HeaderPanel = std::make_shared<TContainer>();
 			HeaderPanel->setName("HEADER_PANEL");
@@ -20,7 +26,7 @@ namespace nne
 			HeaderPanel->setSize({ 1600u, 50u });
 			HeaderPanel->setColor({ 0, 21, 38 });
 
-#pragma region PCB AND CODE BUTTON
+			#pragma region PCB AND CODE BUTTON
 			// PCB button
 			TButton::Ptr PCBButton = std::make_shared<TButton>();
 			PCBButton->setZIndex(3);
@@ -42,7 +48,7 @@ namespace nne
 			HeaderPanel->addWidget(CodeButton.get());
 #pragma endregion
 
-#pragma region MAIN MENU
+			#pragma region MAIN MENU
 			// File button
 			TButton::Ptr FileButton = std::make_shared<TButton>();
 			FileButton->setZIndex(3);
@@ -84,7 +90,7 @@ namespace nne
 			HeaderPanel->addWidget(HelpButton.get());
 #pragma endregion
 
-#pragma region DEBUG TEXT
+			#pragma region DEBUG TEXT
 			// Z Index
 			TStaticText::Ptr ZIndexButton = std::make_shared<TStaticText>();
 			//ZIndexButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-243.f, 16.f) });
@@ -118,7 +124,7 @@ namespace nne
 
 #pragma endregion
 
-#pragma region LEFT TOOLS
+		#pragma region LEFT TOOLS
 			// Left tools panel
 			TContainer::Ptr LeftToolsPanel = std::make_shared<TContainer>();
 			LeftToolsPanel->setName("HEADER_PANEL");
@@ -128,9 +134,9 @@ namespace nne
 			LeftToolsPanel->setSize({ 300u, 900u });
 			LeftToolsPanel->setColor({ 0, 35, 64 });
 
-#pragma region TOOLS LIST
+			#pragma region TOOLS LIST
 			// Insert chip button
-			TButton::Ptr InsertChipButton = std::make_shared<TButton>();
+			TImageButton::Ptr InsertChipButton = std::make_shared<TImageButton>();
 			InsertChipButton->setZIndex(3);
 			InsertChipButton->setName("INSERT_CHIP_BUTTON");
 			InsertChipButton->setCaption("INSERT CHIP");
@@ -139,10 +145,11 @@ namespace nne
 			InsertChipButton->move({ 0.f, 20.f });
 			InsertChipButton->setPadding({ 54u, 9u });
 			InsertChipButton->setToggleable(true);
+			InsertChipButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("chip_btn"), { 20.f, 5.f });
 			LeftToolsPanel->addWidget(InsertChipButton.get());
 
 			// Insert wire button
-			TButton::Ptr InsertWireButton = std::make_shared<TButton>();
+			TImageButton::Ptr InsertWireButton = std::make_shared<TImageButton>();
 			InsertWireButton->setZIndex(3);
 			InsertWireButton->setName("INSERT_WIRE_BUTTON");
 			InsertWireButton->setCaption("INSERT WIRE");
@@ -151,10 +158,11 @@ namespace nne
 			InsertWireButton->move({ 0.f, 55.f });
 			InsertWireButton->setPadding({ 54u, 9u });
 			InsertWireButton->setToggleable(true);
+			InsertWireButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("track_btn"), { 20.f, 5.f });
 			LeftToolsPanel->addWidget(InsertWireButton.get());
 
 			// Insert bus button
-			TButton::Ptr InsertBusButton = std::make_shared<TButton>();
+			TImageButton::Ptr InsertBusButton = std::make_shared<TImageButton>();
 			InsertBusButton->setZIndex(3);
 			InsertBusButton->setName("INSERT_BUS_BUTTON");
 			InsertBusButton->setCaption("INSERT BUS");
@@ -163,10 +171,18 @@ namespace nne
 			InsertBusButton->move({ 0.f, 90.f });
 			InsertBusButton->setPadding({ 54u, 9u });
 			InsertBusButton->setToggleable(true);
+			InsertBusButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("bus_btn"), { 21.f, 4.f });
 			LeftToolsPanel->addWidget(InsertBusButton.get());
 #pragma endregion
 
-#pragma endregion
+	#pragma endregion
+
+			// Add the RenderCanvas widget
+			TRenderCanvas::Ptr Canvas = std::make_shared<TRenderCanvas>();
+			Canvas->setName("RENDER_CANVAS");
+			Canvas->create(1300u, 850u);
+			Canvas->setSize({ 1300u, 850u });
+			Canvas->setPosition(300.f, 50.f);
 
 			// Adds the widgets to the menu
 			GuiManager->addWidget(HeaderPanel, 1);
@@ -186,6 +202,8 @@ namespace nne
 			GuiManager->addWidget(InsertChipButton, 2);
 			GuiManager->addWidget(InsertWireButton, 2);
 			GuiManager->addWidget(InsertBusButton, 2);
+
+			GuiManager->addWidget(Canvas, 10);
 		}
 
 	}

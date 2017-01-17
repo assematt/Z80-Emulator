@@ -1,8 +1,11 @@
 #include "TBusComponent.h"
 
 #include <SFML/Window/Mouse.hpp>
-#include "TLogicBoardComponent.h"
+
 #include "IScene.h"
+#include "TEventComponent.h"
+#include "TStateComponent.h"
+#include "TLogicBoardComponent.h"
 
 namespace
 {
@@ -90,16 +93,21 @@ namespace nne
 		// Reset the state of the hover status by default
 		setHoveredStatus(false);
 
+		// Get a ref to the sf::RenderWindow
+		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
+
+		// Get mouse info
+		auto MousePositionAdj = mParent->getComponent<tcomponents::TEventComponent>().getMousePosition();
+
+		// Execute the BUS check only if we clicked or we are hovering the chip
+		auto ComponentState = mParent->getComponent<tcomponents::TStateComponent>().getState();
+
 		// Iterates through all the quads
 		for (auto Index = 0u; Index < VerticesNumber; Index += 4)
 		{
 			// Get the quad bounding box and adjust it
 			sf::FloatRect Quad = extractQuad(&VertexArray[Index]);
 			adjustWireBound(Quad);
-
-			// Get mouse info
-			auto MousePosition = sf::Mouse::getPosition(mParent->getParentScene()->getRenderWindow()) - static_cast<sf::Vector2i>(mParent->getParentScene()->getRenderSurface().getPosition());
-			auto MousePositionAdj = mParent->getParentScene()->getRenderSurface().mapPixelToCoords(MousePosition);
 
 			// If we are clicking on the wire
 			if (checkMouseClickOnWire(Quad, MousePositionAdj))

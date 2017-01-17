@@ -65,7 +65,7 @@ namespace nne
 		}
 
 		bool TPin::hasConnections() const
-{
+		{
 			return static_cast<bool>(mPinConnections.size());
 		}
 

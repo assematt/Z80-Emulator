@@ -8,12 +8,14 @@
 #include "TLogicBoardComponent.h"
 #include "TPackageComponent.h"
 #include "TLogicGateComponent.h"
+#include "TEventComponent.h"
 #include "TLedComponent.h"
 #include "TZ80Component.h"
 #include "TPinComponent.h"
 #include "TRamComponent.h"
 #include "TMemoryComponent.h"
 #include "TGridComponent.h"
+#include "TStateComponent.h"
 
 namespace nne
 {
@@ -26,6 +28,8 @@ namespace nne
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TWireComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -36,6 +40,8 @@ namespace nne
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TBusComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -61,6 +67,8 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TPackageComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -76,6 +84,8 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TPackageComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -89,6 +99,8 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TLedComponent>();
 			TempPtr->addComponent<TChipComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -103,6 +115,8 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TPackageComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -116,6 +130,8 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TPowerComponent>(Mode);
 			TempPtr->addComponent<TChipComponent>();
+			TempPtr->addComponent<TEventComponent>();
+			TempPtr->addComponent<TStateComponent>();
 
 			return std::move(TempPtr);
 		}

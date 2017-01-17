@@ -5,22 +5,23 @@
 #include "TStaticText.h"
 #include "TZ80Component.h"
 #include "TPinComponent.h"
+#include "TEventComponent.h"
 
 namespace nne
 {
 
 	TNewGameScene::TNewGameScene() :
 		IScene::IScene(),
-		mInsertionMethod(TInsertionMethod::NONE),
 		mWireCounter(0),
 		mChipCounter(0),
 		mBusCounter(0),
-		mDrawingFromBusToChip(false)
+		mDrawingFromBusToChip(false),
+		mRenderCanvas(nullptr)
 	{
 	}
 
 	void TNewGameScene::init()
-	{
+	{		
 		// Create some graphic entity
 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", this);
 		mGraphicEntity.initEntities();
@@ -28,446 +29,471 @@ namespace nne
 		// Get the grid component
 		mGridComponent = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TGridComponent>();
 		mGridComponent->setCellSize({ 23.f, 23.f });
-		mGridComponent->setSize({ 1570.f, 980.f });
-		mGridComponent->setView(mRenderSurface.getView());
-		
+		mGridComponent->setSize({ 1300.f, 850.f });
+
 		// Create the logic board who will contain all the chip and set some property
 		mLogicBoard = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>();
-		
-		// Create a surface where to render all our graphic entities
-		mRenderSurface.create(mRenderWindow->getSize().x - 300u, mRenderWindow->getSize().y - 50u);
-		mRenderSurface.setPosition(300.f, 50.f);
 
 		// Init the GUI
 		mGuiManager.addWidget<tgui::TNewGameMenu>();
 		mGuiManager.getLastAdded();
 		std::dynamic_pointer_cast<tgui::TNewGameMenu>(mGuiManager.getLastAdded())->init(&mGuiManager);
+
+		// Cache the render-canvas and attach the render surface to it
+		mRenderCanvas = &dynamic_cast<tgui::TRenderCanvas&>(*mGuiManager.getWidget("RENDER_CANVAS"));
+		mGridComponent->setView(mRenderCanvas->getView());
+
+		// Set-up some GUI event
+		mGuiManager.getWidget("INSERT_CHIP_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addChip("LED");
+		});
+		mGuiManager.getWidget("INSERT_WIRE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addWire();
+		});
+		mGuiManager.getWidget("INSERT_BUS_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addBus();
+		});
+
+		// Set-up some GUI event to the RenderCanvas
+
+		// Mouse up event
+		mRenderCanvas->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			EventData.mouseButton.button == sf::Mouse::Left ? handleLeftMouseUpEvent() : handleRightMouseUpEvent();
+		});
+
+		// Mouse move event
+		mRenderCanvas->attachEvent(tgui::events::onMouseMove, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			handleMouseMoveEvent(sf::Vector2f(EventData.mouseMove.x - 300, EventData.mouseMove.y - 50));
+
+			updateDebugInfo();
+		});
+
+		// Mouse wheel event
+		mRenderCanvas->attachEvent(tgui::events::onMouseWheelUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			mRenderCanvas->zoomOut();
+			mGridComponent->forceRefresh();
+
+			updateDebugInfo();
+		});
+		mRenderCanvas->attachEvent(tgui::events::onMouseWheelDown, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			mRenderCanvas->zoomIn();
+			mGridComponent->forceRefresh();
+
+			updateDebugInfo();
+		});
+
+		// Key pressed event
+		mRenderCanvas->attachEvent(tgui::events::onKeyPress, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			handleKeyboardInputs(EventData.key.code);
+		});
 	}
 
 	nne::IScene::ID TNewGameScene::eventLoop()
 	{
+		nne::IScene::ID NewSceneID = IScene::Same;
+
 		while (mRenderWindow->pollEvent(mAppEvent))
 		{
-			mGuiManager.processEvents(mAppEvent, *mRenderWindow);
+			// Process the UI event
+			NewSceneID = mGuiManager.processEvents(mAppEvent, *mRenderWindow);
+			mGraphicEntity.processEvents(mAppEvent, *mRenderWindow, *mRenderCanvas);
 
 			if (mAppEvent.type == sf::Event::Closed)
 				mRenderWindow->close();
 
 			if (mAppEvent.type == sf::Event::KeyPressed && mAppEvent.key.alt == true && mAppEvent.key.code == sf::Keyboard::F4)
 				mRenderWindow->close();
-						
-			// If we scrolled the mouse wheel
-			if (mAppEvent.type == sf::Event::MouseWheelScrolled)
+		}
+
+		return NewSceneID;
+	}
+
+	void TNewGameScene::handleMouseMoveEvent(const sf::Vector2f& MousePos)
+	{
+		// Get the mouse coordinate and transform them to make them stick to the grid		
+		auto MousePosAdj = mRenderCanvas->mapPixelToCoords(static_cast<sf::Vector2i>(MousePos));
+		auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(MousePosAdj));
+		auto CellPos = mGridComponent->transformCellCoords(GridCoord);
+
+		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
+
+		switch (InsertionMethod)
+		{
+			// If we are using the chip tool
+			case TLogicBoardComponent::TInsertionMethod::CHIP:
 			{
-				if (mAppEvent.mouseWheelScroll.delta < 0)
-				{
-					mRenderSurface.setZoomView(1.5f);
-					mGridComponent->forceRefresh();
-				}
-				else
-				{
-					mRenderSurface.setZoomView(0.5f);
-					mGridComponent->forceRefresh();
-				}
-			}
+				// get a pointer to the selected wire
+				auto CurrentChip = mLogicBoard->getSelectedChip();
 
-			// If we pressed a keyboard key
-			if (mAppEvent.type == sf::Event::KeyPressed)
+				if (CurrentChip && !CurrentChip->isPlaced())
+				{
+					mTempChip->getComponentAsPtr<TDrawableComponent>()->setPosition(CellPos);
+
+					/// Does the collision check
+					mLogicBoard->checkCollisions(CurrentChip);
+				}
+			}break;
+
+			// If we are using the wire tool
+			case TLogicBoardComponent::TInsertionMethod::WIRE:
 			{
-				switch (mAppEvent.key.code)
+				// get a pointer to the selected wire
+				auto CurrentWire = mLogicBoard->getSelectedWire();
+
+				if (CurrentWire)
+					CurrentWire->placePointTemp(CellPos);
+			}break;
+
+			// If we are using the bus tool
+			case TLogicBoardComponent::TInsertionMethod::BUS:
+			{
+				// get a pointer to the selected wire
+				auto CurrentBus = mLogicBoard->getSelectedBus();
+
+				if (CurrentBus)
+					CurrentBus->placePointTemp(CellPos);
+			}break;
+
+			// If we are not using any tool
+			case TLogicBoardComponent::TInsertionMethod::NONE:
+				break;
+		}
+	}
+
+	void TNewGameScene::handleRightMouseUpEvent()
+	{
+		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
+
+		switch (InsertionMethod)
+		{
+			// Stop the chip tool
+			case TLogicBoardComponent::TInsertionMethod::CHIP:
+			{
+				// Remove temporary Entity
+				removeTemporaryEntity();
+			}break;
+
+			// Stop the wire tool
+			case TLogicBoardComponent::TInsertionMethod::WIRE:
+			{
+				// get a pointer to the selected wire
+				auto CurrentWire = mLogicBoard->getSelectedWire();
+
+				// If we have a valid wire selected we stop the drawing and deselect it
+				if (CurrentWire)
 				{
-					// See if we are trying to place a new wire
-					case sf::Keyboard::T:
-					{
-						addWire();
-					}break;
+					CurrentWire->toggleDraw();
+					mLogicBoard->deselectWire();
+				}
+			}break;
 
-					// See if we are trying to place a new bus
-					case sf::Keyboard::Y:
-					{
-						addBus();
-					}break;
-
-					// See if we are trying to place a LED
-					case sf::Keyboard::H:
-					{
-						addChip("LED");
-					}break;
-
-					// See if we are trying to place a z80
-					case sf::Keyboard::G:
-					{
-						addChip("Z80");
-					}break;
-
-					// See if we are trying to place a ram
-					case sf::Keyboard::F:
-					{
-						addChip("RAM");
-					}break;
-
-					// See if we are trying to place a NAND Chip
-					case sf::Keyboard::Numpad4:
-					{
-						addChip("NAND");
-					}break;
-
-					// If we are trying to place a VCC
-					case sf::Keyboard::Numpad1:
-					{
-						addChip("VCC");
-					}break;
-
-					// If we are trying to place a GND
-					case sf::Keyboard::Numpad2:
-					{
-						addChip("GND");
-					}break;
-					
-					// See if we are trying to load a program
-					case sf::Keyboard::V:
-					{
-						// Get the Z80 and the ram entity
-						auto Z80 = mGraphicEntity.getEntityByKey("Z80");
-						auto Ram = mGraphicEntity.getEntityByKey("Ram");
-
-						// Se if both the CPU and the RAM are placed into the logic board
-						if (Z80 && Ram)
-						{
-							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
-							if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
-								std::cout << "Error! Could not open the file" << std::endl;
-						}
-						
-					}break;
-
-					// Reset the insertion method
-					case sf::Keyboard::R:
-					{
-						// Remove temporary Entity
-						removeTemporaryEntity();
-
-						mInsertionMethod = TInsertionMethod::NONE;
-					}break;
-
-					// Reset the CPU
-					case sf::Keyboard::M:
-					{
-						auto Z80 = mGraphicEntity.getEntityByKey("Z80");
-
-						if (Z80)
-							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->reset();
-					}break;
-
-					// Pause CPU execution
-					case sf::Keyboard::K:
-					{
-						auto Z80 = mGraphicEntity.getEntityByKey("Z80");
-
-						if (Z80)
-							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->pauseExecution();
-					}break;
-
-					// Resume CPU execution
-					case sf::Keyboard::J:
-					{
-						auto Z80 = mGraphicEntity.getEntityByKey("Z80");
-
-						if (Z80)
-							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->resumeExecution();
-					}break;
-
-					// Restart CPU execution
-					case sf::Keyboard::L:
-					{
-						auto Z80 = mGraphicEntity.getEntityByKey("Z80");
-
-						if (Z80)
-							Z80->getComponentAsPtr<tcomponents::TZ80Component>()->restartExecution();
-					}break;
-				
-					// Zoom in
-					case sf::Keyboard::Add:
-					{
-						mRenderSurface.setZoomView(0.5f);
-						mGridComponent->forceRefresh();
-					}break;
-
-					// Zoom out
-					case sf::Keyboard::Subtract:
-					{
-						mRenderSurface.setZoomView(1.5f);
-						mGridComponent->forceRefresh();
-					}break;
-
-					// Move view left (0)
-					case sf::Keyboard::Left:
-					{
-						mRenderSurface.moveView(0);
-						mGridComponent->forceRefresh();
-					}break;
-					case sf::Keyboard::A:
-					{
-						mRenderSurface.moveView(1);
-						mGridComponent->forceRefresh();
-					}break;
-
-					// Move view right (1)
-					case sf::Keyboard::Right:
-					{
-						mRenderSurface.moveView(1);
-						mGridComponent->forceRefresh();
-					}break;
-					case sf::Keyboard::D:
-					{
-						mRenderSurface.moveView(0);
-						mGridComponent->forceRefresh();
-					}break;
-
-					// Move view left (2)
-					case sf::Keyboard::Down:
-					{
-						mRenderSurface.moveView(2);
-						mGridComponent->forceRefresh();
-					}break;
-					case sf::Keyboard::S:
-					{
-						mRenderSurface.moveView(3);
-						mGridComponent->forceRefresh();
-					}break;
-
-					// Move view right (3)
-					case sf::Keyboard::Up:
-					{
-						mRenderSurface.moveView(3);
-						mGridComponent->forceRefresh();
-					}break;
-					case sf::Keyboard::W:
-					{
-						mRenderSurface.moveView(2);
-						mGridComponent->forceRefresh();
-					}break;
-
-					// Toggle conductive wire
-					case sf::Keyboard::P:
-					{
-						// get a pointer to the selected wire
-						auto CurrentWire = mLogicBoard->getSelectedWire();
-
-						if (CurrentWire)
-							CurrentWire->toggleDraw();
-					}break;
+			// Stop the bus tool
+			case TLogicBoardComponent::TInsertionMethod::BUS:
+			{
+				// get a pointer to the selected bus
+				auto CurrentBus = mLogicBoard->getSelectedBus();
+				if (CurrentBus)
+				{
+					CurrentBus->toggleDraw();
+					mLogicBoard->deselectBus();
 				}
 			}
+		}
+	}
 
-			// IF we moved the mouse
-			if (mAppEvent.type == sf::Event::MouseMoved)
+	void TNewGameScene::handleLeftMouseUpEvent()
+	{
+		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
+
+		switch (InsertionMethod)
+		{
+			// If we are using the chip tool
+			case TLogicBoardComponent::TInsertionMethod::CHIP:
 			{
-				// Get the mouse coordinate and transform them to make them stick to the grid
-				auto MousePos = static_cast<sf::Vector2i>(convertMouseCoordinate(sf::Mouse::getPosition(*mRenderWindow)));
-				auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(MousePos);
-				auto CellPos = mGridComponent->transformCellCoords(GridCoord);
+				// get a pointer to the selected wire
+				auto CurrentChip = mLogicBoard->getSelectedChip();
 
-				switch (mInsertionMethod)
+				if (CurrentChip && !CurrentChip->isPlaced() && CurrentChip->isValid())
 				{
-					// If we are using the chip tool
-					case TInsertionMethod::CHIP:
-					{
-						// get a pointer to the selected wire
-						auto CurrentChip = mLogicBoard->getSelectedChip();
+					CurrentChip->setPlacedStatus(true);
 
-						if (CurrentChip && !CurrentChip->isPlaced())
-						{
-							mTempChip->getComponentAsPtr<TDrawableComponent>()->setPosition(CellPos);
-
-							/// Does the collision check
-							mLogicBoard->checkCollisions(CurrentChip);
-						}
-					}break;
-
-					// If we are using the wire tool
-					case TInsertionMethod::WIRE:
-					{
-						// get a pointer to the selected wire
-						auto CurrentWire = mLogicBoard->getSelectedWire();
-
-						if (CurrentWire)
-							CurrentWire->placePointTemp(CellPos);
-					}break;
-
-					// If we are using the bus tool
-					case TInsertionMethod::BUS:	
-					{
-						// get a pointer to the selected wire
-						auto CurrentBus = mLogicBoard->getSelectedBus();
-
-						if (CurrentBus)
-							CurrentBus->placePointTemp(CellPos);
-					}break;
-
-					// If we are not using any tool
-					case TInsertionMethod::NONE:
-						break;
+					mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::NONE);
+					mLogicBoard->deselectEverything();
 				}
-			}
+			}break;
 
-			// If we have release the mouse after a left click
-			if (mAppEvent.type == sf::Event::MouseButtonReleased && mAppEvent.mouseButton.button == sf::Mouse::Left)
+			// If we are using the wire tool
+			case TLogicBoardComponent::TInsertionMethod::WIRE:
 			{
+				// get a pointer to the selected wire
+				auto CurrentWire = mLogicBoard->getSelectedWire();
 
-				switch (mInsertionMethod)
+				// If we have selected a wire
+				if (CurrentWire)
 				{
-					// If we are using the chip tool
-					case TInsertionMethod::CHIP:
+					CurrentWire->confirmPoints();
+
+					// get a pointer to the selected chip
+					auto CurrentChip = mLogicBoard->getSelectedChip();
+
+					// get a pointer to the former selected chip
+					auto FormerChip = mLogicBoard->getFormerSelectedChip();
+
+					// get a pointer to the selected bus
+					auto CurrentBus = mLogicBoard->getSelectedBus();
+
+					// Establish if we are drawing from a bus to chip or vice-versa
+					if (CurrentChip && !CurrentBus)
+						mDrawingFromBusToChip = false;
+					else if (!CurrentChip && CurrentBus)
+						mDrawingFromBusToChip = true;
+
+					// If we have drawn a wire between 2 chips, exit wire drawing mode, and deselect the currently selected chips and wire
+					if (CurrentChip && FormerChip)
 					{
-						// get a pointer to the selected wire
-						auto CurrentChip = mLogicBoard->getSelectedChip();
+						// Stop the drawing mode
+						CurrentWire->toggleDraw();
 
-						if (CurrentChip && !CurrentChip->isPlaced() && CurrentChip->isValid())
-						{
-							CurrentChip->setPlacedStatus(true);
-						}
-					}break;
+						// Connect the pins
+						TPinComponentUtility::connectPins(CurrentChip->getSelectedPin(), FormerChip->getSelectedPin());
 
-					// If we are using the wire tool
-					case TInsertionMethod::WIRE:
-					{
-						// get a pointer to the selected wire
-						auto CurrentWire = mLogicBoard->getSelectedWire();
+						// Reset the chip's pin selected status
+						CurrentChip->deselectPin();
+						FormerChip->deselectPin();
 
-						// If we have selected a wire
-						if (CurrentWire)
-						{
-							CurrentWire->confirmPoints();
-
-							// get a pointer to the selected chip
-							auto CurrentChip = mLogicBoard->getSelectedChip();
-
-							// get a pointer to the former selected chip
-							auto FormerChip = mLogicBoard->getFormerSelectedChip();
-
-							// get a pointer to the selected bus
-							auto CurrentBus = mLogicBoard->getSelectedBus();
-
-							// Establish if we are drawing from a bus to chip or vice-versa
-							if (CurrentChip && !CurrentBus)
-								mDrawingFromBusToChip = false;
-							else if (!CurrentChip && CurrentBus)
-								mDrawingFromBusToChip = true;
-
-							// If we have drawn a wire between 2 chips, exit wire drawing mode, and deselect the currently selected chips and wire
-							if (CurrentChip && FormerChip)
-							{
-								// Stop the drawing mode
-								CurrentWire->toggleDraw();
-
-								// Connect the pins
-								TPinComponentUtility::connectPins(CurrentChip->getSelectedPin(), FormerChip->getSelectedPin());
-
-								// Reset the chip's pin selected status
-								CurrentChip->deselectPin();
-								FormerChip->deselectPin();
-
-								// Deselect the chip/wire/bus from the logic board
-								mLogicBoard->deselectEverything();
-
-								// Start the drawing of a new wire
-								addWire();
-							}
-
-							// If we have draw a wire between a chip and a bus, exit wire drawing mode, and deselect the currently selected chips and wire
-							if (CurrentChip && CurrentBus)
-							{
-								// Stop the drawing mode
-								CurrentWire->toggleDraw();
-								
-								// Connect the pin to the bus as an entry wire
-								if (mDrawingFromBusToChip)
-									CurrentBus->connectExitWire(CurrentChip->getSelectedPin());
-								else
-									CurrentBus->connectEntryWire(CurrentChip->getSelectedPin());
-
-								// Reset the chip's pin selected status
-								CurrentChip->deselectPin();
-
-								// Deselect the chip/wire/bus from the logic board
-								mLogicBoard->deselectEverything();
-
-								// Start the drawing of a new wire
-								addWire();
-							}
-						
-						}
-					}break;
-
-					// If we are using the bus tool
-					case TInsertionMethod::BUS:
-					{
-						// get a pointer to the selected bus
-						auto CurrentBus = mLogicBoard->getSelectedBus();
-
-						// If we have selected a bus
-						if (CurrentBus)
-							CurrentBus->confirmPoints();
-
-						// Start the drawing of a new bus
-						//addBus();
-					}break;
-
-					// If we are not using any tool
-					case TInsertionMethod::NONE:
-					{
+						// Deselect the chip/wire/bus from the logic board
 						mLogicBoard->deselectEverything();
-					}break;
-				}
-			}
 
-			// If we have release the mouse after a right click
-			if (mAppEvent.type == sf::Event::MouseButtonReleased && mAppEvent.mouseButton.button == sf::Mouse::Right)
-			{
+						// Start the drawing of a new wire
+						addWire();
+					}
 
-				switch (mInsertionMethod)
-				{
-					// Stop the chip tool
-					case TInsertionMethod::CHIP:
+					// If we have draw a wire between a chip and a bus, exit wire drawing mode, and deselect the currently selected chips and wire
+					if (CurrentChip && CurrentBus)
 					{
-						// Remove temporary Entity
-						removeTemporaryEntity();
-					}break;
+						// Stop the drawing mode
+						CurrentWire->toggleDraw();
 
-					// Stop the wire tool
-					case TInsertionMethod::WIRE:
-					{
-						// get a pointer to the selected wire
-						auto CurrentWire = mLogicBoard->getSelectedWire();
-						
-						// If we have a valid wire selected we stop the drawing and deselect it
-						if (CurrentWire)
-						{
-							CurrentWire->toggleDraw();
-							mLogicBoard->deselectWire();
-						}
-					}break;
+						// Connect the pin to the bus as an entry wire
+						if (mDrawingFromBusToChip)
+							CurrentBus->connectExitWire(CurrentChip->getSelectedPin());
+						else
+							CurrentBus->connectEntryWire(CurrentChip->getSelectedPin());
 
-					// Stop the bus tool
-					case TInsertionMethod::BUS:
-					{
-						// get a pointer to the selected bus
-						auto CurrentBus = mLogicBoard->getSelectedBus();
-						if (CurrentBus)
-						{
-							CurrentBus->toggleDraw();
-							mLogicBoard->deselectBus();
-						}
+						// Reset the chip's pin selected status
+						CurrentChip->deselectPin();
+
+						// Deselect the chip/wire/bus from the logic board
+						mLogicBoard->deselectEverything();
+
+						// Start the drawing of a new wire
+						addWire();
 					}
 
 				}
-			}
+			}break;
 
-			updateDebugInfo();
+			// If we are using the bus tool
+			case TLogicBoardComponent::TInsertionMethod::BUS:
+			{
+				// get a pointer to the selected bus
+				auto CurrentBus = mLogicBoard->getSelectedBus();
+
+				// If we have selected a bus
+				if (CurrentBus)
+					CurrentBus->confirmPoints();
+
+				// Start the drawing of a new bus
+				//addBus();
+			}break;
+
+			// If we are not using any tool
+			case TLogicBoardComponent::TInsertionMethod::NONE:
+			{
+				//mLogicBoard->deselectEverything();
+			}break;
 		}
+	}
 
-		return IScene::Same;
+	void TNewGameScene::handleKeyboardInputs(const sf::Keyboard::Key& KeyCode)
+	{
+		switch (KeyCode)
+		{
+			// See if we are trying to place a new wire
+			case sf::Keyboard::T:
+			{
+				addWire();
+			}break;
+
+			// See if we are trying to place a new bus
+			case sf::Keyboard::Y:
+			{
+				addBus();
+			}break;
+
+			// See if we are trying to place a LED
+			case sf::Keyboard::H:
+			{
+				addChip("LED");
+			}break;
+
+			// See if we are trying to place a z80
+			case sf::Keyboard::G:
+			{
+				addChip("Z80");
+			}break;
+
+			// See if we are trying to place a ram
+			case sf::Keyboard::F:
+			{
+				addChip("RAM");
+			}break;
+
+			// See if we are trying to place a NAND Chip
+			case sf::Keyboard::Numpad4:
+			{
+				addChip("NAND");
+			}break;
+
+			// If we are trying to place a VCC
+			case sf::Keyboard::Numpad1:
+			{
+				addChip("VCC");
+			}break;
+
+			// If we are trying to place a GND
+			case sf::Keyboard::Numpad2:
+			{
+				addChip("GND");
+			}break;
+
+			// See if we are trying to load a program
+			case sf::Keyboard::V:
+			{
+				// Get the Z80 and the ram entity
+				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
+				auto Ram = mGraphicEntity.getEntityByKey("Ram");
+
+				// Se if both the CPU and the RAM are placed into the logic board
+				if (Z80 && Ram)
+				{
+					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
+					if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
+						std::cout << "Error! Could not open the file" << std::endl;
+				}
+
+			}break;
+						
+			// Reset the CPU
+			case sf::Keyboard::M:
+			{
+				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
+
+				if (Z80)
+					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->reset();
+			}break;
+
+			// Pause CPU execution
+			case sf::Keyboard::K:
+			{
+				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
+
+				if (Z80)
+					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->pauseExecution();
+			}break;
+
+			// Resume CPU execution
+			case sf::Keyboard::J:
+			{
+				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
+
+				if (Z80)
+					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->resumeExecution();
+			}break;
+
+			// Restart CPU execution
+			case sf::Keyboard::L:
+			{
+				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
+
+				if (Z80)
+					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->restartExecution();
+			}break;
+
+			// Zoom in
+			case sf::Keyboard::Add:
+			{
+				mRenderCanvas->zoomIn();
+				mGridComponent->forceRefresh();
+				updateDebugInfo();
+			}break;
+
+			// Zoom out
+			case sf::Keyboard::Subtract:
+			{
+				mRenderCanvas->zoomOut();
+				mGridComponent->forceRefresh();
+				updateDebugInfo();
+			}break;
+
+			// Move view left (0)
+			case sf::Keyboard::Left:
+			{
+				mRenderCanvas->moveView({ -100.f, 0.f });
+				mGridComponent->forceRefresh();
+			}break;
+			case sf::Keyboard::A:
+			{
+				mRenderCanvas->moveView({ -100.f, 0.f });
+				mGridComponent->forceRefresh();
+			}break;
+
+			// Move view right (1)
+			case sf::Keyboard::Right:
+			{
+				mRenderCanvas->moveView({ 100.f, 0.f });
+				mGridComponent->forceRefresh();
+			}break;
+			case sf::Keyboard::D:
+			{
+				mRenderCanvas->moveView({ 100.f, 0.f });
+				mGridComponent->forceRefresh();
+			}break;
+
+			// Move view Down (2)
+			case sf::Keyboard::Down:
+			{
+				mRenderCanvas->moveView({ 0.f, 100.f });
+				mGridComponent->forceRefresh();
+			}break;
+			case sf::Keyboard::S:
+			{
+				mRenderCanvas->moveView({ 0.f, 100.f });
+				mGridComponent->forceRefresh();
+			}break;
+
+			// Move view up (3)
+			case sf::Keyboard::Up:
+			{
+				mRenderCanvas->moveView({ 0.f, -100.f });
+				mGridComponent->forceRefresh();
+			}break;
+			case sf::Keyboard::W:
+			{
+				mRenderCanvas->moveView({ 0.f, -100.f });
+				mGridComponent->forceRefresh();
+			}break;
+
+			// Toggle conductive wire
+			case sf::Keyboard::P:
+			{
+				// get a pointer to the selected wire
+				auto CurrentWire = mLogicBoard->getSelectedWire();
+
+				if (CurrentWire)
+					CurrentWire->toggleDraw();
+			}break;
+		}
 	}
 
 	void TNewGameScene::refresh(sf::Time ElapsedTime)
@@ -477,25 +503,27 @@ namespace nne
 
 	void TNewGameScene::update(sf::Time ElapsedTime)
 	{
+		mGuiManager.update(ElapsedTime);
+
 		mGraphicEntity.update(ElapsedTime);
 	}
 
 	void TNewGameScene::draw()
 	{
 		// Clear the render surface
-		mRenderWindow->clear({ 1, 47, 83 });
-		mRenderSurface.clear({ 1, 47, 83 });
-
-		// Renders the entity
+		mRenderWindow->clear({ 0u, 0u, 0u });
+		mRenderCanvas->clear({ 1, 47, 83 });
+		
+		// Draw the entity on the GUI canvas as opposed of the sf::RenderWindow
 		for (auto& GraphicsEntity : mGraphicEntity)
-			mRenderSurface.draw(GraphicsEntity->getComponent<TDrawableComponent>());
+			mRenderCanvas->drawEntity(GraphicsEntity->getComponent<TDrawableComponent>());
+
+		// Flip the mRenderCanvas black-buffer
+		mRenderCanvas->render();
 
 		// Renders the GUI
 		for (auto& Widget : mGuiManager)
 			mRenderWindow->draw(*Widget);
-		
-		// Apply the RenderSurface onto the rendering window
-		mRenderSurface.render(mRenderWindow);
 
 		// Display the window
 		mRenderWindow->display();
@@ -526,7 +554,7 @@ namespace nne
 		mLogicBoard->getSelectedWire()->toggleDraw();
 
 		// Change the insertion method
-		mInsertionMethod = TInsertionMethod::WIRE;
+		mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::WIRE);
 	}
 
 	void TNewGameScene::addBus()
@@ -554,7 +582,7 @@ namespace nne
 		mLogicBoard->getSelectedBus()->toggleDraw();
 
 		// Change the insertion method
-		mInsertionMethod = TInsertionMethod::BUS;
+		mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::BUS);
 	}
 
 	void TNewGameScene::addChip(const std::string& ChipToAdd)
@@ -562,145 +590,73 @@ namespace nne
 		// Remove temporary Entity
 		removeTemporaryEntity();
 
+		std::function<TEntity::EntityPtr()> FactoryFunction;
+		std::string	NewChipID;
+
 		// If we are creating a z80 chip and we didn't do it before
-		if (ChipToAdd == "Z80" && !mGraphicEntity.getEntityByKey("Z80"))
+		if (ChipToAdd == "Z80")
 		{
-			// Create a graphic z80 chip
-			mGraphicEntity.addEntity(TFactory::makeZ80(), "Z80", this);
+			if (mGraphicEntity.getEntityByKey("Z80"))
+				return;
 
-			// Get newly create z80 graphic entity and initialize it
-			auto Z80Chip = mGraphicEntity.getEntityByKey("Z80");
-			Z80Chip->init();
-			Z80Chip->getComponent<TChipComponent>().setPlacedStatus(false);
-			
-			// And adds it to the logic board
-			mLogicBoard->placeChip(Z80Chip.get());
-
-			// And set it as the active chip
-			mLogicBoard->deselectEverything();
-			mLogicBoard->setSelectedChip(Z80Chip->getComponentAsPtr<TChipComponent>());
-
-			mTempChip = Z80Chip;
-
-			// Change the insertion method
-			mInsertionMethod = TInsertionMethod::CHIP;
+			FactoryFunction = TFactory::makeZ80;
+			NewChipID = "Z80";
 		}
 		// If we are creating a RAM chip
-		else if (ChipToAdd == "RAM" && !mGraphicEntity.getEntityByKey("Ram"))
+		else if (ChipToAdd == "RAM")
 		{
-			// Create a graphic z80 chip
-			mGraphicEntity.addEntity(TFactory::makeRam(), "Ram", this);
+			if (mGraphicEntity.getEntityByKey("Ram"))
+				return;
 
-			// Get newly create z80 graphic entity and initialize it
-			auto RamChip = mGraphicEntity.getEntityByKey("Ram");
-			RamChip->init();
-			RamChip->getComponent<TChipComponent>().setPlacedStatus(false);
-
-			// And adds it to the logic board
-			mLogicBoard->placeChip(RamChip.get());
-
-			// And set it as the active chip
-			mLogicBoard->deselectEverything();
-			mLogicBoard->setSelectedChip(RamChip->getComponentAsPtr<TChipComponent>());
-
-			mTempChip = RamChip;
-
-			// Change the insertion method
-			mInsertionMethod = TInsertionMethod::CHIP;
+			FactoryFunction = TFactory::makeRam;
+			NewChipID = "Ram";
 		}
 		// If we are creating a NAND chip
 		else if (ChipToAdd == "NAND")
 		{
-			// Create a graphic NAND chip
-			mGraphicEntity.addEntity(TFactory::makeNandChip(), "NAND_" + std::to_string(mChipCounter++), this);
-
-			// Get newly create NAND graphic entity and initialize it
-			auto NandChip = mGraphicEntity.getEntityByKey("NAND_" + std::to_string(mChipCounter - 1));
-			NandChip->init();
-			NandChip->getComponent<TChipComponent>().setPlacedStatus(false);
-
-			// And adds it to the logic board
-			mLogicBoard->placeChip(NandChip.get());
-
-			// And set it as the active chip
-			mLogicBoard->deselectEverything();
-			mLogicBoard->setSelectedChip(NandChip->getComponentAsPtr<TChipComponent>());
-
-			mTempChip = NandChip;
-
-			// Change the insertion method
-			mInsertionMethod = TInsertionMethod::CHIP;
-		}		
+			FactoryFunction = TFactory::makeNandChip;
+			NewChipID = "NAND_" + std::to_string(mChipCounter++);
+		}
 		// If we are creating a LED
 		else if (ChipToAdd == "LED")
 		{
-			// Create a led
-			mGraphicEntity.addEntity(TFactory::makeLed(), "LED_" + std::to_string(mChipCounter++), this);
-
-			// Get newly create led entity and initialize it
-			auto RamChip = mGraphicEntity.getEntityByKey("LED_" + std::to_string(mChipCounter - 1));
-			RamChip->init();
-			RamChip->getComponent<TChipComponent>().setPlacedStatus(false);
-
-			// And adds it to the logic board
-			mLogicBoard->placeChip(RamChip.get());
-
-			// And set it as the active chip
-			mLogicBoard->deselectEverything();
-			mLogicBoard->setSelectedChip(RamChip->getComponentAsPtr<TChipComponent>());
-
-			mTempChip = RamChip;
-
-			// Change the insertion method
-			mInsertionMethod = TInsertionMethod::CHIP;
+			FactoryFunction = TFactory::makeLed;
+			NewChipID = "LED_" + std::to_string(mChipCounter++);
 		}
 		// If we are creating a VCC
 		else if (ChipToAdd == "VCC")
 		{
-			// Create a graphic vcc chip
-			mGraphicEntity.addEntity(TFactory::makePowerConnector(TPowerComponent::Type::POWER), "VCC_" + std::to_string(mChipCounter++), this);
-
-			// Get newly create vcc entity and initialize it
-			auto PowerChip = mGraphicEntity.getEntityByKey("VCC_" + std::to_string(mChipCounter - 1));
-			PowerChip->init();
-			PowerChip->getComponent<TChipComponent>().setPlacedStatus(false);
-
-			// And adds it to the logic board
-			mLogicBoard->placeChip(PowerChip.get());
-
-			// And set it as the active chip
-			mLogicBoard->deselectEverything();
-			mLogicBoard->setSelectedChip(PowerChip->getComponentAsPtr<TChipComponent>());
-
-			mTempChip = PowerChip;
-
-			// Change the insertion method
-			mInsertionMethod = TInsertionMethod::CHIP;
+			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
+			NewChipID = "VCC_" + std::to_string(mChipCounter++);
 		}
 		// If we are creating a GND
 		else if (ChipToAdd == "GND")
 		{
-			// Create a graphic gnd chip
-			mGraphicEntity.addEntity(TFactory::makePowerConnector(TPowerComponent::Type::GROUND), "GND_" + std::to_string(mChipCounter++), this);
-
-			// Get newly create gnd entity and initialize it
-			auto PowerChip = mGraphicEntity.getEntityByKey("GND_" + std::to_string(mChipCounter - 1));
-			PowerChip->init();
-			PowerChip->getComponent<TChipComponent>().setPlacedStatus(false);
-
-			// And adds it to the logic board
-			mLogicBoard->placeChip(PowerChip.get());
-
-			// And set it as the active chip
-			mLogicBoard->deselectEverything();
-			mLogicBoard->setSelectedChip(PowerChip->getComponentAsPtr<TChipComponent>());
-
-			mTempChip = PowerChip;
-
-			// Change the insertion method
-			mInsertionMethod = TInsertionMethod::CHIP;
+			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
+			NewChipID = "GND_" + std::to_string(mChipCounter++);
 		}
-	}
+
+		// Create a new graphic chip
+		mGraphicEntity.addEntity(FactoryFunction(), NewChipID, this);
+
+		// Get the newly added CHIP
+		auto NewChip = mGraphicEntity.getEntityByKey(NewChipID);
+		NewChip->init();
+		NewChip->getComponent<TChipComponent>().setPlacedStatus(false);
+
+		// And adds it to the logic board
+		mLogicBoard->placeChip(NewChip.get());
+
+		// And set it as the active chip
+		mLogicBoard->deselectEverything();
+		mLogicBoard->setSelectedChip(NewChip->getComponentAsPtr<TChipComponent>());
+		
+		// Cache a shared_ptr to the newly added entity
+		mTempChip = NewChip;
+
+		// Change the insertion method
+		mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::CHIP);
+}
 
 	void TNewGameScene::removeTemporaryEntity()
 	{
@@ -709,6 +665,9 @@ namespace nne
 		// Remove that wire from the logic board and delete the entity associated with it
 		if (mTempBus && mTempBus->getComponent<TBusComponent>().isDrawing())
 		{
+			// Make sure we reset the state of the selected bus
+			mLogicBoard->deselectBus(true);
+
 			// Remove the chip from the logic board
 			mLogicBoard->removeBus(mTempBus.get());
 
@@ -724,6 +683,9 @@ namespace nne
 		// Remove that wire from the logic board and delete the entity associated with it
 		if (mTempWire && mTempWire->getComponent<TWireComponent>().isDrawing())
 		{
+			// Make sure we reset the state of the selected wire
+			mLogicBoard->deselectWire(true);
+
 			// Remove the chip from the logic board
 			mLogicBoard->removeWire(mTempWire.get());
 
@@ -737,46 +699,38 @@ namespace nne
 		// Chip part
 		// If we were trying to place another component before trying to add a new one
 		// Remove that component from the logic board and delete the entity associated with it
-		if (mTempChip && !mTempChip->getComponent<TChipComponent>().isPlaced())
+		if (mTempChip)
 		{
-			// Remove the chip from the logic board
-			mLogicBoard->removeChip(mTempChip.get());
+			// Make sure we reset the state of the selected chip
+			mLogicBoard->deselectChip(true);
 
-			// Remove the entity
-			mGraphicEntity.removeEntity(mTempChip->getEntityID());
+			if (!mTempChip->getComponent<TChipComponent>().isPlaced())
+			{
+				// Remove the chip from the logic board
+				mLogicBoard->removeChip(mTempChip.get());
 
-			// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
-			mTempChip.reset();
+				// Remove the entity
+				mGraphicEntity.removeEntity(mTempChip->getEntityID());
+
+				// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
+				mTempChip.reset();
+			}
 		}
 	}
-
-	sf::Vector2f TNewGameScene::convertMouseCoordinate(sf::Vector2i MouseCoordinate)
-	{
-		// Since the render surface it's smaller then the render window and offsetted to the right and bottom
-		// we need to transform the mouse coordinate from the sf::RenderWindow to the actual sf::RenderSurface
-		// We do this by removing the offset of the sf::RenderSurface to the mouse coordinate
-		MouseCoordinate -= static_cast<sf::Vector2i>(mRenderSurface.getPosition());
-
-		// Return the mapped coordinate 
-		return mRenderSurface.mapPixelToCoords(MouseCoordinate);
-	}
-
+	
 	void TNewGameScene::updateDebugInfo()
 	{
 		auto XStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("XVALUE_TEXT");
 		auto YStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("YVALUE_TEXT"); 
 		auto ZStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("ZINDEX_TEXT");
 
-		auto& MousePos = sf::Mouse::getPosition(*mRenderWindow);
-		auto& RenderSurfacePos = static_cast<sf::Vector2i>(mRenderSurface.getPosition());
-		auto ZoomLevel = static_cast<sf::Uint32>(mRenderSurface.getZoomView() * 100);
+		auto MousePos = mRenderCanvas->mapCoordsToPixel(getMousePosition());
+		MousePos -= {300, 50};
+		auto ZoomLevel = static_cast<sf::Uint32>(mRenderCanvas->getZoomFactor() * 100);
 
-		if (MousePos.x >= RenderSurfacePos.x && MousePos.y >= RenderSurfacePos.y)
-		{
-			XStaticText->setCaption("X:" + std::to_string(MousePos.x - RenderSurfacePos.x));
-			YStaticText->setCaption("Y:" + std::to_string(MousePos.y - RenderSurfacePos.y));
-			ZStaticText->setCaption("Z:" + std::to_string(ZoomLevel) + "%");
-		}
+		XStaticText->setCaption("X:" + std::to_string(static_cast<sf::Int32>(MousePos.x)));
+		YStaticText->setCaption("Y:" + std::to_string(static_cast<sf::Int32>(MousePos.y)));
+		ZStaticText->setCaption("Z:" + std::to_string(ZoomLevel) + "%");
 	}
 
 }

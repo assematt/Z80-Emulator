@@ -1,6 +1,9 @@
 #pragma once
 
+#include <functional>
+#include <string>
 #include <memory>
+
 #include "TPowerComponent.h"
 #include "TEntity.h"
 
@@ -8,7 +11,7 @@ namespace nne
 {
 	namespace TFactory
 	{
-	
+			
 		std::shared_ptr<TEntity> makeWire();
 
 		std::shared_ptr<TEntity> makeBus();

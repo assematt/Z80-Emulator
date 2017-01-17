@@ -1,5 +1,10 @@
 #include "TManager.h"
 
+#include <SFML/Window/Mouse.hpp>
+
+#include "TEventComponent.h"
+#include "TStateComponent.h"
+
 namespace nne
 {
 	
@@ -49,6 +54,96 @@ namespace nne
 		return getEntityByID(nne::idgenerator::GenerateByString::getUniqueID(EntityKey));
 	}
 
+	void TManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow)
+	{
+		processEvents(Event, EventWindow, EventWindow);
+	}
+
+	void TManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow, const sf::RenderTarget& EventCanvas)
+	{
+		// Loop all the widget until we find an object to fire an event on
+		// We loop in revers order (since we want to check the widget with the highest ZIndex first)
+		for (auto& EntityIterator = mEntityVector.rbegin(); EntityIterator != mEntityVector.rend(); ++EntityIterator)
+		{
+			// First get a ref to the TEntity inside the reverse iterator
+			auto& Entity = **EntityIterator;
+
+			// If the widget doesn't allow input or doesn't have an TEventComponent skip this loop cycle
+			if (!Entity.isAlive() || !Entity.hasComponent<tcomponents::TEventComponent>())
+				continue;
+
+			// Get a ref to the TEventComponent
+			auto& EventComponent = Entity.getComponent<tcomponents::TEventComponent>();
+
+			// Get a ref to the TStateComponent
+			auto& StateComponent = Entity.getComponent<tcomponents::TStateComponent>();
+
+			// Get the bound of that object
+			auto& EntityBound = Entity.getComponent<TDrawableComponent>().getGlobalBounds();
+
+			// Establish if the mouse it's above the widget
+			auto MousePos = EventCanvas.mapPixelToCoords(sf::Mouse::getPosition(EventWindow) - sf::Vector2i(300, 50));
+			bool IsInsideWidget = EntityBound.contains(MousePos);
+
+			// Make sure the update the position of the mouse
+			EventComponent.setMousePosition(MousePos);
+
+			// If the mouse it's not on the widget reset the widget state to Normal and skip the rest of the loop
+			if (!IsInsideWidget)
+			{
+				StateComponent.changeState(tcomponents::TStateComponent::NORMAL);
+
+				continue;
+			}
+
+			// Handle mouse move event
+			!IsInsideWidget ? StateComponent.changeState(tcomponents::TStateComponent::NORMAL) : StateComponent.changeState(tcomponents::TStateComponent::HOVER);
+
+			// Handle mouse press event
+			if (Event.type == sf::Event::MouseButtonPressed)
+			{
+				// Change the Widget state
+				StateComponent.changeState(tcomponents::TStateComponent::CLICKED);
+
+				// Fire the click event
+				EventComponent.fireEvent(tcomponents::events::onClick, &Entity, Event);
+
+				// Mouse down event
+				EventComponent.fireEvent(tcomponents::events::onMouseDown, &Entity, Event);
+			}
+			// Handle mouse up event
+			else if (Event.type == sf::Event::MouseButtonReleased)
+			{
+				// Change the Widget state
+				StateComponent.changeState(tcomponents::TStateComponent::CLICKED);
+
+				// Mouse down event
+				EventComponent.fireEvent(tcomponents::events::onMouseUp, &Entity, Event);
+			}
+			// Handle the mouse wheel event
+			else if (Event.type == sf::Event::MouseWheelScrolled)
+			{
+				// Mouse wheel event
+				EventComponent.fireEvent(tcomponents::events::onMouseWheel, &Entity, Event);
+
+				// If the delta it's more than 0 we scrolled the wheel up, otherwise we scrolled down and call the appropriate event's
+				Event.mouseWheelScroll.delta > 0.f ? EventComponent.fireEvent(tcomponents::events::onMouseWheelUp, &Entity, Event) : EventComponent.fireEvent(tcomponents::events::onMouseWheelDown, &Entity, Event);
+			}
+			// Handle key press event
+			else if (Event.type == sf::Event::KeyPressed)
+			{
+				// Key press event
+				EventComponent.fireEvent(tcomponents::events::onKeyPress, &Entity, Event);
+			}
+			// Mouse move event
+			else
+			{
+				// Mouse mouve event
+				EventComponent.fireEvent(tcomponents::events::onMouseMove, &Entity, Event);
+			}
+		}
+	}
+
 	void TManager::initEntities()
 	{
 		while (mAliveElement < mEntityVector.size())
@@ -78,6 +173,11 @@ namespace nne
 			if (!mEntityVector[Index]->isAlive())
 				--mAliveElement;
 		}
+	}
+
+	const std::size_t& TManager::getAliveEntities() const
+	{
+		return mAliveElement;
 	}
 
 	TManager::EntityIterator TManager::begin()

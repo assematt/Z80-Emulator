@@ -60,25 +60,25 @@ namespace nne
 			using TEventSlot = TEventList::iterator;
 		}
 
+		enum class TReferencePoint : sf::Uint8
+		{
+			LEFT_TOP,
+			CENTER_TOP,
+			RIGHT_TOP,
+
+			LEFT_CENTER,
+			CENTER,
+			RIGHT_CENTER,
+
+			LEFT_BOTTOM,
+			CENTER_BOTTOM,
+			RIGHT_BOTTOM,
+		};
+
 		// Base class for all the widgets
 		class TWidget: public sf::Drawable, public sf::Transformable
 		{
 		public:
-
-			enum class TReferencePoint : sf::Uint8
-			{
-				LEFT_TOP,
-				CENTER_TOP,
-				RIGHT_TOP,
-
-				LEFT_CENTER,
-				CENTER,
-				RIGHT_CENTER,
-
-				LEFT_BOTTOM,
-				CENTER_BOTTOM,
-				RIGHT_BOTTOM,
-			};
 
 			enum TState : unsigned char
 			{
@@ -118,7 +118,7 @@ namespace nne
 			const ID& getID() const;
 
 			/// Get the parent transform
-			const sf::Transform& getParentTransform() const;
+			sf::Transform getParentTransform() const;
 
 			/// Set/get the input enable
 			void enableInput(const bool& Enabled = true);
@@ -140,12 +140,23 @@ namespace nne
 			void setColor(const sf::Color& Color);
 			const sf::Color& getColor() const;
 
-			/// Function to set/get the sprite opacity
+			/// Function to set/get the widget opacity
 			void setOpacity(const sf::Uint8& Opacity);
 			const sf::Uint8& getOpacity() const;
 
+			/// Function to set/get the widget ZIndex
 			void setZIndex(const std::size_t& ZIndex);
 			const std::size_t& getZIndex() const;
+
+			/// Function to set/get the widget visiblity
+			void setVisible(const bool& Visible);
+			bool isVisible() const;
+
+			/// Mark the TWidget for destruction in the update cycle
+			void kill();
+
+			/// Return whatever the entity it's alive or not
+			const bool& isAlive();
 
 			/// Set/Get widget name
 			void setName(const std::string& WidgetName);
@@ -197,6 +208,9 @@ namespace nne
 			/// Fire an event
 			void fireEvent(const events::List& EventToFire, TWidget* Sender, const sf::Event& EventData);
 
+			/// Adds himself to a GUIManager
+			void addToManager(const TWidget::Ptr& Widget, TGuiManager* Manager, const std::size_t& ZIndex = 0);
+
 		protected:
 			/// Draw this widget
 			virtual void draw(sf::RenderTarget& Target, sf::RenderStates States) const override;
@@ -207,12 +221,19 @@ namespace nne
 			/// change widget internal state
 			void changeState(const TState& NewState);
 
+			/// Reset the state of the widget
+			void resetState();
+
 		private:
 			/// Update the visible texture bound
 			void updateTextureBounds(const sf::IntRect& TextureRect);
 
 			/// Update the size of the sprite
 			void updateSpriteBounds(const sf::Vector2u& SpriteSize);
+
+		protected:
+			const TGuiManager*	mGuiManager;
+			const TWidget*		mParent;
 
 		private:
 			ID					mID;
@@ -221,15 +242,15 @@ namespace nne
 			bool				mIsSelected;
 			bool				mIsToggleable;
 			bool				mIsHovered;
+			bool				mIsVisible;
+			bool				mIsAlive;
 			TState				mState;
 			std::size_t			mZIndex;
 			sf::IntRect			mTextureRect;
 			std::string			mName;
-			const TWidget*		mParent;
 			sf::VertexArray		mVertices;
 			events::TEventList	mEventsList;
 			const sf::Texture*	mTexture;
-			const TGuiManager*	mGuiManager;
 
 			friend class TGuiManager;
 		};

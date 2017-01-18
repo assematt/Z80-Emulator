@@ -1,5 +1,7 @@
 #include "TWidget.h"
 
+#include "TGuiManager.h"
+
 namespace nne
 {
 	namespace tgui
@@ -14,6 +16,8 @@ namespace nne
 			mIsToggleable(false),
 			mIsSelected(false),
 			mIsEnabled(true),
+			mIsVisible(true),
+			mIsAlive(true),
 			mGuiManager(nullptr),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>())
@@ -30,6 +34,8 @@ namespace nne
 			mIsToggleable(false),
 			mIsSelected(false),
 			mIsEnabled(true),
+			mIsVisible(true),
+			mIsAlive(true),
 			mGuiManager(&GuiManager),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>())
@@ -46,6 +52,8 @@ namespace nne
 			mIsToggleable(false),
 			mIsSelected(false),
 			mIsEnabled(true),
+			mIsVisible(true),
+			mIsAlive(true),
 			mGuiManager(nullptr),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>()),
@@ -62,6 +70,8 @@ namespace nne
 			mIsToggleable(false),
 			mIsSelected(false),
 			mIsEnabled(true),
+			mIsVisible(true),
+			mIsAlive(true),
 			mGuiManager(&GuiManager),
 			mParent(&Parent),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>())
@@ -77,6 +87,8 @@ namespace nne
 			mInputEnable(true),
 			mIsToggleable(false),
 			mIsSelected(false),
+			mIsVisible(true),
+			mIsAlive(true),
 			mGuiManager(&GuiManager),
 			mParent(nullptr),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>()),
@@ -93,6 +105,8 @@ namespace nne
 			mIsToggleable(false),
 			mIsSelected(false),
 			mIsEnabled(true),
+			mIsVisible(true),
+			mIsAlive(true),
 			mGuiManager(&GuiManager),
 			mParent(&Parent),
 			mID(idgenerator::GenerateByType::getUniqueID<ID, TWidget>()),
@@ -108,6 +122,8 @@ namespace nne
 			mIsToggleable(Copy.mIsToggleable),
 			mIsSelected(Copy.mIsSelected),
 			mIsEnabled(Copy.mIsEnabled),
+			mIsVisible(Copy.mIsVisible),
+			mIsAlive(Copy.mIsAlive),
 			mTexture(Copy.mTexture),
 			mGuiManager(Copy.mGuiManager),
 			mParent(Copy.mParent),
@@ -124,6 +140,8 @@ namespace nne
 			mIsToggleable(std::move(Move.mIsToggleable)),
 			mIsSelected(std::move(Move.mIsSelected)),
 			mIsEnabled(std::move(Move.mIsEnabled)),
+			mIsVisible(std::move(Move.mIsVisible)),
+			mIsAlive(std::move(Move.mIsAlive)),
 			mTexture(std::move(Move.mTexture)),
 			mGuiManager(std::move(Move.mGuiManager)),
 			mParent(std::move(Move.mParent)),
@@ -137,9 +155,12 @@ namespace nne
 			return mID;
 		}
 
-		const sf::Transform& TWidget::getParentTransform() const
+		sf::Transform TWidget::getParentTransform() const
 		{
-			return getParent()->getTransform();
+			if (mParent)
+				return getTransform() * mParent->getParentTransform();
+
+			return getTransform();
 		}
 
 		void TWidget::enableInput(const bool& Enabled /*= true*/)
@@ -219,6 +240,29 @@ namespace nne
 			return mZIndex;
 		}
 
+		void TWidget::setVisible(const bool& Visible)
+		{
+			mIsVisible = Visible;
+		}
+
+		bool TWidget::isVisible() const
+		{
+			if (mParent)
+				return mIsVisible & mParent->isVisible();
+
+			return mIsVisible;
+		}
+
+		void TWidget::kill()
+		{
+			mIsAlive = false;
+		}
+
+		const bool& TWidget::isAlive()
+		{
+			return mIsAlive;
+		}
+
 		void TWidget::setName(const std::string& WidgetName)
 		{
 			mName = WidgetName;
@@ -262,44 +306,44 @@ namespace nne
 
 		sf::Vector2f TWidget::getWidgetReferencePointPosition(const TReferencePoint& ReferencePoint)
 		{
-			sf::Vector2f& WindowSize = static_cast<sf::Vector2f>(getSize());
+			sf::Vector2f& WidgetSize = static_cast<sf::Vector2f>(getSize());
 
 			switch (ReferencePoint)
 			{
 			case TReferencePoint::LEFT_TOP:
 				return{ 0.f, 0.f };
 			case TReferencePoint::CENTER_TOP:
-				return{ WindowSize.x / 2, 0.f };
+				return{ WidgetSize.x / 2, 0.f };
 			case TReferencePoint::RIGHT_TOP:
-				return{ WindowSize.x, 0.f };
+				return{ WidgetSize.x, 0.f };
 
 			case TReferencePoint::LEFT_CENTER:
-				return{ 0.f, WindowSize.y / 2 };
+				return{ 0.f, WidgetSize.y / 2 };
 			case TReferencePoint::CENTER:
-				return{ WindowSize.x / 2, WindowSize.y / 2 };
+				return{ WidgetSize.x / 2, WidgetSize.y / 2 };
 			case TReferencePoint::RIGHT_CENTER:
-				return{ 0.f, WindowSize.y / 2 };
+				return{ 0.f, WidgetSize.y / 2 };
 
 			case TReferencePoint::LEFT_BOTTOM:
-				return{ 0.f, WindowSize.y };
+				return{ 0.f, WidgetSize.y };
 			case TReferencePoint::CENTER_BOTTOM:
-				return{ WindowSize.x / 2, WindowSize.y };
+				return{ WidgetSize.x / 2, WidgetSize.y };
 			case TReferencePoint::RIGHT_BOTTOM:
-				return{ WindowSize.x, WindowSize.y };
+				return{ WidgetSize.x, WidgetSize.y };
 
 			default:
-				return{ WindowSize.x / 2, WindowSize.y / 2 };
+				return{ WidgetSize.x / 2, WidgetSize.y / 2 };
 			}
 		}
 
 		void TWidget::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 		{
-			// Get the widget transform
-			States.transform *= getTransform();
-
-			// Apply the parent widget transform if we have one
-			if (getParent())
-				States.transform *= getParentTransform();
+			// Skip the rendering if we are not showing the widget
+			if (!isVisible() || (mParent && !mParent->isVisible()))
+				return;
+			
+			// Apply the widget transform
+			States.transform *= getParentTransform();
 
 			// Apply the texture
 			States.texture = mTexture;
@@ -315,6 +359,23 @@ namespace nne
 		void TWidget::changeState(const TState& NewState)
 		{
 			mState = NewState;
+		}
+
+		void TWidget::resetState()
+		{
+			// If we have a toogleable widget
+			if (mIsToggleable)
+			{
+				if (mIsSelected)
+				{
+					bool Flag = true;
+				}
+
+				mState = mIsSelected ? TState::SELECTED : TState::NORMAL;
+			}
+
+			else if (mState != TState::DISABLED)
+				mState = TState::NORMAL;
 		}
 
 		void TWidget::updateTextureBounds(const sf::IntRect& TextureRect)
@@ -344,13 +405,8 @@ namespace nne
 		}
 
 		sf::FloatRect TWidget::getGlobalBound()
-		{
-			auto WidgetTrasform = getTransform();
-
-			if (getParent())
-				WidgetTrasform *= getParentTransform();
-
-			return WidgetTrasform.transformRect(getLocalBound());
+		{			
+			return getParentTransform().transformRect(getLocalBound());
 		}
 
 		void TWidget::copyLayout(const TWidget& WidgetLayout)
@@ -419,6 +475,11 @@ namespace nne
 			{
 				It->second(Sender, EventData);
 			}
+		}
+
+		void TWidget::addToManager(const TWidget::Ptr& Widget, TGuiManager* Manager, const std::size_t& ZIndex /*= 0*/)
+		{
+			Manager->addWidget(Widget, ZIndex);
 		}
 
 		void TWidget::disableWidget()

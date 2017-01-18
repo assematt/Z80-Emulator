@@ -6,6 +6,7 @@
 #include "TZ80Component.h"
 #include "TPinComponent.h"
 #include "TEventComponent.h"
+#include "TDialogWindow.h"
 
 namespace nne
 {
@@ -40,12 +41,31 @@ namespace nne
 		std::dynamic_pointer_cast<tgui::TNewGameMenu>(mGuiManager.getLastAdded())->init(&mGuiManager);
 
 		// Cache the render-canvas and attach the render surface to it
-		mRenderCanvas = &dynamic_cast<tgui::TRenderCanvas&>(*mGuiManager.getWidget("RENDER_CANVAS"));
+		mRenderCanvas = mGuiManager.getWidget<tgui::TRenderCanvas>("RENDER_CANVAS").get();
+
+		// Set the view of the grid component to be the one of the render canvas
 		mGridComponent->setView(mRenderCanvas->getView());
 
-		// Set-up some GUI event
+		// Set-up some GUI event for the left side tools
 		mGuiManager.getWidget("INSERT_CHIP_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
-			addChip("LED");
+			auto& ChipList = *mGuiManager.getWidget("CHIP_LIST_PANEL");
+
+			// If we are displaying the chip list close it
+			if (ChipList.isVisible())
+			{
+				ChipList.setVisible(false);
+
+				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, -210.f);
+				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, -210.f);
+			}
+			// Otherwise show it
+			else
+			{
+				ChipList.setVisible(true);
+
+				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, 210.f);
+				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, 210.f);
+			}
 		});
 		mGuiManager.getWidget("INSERT_WIRE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addWire();
@@ -53,22 +73,72 @@ namespace nne
 		mGuiManager.getWidget("INSERT_BUS_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addBus();
 		});
+		
+		// Set-up some GUI event for the button that create components
+		mGuiManager.getWidget("INSERT_CPU_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+
+			// Look for a z80 entity in the entities vector
+			auto Z80Temp = mGraphicEntity.getEntityByKey("Z80");
+
+			// If we don't find it add it to the entity vector
+			if (!Z80Temp)
+			{
+				addChip("Z80");
+			}
+			// Otherwise if it already exit and we already have placed one display and error message
+			else if (Z80Temp->getComponent<TChipComponent>().isPlaced())
+			{
+				tgui::TDialogWindow::Ptr TempWindow = std::make_shared<tgui::TDialogWindow>(mGuiManager);
+				TempWindow->setName("TEMP_DIALOG_WINDOW");
+				TempWindow->setTitleString("Error!");
+				TempWindow->setMessageString("You can only place down one z80 CPU!");
+				mGuiManager.addWidget(TempWindow, 10);
+				mGuiManager.getWidget<tgui::TDialogWindow>("TEMP_DIALOG_WINDOW")->show(*mRenderWindow, tgui::TReferencePoint::CENTER);
+			}
+
+		});
+		mGuiManager.getWidget("INSERT_RAM_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			// Look for a z80 entity in the entities vector
+			auto RamTemp = mGraphicEntity.getEntityByKey("RAM");
+
+			// If we don't find it add it to the entity vector
+			if (!RamTemp)
+			{
+				addChip("RAM");
+			}
+			// Otherwise if it already exit and we already have placed one display and error message
+			else if (RamTemp->getComponent<TChipComponent>().isPlaced())
+			{
+				tgui::TDialogWindow::Ptr TempWindow = std::make_shared<tgui::TDialogWindow>(mGuiManager);
+				TempWindow->setName("TEMP_DIALOG_WINDOW");
+				TempWindow->setTitleString("Error!");
+				TempWindow->setMessageString("You can only place down one RAM!");
+				mGuiManager.addWidget(TempWindow, 10);
+				mGuiManager.getWidget<tgui::TDialogWindow>("TEMP_DIALOG_WINDOW")->show(*mRenderWindow, tgui::TReferencePoint::CENTER);
+			}
+		});
+		mGuiManager.getWidget("INSERT_NAND_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addChip("NAND");
+		});
+		mGuiManager.getWidget("INSERT_LED_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addChip("LED");
+		});
+		mGuiManager.getWidget("INSERT_POWER_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addChip("VCC");
+		});
+		mGuiManager.getWidget("INSERT_GROUND_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			addChip("GND");
+		});
 
 		// Set-up some GUI event to the RenderCanvas
-
-		// Mouse up event
 		mRenderCanvas->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			EventData.mouseButton.button == sf::Mouse::Left ? handleLeftMouseUpEvent() : handleRightMouseUpEvent();
 		});
-
-		// Mouse move event
 		mRenderCanvas->attachEvent(tgui::events::onMouseMove, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			handleMouseMoveEvent(sf::Vector2f(EventData.mouseMove.x - 300, EventData.mouseMove.y - 50));
 
 			updateDebugInfo();
 		});
-
-		// Mouse wheel event
 		mRenderCanvas->attachEvent(tgui::events::onMouseWheelUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			mRenderCanvas->zoomOut();
 			mGridComponent->forceRefresh();
@@ -596,18 +666,12 @@ namespace nne
 		// If we are creating a z80 chip and we didn't do it before
 		if (ChipToAdd == "Z80")
 		{
-			if (mGraphicEntity.getEntityByKey("Z80"))
-				return;
-
 			FactoryFunction = TFactory::makeZ80;
 			NewChipID = "Z80";
 		}
 		// If we are creating a RAM chip
 		else if (ChipToAdd == "RAM")
 		{
-			if (mGraphicEntity.getEntityByKey("Ram"))
-				return;
-
 			FactoryFunction = TFactory::makeRam;
 			NewChipID = "Ram";
 		}
@@ -720,9 +784,9 @@ namespace nne
 	
 	void TNewGameScene::updateDebugInfo()
 	{
-		auto XStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("XVALUE_TEXT");
-		auto YStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("YVALUE_TEXT"); 
-		auto ZStaticText = mGuiManager.getWidgetWithCast<tgui::TStaticText>("ZINDEX_TEXT");
+		auto XStaticText = mGuiManager.getWidget<tgui::TStaticText>("XVALUE_TEXT");
+		auto YStaticText = mGuiManager.getWidget<tgui::TStaticText>("YVALUE_TEXT"); 
+		auto ZStaticText = mGuiManager.getWidget<tgui::TStaticText>("ZINDEX_TEXT");
 
 		auto MousePos = mRenderCanvas->mapCoordsToPixel(getMousePosition());
 		MousePos -= {300, 50};

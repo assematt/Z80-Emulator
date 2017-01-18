@@ -276,6 +276,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TChipComponent.cpp" />
     <ClCompile Include="TClock.cpp" />
     <ClCompile Include="TComplexText.cpp" />
+    <ClCompile Include="TDialogWindow.cpp" />
     <ClCompile Include="TEventComponent.cpp" />
     <ClCompile Include="TImageButton.cpp" />
     <ClCompile Include="TLedComponent.cpp" />
@@ -324,6 +325,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TChipComponent.h" />
     <ClInclude Include="ILoadingScreen.h" />
     <ClInclude Include="TComplexText.h" />
+    <ClInclude Include="TDialogWindow.h" />
     <ClInclude Include="TEventComponent.h" />
     <ClInclude Include="TImageButton.h" />
     <ClInclude Include="TLedComponent.h" />

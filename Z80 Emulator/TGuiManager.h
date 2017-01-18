@@ -35,11 +35,17 @@ namespace nne
 			TWidget::Ptr getWidget(const TWidget::ID& WidgetID) const;
 			TWidget::Ptr getWidget(const std::string& WidgetName) const;
 
+			/// Function to retrieve a widget from the vector by Index or by Name and cast it as a specific widget
+			template <class T>
+			std::shared_ptr<T> getWidget(const TWidget::ID& WidgetID) const;
+			template <class T>
+			std::shared_ptr<T> getWidget(const std::string& WidgetName) const;
+
 			/// Function to retrieve a widget from the vector by Index or by Name and cast it as a derived type
-			template <class T>
-			T* getWidgetWithCast(const TWidget::ID& WidgetID) const;
-			template <class T>
-			T* getWidgetWithCast(const std::string& WidgetName) const;
+			///template <class T>
+			///T* getWidgetWithCast(const TWidget::ID& WidgetID) const;
+			///template <class T>
+			///T* getWidgetWithCast(const std::string& WidgetName) const;
 
 			/// Get the position of the widget in the array
 			std::size_t getWidgetPos(const TWidget::ID& WidgetID) const;
@@ -93,15 +99,15 @@ namespace nne
 		};
 
 		template <class T>
-		T* TGuiManager::getWidgetWithCast(const std::string& WidgetName) const
+		std::shared_ptr<T> TGuiManager::getWidget(const std::string& WidgetName) const
 		{
-			return dynamic_cast<T*>(getWidget(WidgetName).get());
+			return std::dynamic_pointer_cast<T>(getWidget(WidgetName));
 		}
 
 		template <class T>
-		T* TGuiManager::getWidgetWithCast(const TWidget::ID& WidgetID) const
+		std::shared_ptr<T> TGuiManager::getWidget(const TWidget::ID& WidgetID) const
 		{
-			return dynamic_cast<T*>(getWidget(WidgetID).get());
+			return std::dynamic_pointer_cast<T>(getWidget(WidgetID));
 		}
 
 		template <typename... TArgs>
@@ -149,7 +155,7 @@ namespace nne
 			for (std::size_t Index = VectorSize; Index > InsertionPos; --Index)
 			{
 				mWidgetsContainer[Index] = std::move(mWidgetsContainer[Index - 1]);
-				mWidgetsZIndex[InsertionPos] = std::move(mWidgetsZIndex[Index - 1]);
+				mWidgetsZIndex[Index] = std::move(mWidgetsZIndex[Index - 1]);
 			}
 
 			// Put the element in the right place

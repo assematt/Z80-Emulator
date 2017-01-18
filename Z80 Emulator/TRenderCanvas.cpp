@@ -81,14 +81,6 @@ namespace nne
 		{
 			mViewPosition += Offset;
 
-// 			switch (Offset)
-// 			{
-// 			case 0: mViewPosition += { 100.f, 0.f  }; break;
-// 			case 1: mViewPosition += { -100.f, 0.f }; break;
-// 			case 2: mViewPosition += { 0.f, -100.f }; break;
-// 			case 3: mViewPosition += { 0.f, 100.f  }; break;
-// 			}
-
 			resetView();
 		}
 

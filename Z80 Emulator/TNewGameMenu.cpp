@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 
+#include "TDialogWindow.h"
 #include "TRenderCanvas.h"
 #include "TCacheManager.h"
 #include "TImageButton.h"
@@ -16,6 +17,12 @@ namespace nne
 
 		void TNewGameMenu::init(TGuiManager* GuiManager)
 		{
+			// Menu property
+			this->setName("NEW_GAME_MENU");
+			this->setSize({ 1600u, 900u });
+			this->setColor({ 0, 0, 170 });
+			this->enableInput(false);
+
 		#pragma region TOP PANEL
 			// Top panel
 			TContainer::Ptr HeaderPanel = std::make_shared<TContainer>();
@@ -128,9 +135,7 @@ namespace nne
 			// Left tools panel
 			TContainer::Ptr LeftToolsPanel = std::make_shared<TContainer>();
 			LeftToolsPanel->setName("HEADER_PANEL");
-			//LeftToolsPanel->setPosition(mParentManager->getReferencePointPosition(TReferencePoint::LEFT_TOP) + sf::Vector2f(0, 50.f));
-			LeftToolsPanel->setPosition(sf::Vector2f(0.f, 0.f) + sf::Vector2f(0, 50.f));
-			//LeftToolsPanel->setSize({ 300, RenderingWindow.getSize().y });
+			LeftToolsPanel->setPosition(sf::Vector2f(0, 50.f));
 			LeftToolsPanel->setSize({ 300u, 900u });
 			LeftToolsPanel->setColor({ 0, 35, 64 });
 
@@ -142,11 +147,106 @@ namespace nne
 			InsertChipButton->setCaption("INSERT CHIP");
 			InsertChipButton->setCharacterSize(14);
 			InsertChipButton->setSize({ 300, 35 });
-			InsertChipButton->move({ 0.f, 20.f });
+			InsertChipButton->setPosition({ 0.f, 20.f });
 			InsertChipButton->setPadding({ 54u, 9u });
 			InsertChipButton->setToggleable(true);
 			InsertChipButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("chip_btn"), { 20.f, 5.f });
 			LeftToolsPanel->addWidget(InsertChipButton.get());
+
+			#pragma region CHIP LIST
+			// CHIP LIST PANEL
+			TContainer::Ptr ChipListPanel = std::make_shared<TContainer>();
+			ChipListPanel->setName("CHIP_LIST_PANEL");
+			ChipListPanel->move({ 0.f, 55.f });
+			ChipListPanel->setSize({ 300u, 210u });
+			ChipListPanel->setColor({ 0, 105, 191 });
+			ChipListPanel->setVisible(false);
+			LeftToolsPanel->addWidget(ChipListPanel.get());
+
+			// Insert CPU button
+			#pragma region CPU BUTTON
+			TImageButton::Ptr InsertCpuButton = std::make_shared<TImageButton>();
+			InsertCpuButton->setZIndex(3);
+			InsertCpuButton->setName("INSERT_CPU_BUTTON");
+			InsertCpuButton->setCaption("INSERT CPU");
+			InsertCpuButton->setCharacterSize(14);
+			InsertCpuButton->setSize({ 300, 35 });
+			InsertCpuButton->move({ 0.f, 0.f });
+			InsertCpuButton->setPadding({ 54u, 9u });
+			InsertCpuButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("cpu_btn"), { 20.f, 5.f });
+			ChipListPanel->addWidget(InsertCpuButton.get());
+			#pragma endregion			
+
+			// Insert RAM button
+			#pragma region RAM BUTTON
+			TImageButton::Ptr InsertRamButton = std::make_shared<TImageButton>();
+			InsertRamButton->setZIndex(3);
+			InsertRamButton->setName("INSERT_RAM_BUTTON");
+			InsertRamButton->setCaption("INSERT RAM");
+			InsertRamButton->setCharacterSize(14);
+			InsertRamButton->setSize({ 300, 35 });
+			InsertRamButton->move({ 0.f, 35.f });
+			InsertRamButton->setPadding({ 54u, 9u });
+			InsertRamButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("ram_btn"), { 20.f, 5.f });
+			ChipListPanel->addWidget(InsertRamButton.get());
+			#pragma endregion
+
+			// Insert NAND button
+			#pragma region NAND BUTTON
+			TImageButton::Ptr InsertNandButton = std::make_shared<TImageButton>();
+			InsertNandButton->setZIndex(3);
+			InsertNandButton->setName("INSERT_NAND_BUTTON");
+			InsertNandButton->setCaption("INSERT NAND");
+			InsertNandButton->setCharacterSize(14);
+			InsertNandButton->setSize({ 300, 35 });
+			InsertNandButton->move({ 0.f, 70.f });
+			InsertNandButton->setPadding({ 54u, 9u });
+			InsertNandButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("nand_btn"), { 20.f, 5.f });
+			ChipListPanel->addWidget(InsertNandButton.get());
+			#pragma endregion
+
+			// Insert LED button
+			#pragma region LED BUTTON
+			TImageButton::Ptr InsertLedButton = std::make_shared<TImageButton>();
+			InsertLedButton->setZIndex(3);
+			InsertLedButton->setName("INSERT_LED_BUTTON");
+			InsertLedButton->setCaption("INSERT LED");
+			InsertLedButton->setCharacterSize(14);
+			InsertLedButton->setSize({ 300, 35 });
+			InsertLedButton->move({ 0.f, 105.f });
+			InsertLedButton->setPadding({ 54u, 9u });
+			InsertLedButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("led_btn"), { 20.f, 5.f });
+			ChipListPanel->addWidget(InsertLedButton.get());
+			#pragma endregion
+
+			// Insert GROUND button
+			#pragma region GROUND BUTTON
+			TImageButton::Ptr InsertGroundButton = std::make_shared<TImageButton>();
+			InsertGroundButton->setZIndex(3);
+			InsertGroundButton->setName("INSERT_GROUND_BUTTON");
+			InsertGroundButton->setCaption("INSERT GROUND");
+			InsertGroundButton->setCharacterSize(14);
+			InsertGroundButton->setSize({ 300, 35 });
+			InsertGroundButton->move({ 0.f, 140.f });
+			InsertGroundButton->setPadding({ 54u, 9u });
+			InsertGroundButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("ground_btn"), { 20.f, 12.f });
+			ChipListPanel->addWidget(InsertGroundButton.get());
+			#pragma endregion
+
+			// Insert POWER button
+			#pragma region POWER BUTTON
+			TImageButton::Ptr InsertPowerButton = std::make_shared<TImageButton>();
+			InsertPowerButton->setZIndex(3);
+			InsertPowerButton->setName("INSERT_POWER_BUTTON");
+			InsertPowerButton->setCaption("INSERT POWER");
+			InsertPowerButton->setCharacterSize(14);
+			InsertPowerButton->setSize({ 300, 35 });
+			InsertPowerButton->move({ 0.f, 175.f });
+			InsertPowerButton->setPadding({ 54u, 9u });
+			InsertPowerButton->setToggleable(true);
+			InsertPowerButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("power_btn"), { 20.f, 5.f });
+			ChipListPanel->addWidget(InsertPowerButton.get());
+			#pragma endregion
 
 			// Insert wire button
 			TImageButton::Ptr InsertWireButton = std::make_shared<TImageButton>();
@@ -155,9 +255,8 @@ namespace nne
 			InsertWireButton->setCaption("INSERT WIRE");
 			InsertWireButton->setCharacterSize(14);
 			InsertWireButton->setSize({ 300, 35 });
-			InsertWireButton->move({ 0.f, 55.f });
+			InsertWireButton->setPosition({ 0.f, 55.f });
 			InsertWireButton->setPadding({ 54u, 9u });
-			InsertWireButton->setToggleable(true);
 			InsertWireButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("track_btn"), { 20.f, 5.f });
 			LeftToolsPanel->addWidget(InsertWireButton.get());
 
@@ -168,9 +267,8 @@ namespace nne
 			InsertBusButton->setCaption("INSERT BUS");
 			InsertBusButton->setCharacterSize(14);
 			InsertBusButton->setSize({ 300, 35 });
-			InsertBusButton->move({ 0.f, 90.f });
+			InsertBusButton->setPosition({ 0.f, 90.f });
 			InsertBusButton->setPadding({ 54u, 9u });
-			InsertBusButton->setToggleable(true);
 			InsertBusButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("bus_btn"), { 21.f, 4.f });
 			LeftToolsPanel->addWidget(InsertBusButton.get());
 #pragma endregion
@@ -183,27 +281,37 @@ namespace nne
 			Canvas->create(1300u, 850u);
 			Canvas->setSize({ 1300u, 850u });
 			Canvas->setPosition(300.f, 50.f);
-
+			
 			// Adds the widgets to the menu
-			GuiManager->addWidget(HeaderPanel, 1);
-			GuiManager->addWidget(PCBButton, 2);
-			GuiManager->addWidget(CodeButton, 2);
+			GuiManager->addWidget(HeaderPanel, 2);
+			GuiManager->addWidget(PCBButton, 3);
+			GuiManager->addWidget(CodeButton, 3);
 
-			GuiManager->addWidget(FileButton, 2);
-			GuiManager->addWidget(EditButton, 2);
-			GuiManager->addWidget(OptionsButton, 2);
-			GuiManager->addWidget(HelpButton, 2);
+			GuiManager->addWidget(FileButton, 3);
+			GuiManager->addWidget(EditButton, 3);
+			GuiManager->addWidget(OptionsButton, 3);
+			GuiManager->addWidget(HelpButton, 3);
 
-			GuiManager->addWidget(ZIndexButton, 2);
-			GuiManager->addWidget(XValueButton, 2);
-			GuiManager->addWidget(YValueButton, 2);
+			GuiManager->addWidget(ZIndexButton, 3);
+			GuiManager->addWidget(XValueButton, 3);
+			GuiManager->addWidget(YValueButton, 3);
 
-			GuiManager->addWidget(LeftToolsPanel, 1);
-			GuiManager->addWidget(InsertChipButton, 2);
-			GuiManager->addWidget(InsertWireButton, 2);
-			GuiManager->addWidget(InsertBusButton, 2);
+			GuiManager->addWidget(LeftToolsPanel, 2);
+			GuiManager->addWidget(InsertChipButton, 3);
 
-			GuiManager->addWidget(Canvas, 10);
+			// CHIP LIST
+			GuiManager->addWidget(ChipListPanel, 3);
+			GuiManager->addWidget(InsertCpuButton, 4);
+			GuiManager->addWidget(InsertRamButton, 4);
+			GuiManager->addWidget(InsertNandButton, 4);
+			GuiManager->addWidget(InsertLedButton, 4);
+			GuiManager->addWidget(InsertGroundButton, 4);
+			GuiManager->addWidget(InsertPowerButton, 4);
+
+			GuiManager->addWidget(InsertWireButton, 3);
+			GuiManager->addWidget(InsertBusButton, 3);
+
+			GuiManager->addWidget(Canvas, 1);
 		}
 
 	}

@@ -125,28 +125,53 @@ namespace nne
 
 		void TGuiManager::update(const sf::Time& ElapsedTime)
 		{
-			for (auto& Widget : mWidgetsContainer)
-				Widget->update(ElapsedTime);
+			auto WidgetsNumber = mWidgetsContainer.size();
+			for (auto Index = 0u; Index < WidgetsNumber; ++Index)
+			{
+				mWidgetsContainer[Index]->update(ElapsedTime);
+
+				if (!mWidgetsContainer[Index]->isAlive())
+				{
+					mWidgetsContainer.erase(mWidgetsContainer.begin() + Index);
+					mWidgetsZIndex.erase(mWidgetsZIndex.begin() + Index);
+
+					--WidgetsNumber;
+					--Index;
+				}
+			}
 		}
 
 		nne::IScene::ID TGuiManager::processEvents(const sf::Event& Event, const sf::RenderWindow& EventWindow)
-		{			
+		{
 			// Loop all the widget until we find an object to fire an event on
 			// We loop in revers order (since we want to check the widget with the highest ZIndex first)
-			for (auto& WidgetIterator = rbegin(); WidgetIterator != rend(); ++WidgetIterator)
+			bool EventFound = false;
+
+			auto WidgetsNumber = mWidgetsContainer.size();
+
+			while (WidgetsNumber-- > 0)
 			{
 				// First get a ref to the shared_ptr<TWidget> inside the reverse iterator
-				auto& Widget = **WidgetIterator;
+				//auto& Widget = **WidgetIterator;
+				auto& Widget = *mWidgetsContainer[WidgetsNumber];
+
+				// By default reset the state of the widget
+				Widget.resetState();
 
 				// If the widget doesn't allow input skip this loop cycle
-				if (!Widget.isEnabled())
+				if (!Widget.isEnabled() || !Widget.isVisible() || EventFound)
 					continue;
 
 				// Get the bound of that object
 				auto& WidgetBound = Widget.getGlobalBound();
 
 				// Establish if the mouse it's above the widget
-				bool IsInsideWidget = WidgetBound.contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(EventWindow)));
+				auto MousePos = EventWindow.mapPixelToCoords(sf::Mouse::getPosition(EventWindow));
+				bool IsInsideWidget = WidgetBound.contains(MousePos);
+
+				// If the mouse it's not on the widget skip the rest of the loop
+ 				if (!IsInsideWidget)
+					continue;
 
 				// See if the widget is toggle able
 				const bool& IsToggleable = Widget.isToggleable();
@@ -160,28 +185,19 @@ namespace nne
 				// See if the widget is being hovered
 				const bool& IsHovered = Widget.isHovered();
 
-				// If the mouse it's not on the widget reset the widget state to Normal and skip the rest of the loop
-				if (!IsInsideWidget)
-				{
-					Widget.changeState(TWidget::NORMAL);
-
-					continue;
-				}
-
-				// Handle mouse move event
-				!IsInsideWidget ? Widget.changeState(TWidget::NORMAL) : Widget.changeState(TWidget::HOVER);
-
 				// Handle mouse press event
 				if (Event.type == sf::Event::MouseButtonPressed)
 				{
 					// Change the Widget state
-					Widget.changeState(TWidget::CLICKED);
+					//Widget.changeState(TWidget::CLICKED);
 
 					// Fire the click event
 					Widget.fireEvent(events::onClick, &Widget, Event);
 
 					// Mouse down event
 					Widget.fireEvent(events::onMouseDown, &Widget, Event);
+
+					EventFound = true;
 				}
 				// Handle mouse up event
 				else if (Event.type == sf::Event::MouseButtonReleased)
@@ -191,6 +207,8 @@ namespace nne
 
 					// Mouse down event
 					Widget.fireEvent(events::onMouseUp, &Widget, Event);
+
+					EventFound = true;
 				}
 				// Handle the mouse wheel event
 				else if (Event.type == sf::Event::MouseWheelScrolled)
@@ -200,18 +218,26 @@ namespace nne
 
 					// If the delta it's more than 0 we scrolled the wheel up, otherwise we scrolled down and call the appropriate event's
 					Event.mouseWheelScroll.delta > 0.f ? Widget.fireEvent(events::onMouseWheelUp, &Widget, Event) : Widget.fireEvent(events::onMouseWheelDown, &Widget, Event);
+
+					EventFound = true;
 				}
 				// Handle key press event
 				else if (Event.type == sf::Event::KeyPressed)
 				{
 					// Key press event
 					Widget.fireEvent(events::onKeyPress, &Widget, Event);
+
+					EventFound = true;
 				}
 				// Mouse move event
 				else
 				{
 					// Mouse mouve event
 					Widget.fireEvent(events::onMouseMove, &Widget, Event);
+
+					Widget.changeState(TWidget::HOVER);
+
+					EventFound = true;
 				}
 			}
 

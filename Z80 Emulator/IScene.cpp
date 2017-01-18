@@ -33,8 +33,8 @@ namespace nne
 	}
 
 	sf::Vector2f IScene::getMousePosition() const
-	{
-		return static_cast<sf::Vector2f>(sf::Mouse::getPosition(*mRenderWindow));
+	{		
+		return mRenderWindow->mapPixelToCoords(sf::Mouse::getPosition(*mRenderWindow));
 	}
 
 	sf::Vector2f IScene::getMousePosition(const sf::View& View) const

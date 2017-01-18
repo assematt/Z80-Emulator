@@ -15,11 +15,11 @@ namespace nne
 
 		void TMainMenu::init(TGuiManager* GuiManager)
 		{
-			TImage::Ptr BackgroundColor = std::make_shared<TImage>();
-			BackgroundColor->setName("BACKGROUND_COLOR");
-			BackgroundColor->setSize({ 1600u, 900u });
-			BackgroundColor->setColor({ 0, 0, 170 });
-			BackgroundColor->enableInput(false);
+			// Menu property
+			this->setName("MAIN_MENU");
+			this->setSize({ 1600u, 900u });
+			this->setColor({ 0, 0, 170 });
+			this->enableInput(false);
 
 			TImage::Ptr MonitorEffect = std::make_shared<TImage>();
 			MonitorEffect->setName("MONITOR_SHADOW");
@@ -42,7 +42,7 @@ namespace nne
 			StoryMode->setCaption("STORY MODE");
 			StoryMode->setFillColor(sf::Color::White);
 			StoryMode->setCharacterFillColor({ 51u, 51u, 51u }, 0);
-			StoryMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) - sf::Vector2f(StoryMode->getSize().x / 2.f, 0.f));
+			StoryMode->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) - sf::Vector2f(StoryMode->getSize().x / 2.f, 0.f));
 			StoryMode->disableWidget();
 
 			TMenuButton::Ptr SandboxMode = std::make_shared<TMenuButton>();
@@ -54,7 +54,7 @@ namespace nne
 				// Goes to the editor
 				Sender->getManager().changeScene(1);
 			});
-			SandboxMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(SandboxMode->getSize().x / 2.f), 50.f));
+			SandboxMode->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) + sf::Vector2f(-(SandboxMode->getSize().x / 2.f), 50.f));
 
 			TMenuButton::Ptr ChallangeMode = std::make_shared<TMenuButton>();
 			ChallangeMode->setName("CHALLANGE_MODE");
@@ -62,7 +62,7 @@ namespace nne
 			ChallangeMode->disableWidget();
 			ChallangeMode->setFillColor(sf::Color::White);
 			ChallangeMode->setCharacterFillColor({ 51u, 51u, 51u }, 0);
-			ChallangeMode->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(ChallangeMode->getSize().x / 2.f), 100.f));
+			ChallangeMode->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) + sf::Vector2f(-(ChallangeMode->getSize().x / 2.f), 100.f));
 
 			TMenuButton::Ptr Options = std::make_shared<TMenuButton>();
 			Options->setName("OPTIONS");
@@ -70,7 +70,7 @@ namespace nne
 			Options->disableWidget();
 			Options->setFillColor(sf::Color::White);
 			Options->setCharacterFillColor({ 51u, 51u, 51u }, 0);
-			Options->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Options->getSize().x / 2.f), 150.f));
+			Options->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) + sf::Vector2f(-(Options->getSize().x / 2.f), 150.f));
 
 			TMenuButton::Ptr Credits = std::make_shared<TMenuButton>();
 			Credits->setName("CREDITS");
@@ -78,7 +78,7 @@ namespace nne
 			Credits->disableWidget();
 			Credits->setFillColor(sf::Color::White);
 			Credits->setCharacterFillColor({ 51u, 51u, 51u }, 0);
-			Credits->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Credits->getSize().x / 2.f), 200.f));
+			Credits->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) + sf::Vector2f(-(Credits->getSize().x / 2.f), 200.f));
 
 			TMenuButton::Ptr Quit = std::make_shared<TMenuButton>();
 			Quit->setName("QUIT");
@@ -89,10 +89,10 @@ namespace nne
 				// Quit the program
 				Sender->getManager().changeScene(IScene::Exit);
 			});
-			Quit->setPosition(getWidgetReferencePointPosition(TWidget::TReferencePoint::CENTER) + sf::Vector2f(-(Quit->getSize().x / 2.f), 250.f));
+			Quit->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) + sf::Vector2f(-(Quit->getSize().x / 2.f), 250.f));
 
 			// Adds the widgets to the menu
-			GuiManager->addWidget(BackgroundColor, 1);
+			//GuiManager->addWidget(BackgroundColor, 1);
 			GuiManager->addWidget(MonitorEffect, 2);
 			GuiManager->addWidget(MonitorFrame, 2);
 			GuiManager->addWidget(StoryMode, 3);

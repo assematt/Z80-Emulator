@@ -48,12 +48,8 @@ namespace nne
 			// draw the base class
 			TWidget::draw(Target, States);
 
-			// Apply this widget transform
-			States.transform *= getTransform();
-
-			// Apply the parent widget transform if we have one
-			if (getParent())
-				States.transform *= getParentTransform();
+			// Apply the widget transform
+			States.transform *= getParentTransform();
 
 			// draw this widget
 			Target.draw(mText, States);

@@ -33,6 +33,21 @@ namespace nne
 			case TWidget::CLICKED:
 			{
 				TWidget::setColor(ClickedColor);
+				
+				if (TWidget::isToggleable())
+				{
+					if (TWidget::isSelected())
+					{
+						TWidget::changeState(TWidget::NORMAL);
+						TWidget::setSelected(false);
+					}
+					else
+					{
+						TWidget::changeState(TWidget::SELECTED);
+						TWidget::setSelected(true);
+					}
+				}
+					
 			} break;
 			case TWidget::DISABLED:
 			{
@@ -43,14 +58,14 @@ namespace nne
 
 		void TImageButton::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 		{
+			// Skip the rendering if we are not showing the widget
+			if (!isVisible() || (mParent && !mParent->isVisible()))
+				return;
+
 			TWidget::draw(Target, States);
 
-			// Apply this widget transform
-			States.transform *= getTransform();
-
-			// Apply the parent widget transform if we have one
-			if (getParent())
-				States.transform *= getParentTransform();
+			// Apply the widget transform
+			States.transform *= getParentTransform();
 
 			// draw this widget
 			Target.draw(mButtonImage, States);

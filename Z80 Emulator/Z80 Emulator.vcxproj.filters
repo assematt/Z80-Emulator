@@ -225,6 +225,9 @@
     <ClCompile Include="TEventComponent.cpp">
       <Filter>Source Files\src\components</Filter>
     </ClCompile>
+    <ClCompile Include="TDialogWindow.cpp">
+      <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -412,6 +415,9 @@
     </ClInclude>
     <ClInclude Include="TStateComponent.h">
       <Filter>Header Files\include\components</Filter>
+    </ClInclude>
+    <ClInclude Include="TDialogWindow.h">
+      <Filter>Header Files\include\gui\widgets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -13,29 +13,32 @@ namespace nne
 	namespace tgui
 	{
 
+		TMainMenu::TMainMenu(const std::string& MenuName /*= "MAIN_MENU"*/)
+		{
+			TWidget::TWidget(MenuName);
+		}
+
 		void TMainMenu::init(TGuiManager* GuiManager)
 		{
 			// Menu property
-			this->setName("MAIN_MENU");
-			this->setSize({ 1600u, 900u });
 			this->setColor({ 0, 0, 170 });
 			this->enableInput(false);
 
 			TImage::Ptr MonitorEffect = std::make_shared<TImage>();
 			MonitorEffect->setName("MONITOR_SHADOW");
 			MonitorEffect->setImage(TCacheManager::getInstance().getResource<sf::Texture>("monitor_shadow"));
-			MonitorEffect->setSize({ 1600u, 900u });
+			MonitorEffect->setSize(getSize());
 			MonitorEffect->enableInput(false);
 
 			TImage::Ptr MonitorFrame = std::make_shared<TImage>();
 			MonitorFrame->setName("MONITOR_EFFECT");
 			auto& Texture = TCacheManager::getInstance().getResource<sf::Texture>("monitor_effect_2");
 			Texture.setRepeated(true);
-			dynamic_cast<TWidget*>(MonitorFrame.get())->setTexture(&Texture);
-			dynamic_cast<TWidget*>(MonitorFrame.get())->setTextureRect({ 0, 0, 1600, 900 });
-			dynamic_cast<TWidget*>(MonitorFrame.get())->setOpacity(76);
+			MonitorFrame->setTexture(&Texture);
+			MonitorFrame->setTextureRect({ { 0, 0 }, static_cast<sf::Vector2i>(getSize()) });
+			MonitorFrame->setOpacity(76);
 			MonitorFrame->enableInput(false);
-			MonitorFrame->setSize({ 1600u, 900u });
+			MonitorFrame->setSize(getSize());
 
 			TMenuButton::Ptr StoryMode = std::make_shared<TMenuButton>();
 			StoryMode->setName("STORY_MODE");

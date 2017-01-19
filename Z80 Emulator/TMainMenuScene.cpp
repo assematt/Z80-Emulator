@@ -6,15 +6,19 @@ namespace nne
 
 	void TMainMenuScene::init()
 	{
-// 		tgui::TMainMenu::Ptr Menu = std::make_shared<tgui::TMainMenu>();
-// 		Menu->setSize(mRenderWindow->getSize());
-// 		Menu->init(&mGuiManager);
-// 		mGuiManager.addWidget(std::move(Menu));
+		tgui::TMainMenu::Ptr MainMenu = std::make_shared<tgui::TMainMenu>("MAIN_MENU");
+		MainMenu->setSize(mRenderWindow->getSize());
+		MainMenu->init(&mGuiManager);
+		mGuiManager.addWidget(MainMenu);
 
-		mGuiManager.addWidget<tgui::TMainMenu>();
-		auto& Menu = mGuiManager.getLastAdded();
-		Menu->setSize(mRenderWindow->getSize());
-		std::dynamic_pointer_cast<tgui::TMainMenu>(Menu)->init(&mGuiManager);
+		//mGuiManager.addWidget<tgui::TMainMenu>("MAIN_MENU", 0);
+		//mGuiManager.addWidget<tgui::TMainMenu>(std::string("MAIN_MENU"), 0u);
+		//auto MainMenu = mGuiManager.getWidget<tgui::TMainMenu>("MAIN_MENU");
+		//MainMenu->init(&mGuiManager);
+		//MainMenu->setSize(mRenderWindow->getSize());
+
+		//Menu->setSize(mRenderWindow->getSize());
+		//std::dynamic_pointer_cast<tgui::TMainMenu>(Menu)->init(&mGuiManager);
 	}
 
 	nne::IScene::ID TMainMenuScene::eventLoop()

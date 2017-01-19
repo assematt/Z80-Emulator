@@ -19,7 +19,6 @@ namespace nne
 			TWidget(GuiManager)
 		{
 			TWidget::setPosition(0.f, 0.f);
-			TWidget::setSize({ 1600u, 900u });
 			TWidget::setColor({ 0u, 0u, 0u, 191 });
 			TWidget::setVisible(false);
 
@@ -126,6 +125,8 @@ namespace nne
 		{
 			auto WindowSize = ReferenceWindow.getSize();
 			auto DialogSize = getSize();
+
+			TWidget::setSize(WindowSize);
 
 			switch (Position)
 			{

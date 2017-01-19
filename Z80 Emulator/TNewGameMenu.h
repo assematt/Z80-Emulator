@@ -13,6 +13,8 @@ namespace nne
 
 			using Ptr = std::shared_ptr<TNewGameMenu>;
 
+			TNewGameMenu(const std::string& MenuName = "NEW_GAME_MENU");
+
 			virtual void init(TGuiManager* GuiManager) override;
 
 		};

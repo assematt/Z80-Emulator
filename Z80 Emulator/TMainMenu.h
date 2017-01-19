@@ -13,6 +13,8 @@ namespace nne
 
 			using Ptr = std::shared_ptr<TMainMenu>;
 
+			TMainMenu(const std::string& MenuName = "MAIN_MENU");
+
 			virtual void init(TGuiManager* GuiManager) override;
 
 		};

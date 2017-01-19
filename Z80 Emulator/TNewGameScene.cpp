@@ -22,26 +22,30 @@ namespace nne
 	}
 
 	void TNewGameScene::init()
-	{		
+	{
+		// Get the size of the renderWIndow
+		auto WindowSize = mRenderWindow->getSize();
+
 		// Create some graphic entity
 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", this);
 		mGraphicEntity.initEntities();
-
-		// Get the grid component
-		mGridComponent = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TGridComponent>();
-		mGridComponent->setCellSize({ 23.f, 23.f });
-		mGridComponent->setSize({ 1300.f, 850.f });
 
 		// Create the logic board who will contain all the chip and set some property
 		mLogicBoard = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>();
 
 		// Init the GUI
-		mGuiManager.addWidget<tgui::TNewGameMenu>();
-		mGuiManager.getLastAdded();
-		std::dynamic_pointer_cast<tgui::TNewGameMenu>(mGuiManager.getLastAdded())->init(&mGuiManager);
+		tgui::TNewGameMenu::Ptr NewGameMenu = std::make_shared<tgui::TNewGameMenu>("NEW_GAME_MENU");		
+		NewGameMenu->setSize(WindowSize);
+		NewGameMenu->init(&mGuiManager);
+		mGuiManager.addWidget(NewGameMenu);
 
 		// Cache the render-canvas and attach the render surface to it
 		mRenderCanvas = mGuiManager.getWidget<tgui::TRenderCanvas>("RENDER_CANVAS").get();
+
+		// Get the grid component and set some property
+		mGridComponent = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TGridComponent>();
+		mGridComponent->setCellSize({ 23.f, 23.f });
+		mGridComponent->setSize(static_cast<sf::Vector2f>(mRenderCanvas->getSize()));
 
 		// Set the view of the grid component to be the one of the render canvas
 		mGridComponent->setView(mRenderCanvas->getView());

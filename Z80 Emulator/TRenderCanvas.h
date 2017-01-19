@@ -20,6 +20,7 @@ namespace nne
 			/// Set the size of the canvas
 			void setSize(const sf::Vector2f& NewSize);
 			void setSize(const float& X, const float& Y);
+			virtual sf::Vector2u getSize() override;
 
 			/// Set the position of the canvas
 			void setPosition(const sf::Vector2f& NewPosition);
@@ -38,8 +39,8 @@ namespace nne
 			void drawEntity(sf::Drawable& Entity);
 
 			/// Render this surface onto something else (usually the rendering window)
-			void render();
-			
+			void render();			
+
 		protected:
 			virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 

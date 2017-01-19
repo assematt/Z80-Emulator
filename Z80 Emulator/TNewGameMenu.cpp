@@ -15,13 +15,19 @@ namespace nne
 	namespace tgui
 	{
 
+		TNewGameMenu::TNewGameMenu(const std::string& MenuName /*= "NEW_GAME_MENU"*/)
+		{
+			TWidget::TWidget(MenuName);
+		}
+
 		void TNewGameMenu::init(TGuiManager* GuiManager)
 		{
 			// Menu property
-			this->setName("NEW_GAME_MENU");
-			this->setSize({ 1600u, 900u });
 			this->setColor({ 0, 0, 170 });
 			this->enableInput(false);
+
+			// Menu size
+			auto MenuSize = getSize();
 
 		#pragma region TOP PANEL
 			// Top panel
@@ -30,7 +36,7 @@ namespace nne
 			//HeaderPanel->setPosition(mParentManager->getReferencePointPosition(TReferencePoint::LEFT_TOP));
 			HeaderPanel->setPosition({ 0.f, 0.f });
 			//HeaderPanel->setSize({ RenderingWindow.getSize().x, 50u });
-			HeaderPanel->setSize({ 1600u, 50u });
+			HeaderPanel->setSize({ MenuSize.x, 50u });
 			HeaderPanel->setColor({ 0, 21, 38 });
 
 			#pragma region PCB AND CODE BUTTON
@@ -101,7 +107,7 @@ namespace nne
 			// Z Index
 			TStaticText::Ptr ZIndexButton = std::make_shared<TStaticText>();
 			//ZIndexButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-243.f, 16.f) });
-			ZIndexButton->setPosition({ sf::Vector2f(1600.f, 0.f) + sf::Vector2f(-243.f, 16.f) });
+			ZIndexButton->setPosition({ sf::Vector2f(MenuSize.x, 0.f) + sf::Vector2f(-243.f, 16.f) });
 			ZIndexButton->setZIndex(3);
 			ZIndexButton->setName("ZINDEX_TEXT");
 			ZIndexButton->setCaption("Z:100%");
@@ -111,7 +117,7 @@ namespace nne
 			// X Value
 			TStaticText::Ptr XValueButton = std::make_shared<TStaticText>();
 			//XValueButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-162.f, 16.f) });
-			XValueButton->setPosition({ sf::Vector2f(1600.f, 0.f) + sf::Vector2f(-162.f, 16.f) });
+			XValueButton->setPosition({ sf::Vector2f(MenuSize.x, 0.f) + sf::Vector2f(-162.f, 16.f) });
 			XValueButton->setZIndex(3);
 			XValueButton->setName("XVALUE_TEXT");
 			XValueButton->setCaption("X: 0");
@@ -121,7 +127,7 @@ namespace nne
 			// Y Value
 			TStaticText::Ptr YValueButton = std::make_shared<TStaticText>();
 			//YValueButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-81.f, 16.f) });
-			YValueButton->setPosition({ sf::Vector2f(1600.f, 0.f) + sf::Vector2f(-81.f, 16.f) });
+			YValueButton->setPosition({ sf::Vector2f(MenuSize.x, 0.f) + sf::Vector2f(-81.f, 16.f) });
 			YValueButton->setZIndex(3);
 			YValueButton->setName("YVALUE_TEXT");
 			YValueButton->setCaption("Y: 0");
@@ -136,7 +142,7 @@ namespace nne
 			TContainer::Ptr LeftToolsPanel = std::make_shared<TContainer>();
 			LeftToolsPanel->setName("HEADER_PANEL");
 			LeftToolsPanel->setPosition(sf::Vector2f(0, 50.f));
-			LeftToolsPanel->setSize({ 300u, 900u });
+			LeftToolsPanel->setSize({ 300u, MenuSize.y - HeaderPanel->getSize().y });
 			LeftToolsPanel->setColor({ 0, 35, 64 });
 
 			#pragma region TOOLS LIST
@@ -278,9 +284,9 @@ namespace nne
 			// Add the RenderCanvas widget
 			TRenderCanvas::Ptr Canvas = std::make_shared<TRenderCanvas>();
 			Canvas->setName("RENDER_CANVAS");
-			Canvas->create(1300u, 850u);
-			Canvas->setSize({ 1300u, 850u });
-			Canvas->setPosition(300.f, 50.f);
+			Canvas->create(MenuSize.x - LeftToolsPanel->getSize().x, MenuSize.y - HeaderPanel->getSize().y);
+			Canvas->setSize(MenuSize.x - LeftToolsPanel->getSize().x, MenuSize.y - HeaderPanel->getSize().y);
+			Canvas->setPosition(LeftToolsPanel->getSize().x, HeaderPanel->getSize().y);
 			
 			// Adds the widgets to the menu
 			GuiManager->addWidget(HeaderPanel, 2);

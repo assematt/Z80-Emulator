@@ -28,6 +28,9 @@ namespace nne
 			template <typename... TArgs>
 			void addWidget(TArgs&&... mArgs, const std::size_t& ZIndex = 0);
 
+			template <class T, typename... TArgs>
+			void addWidget(TArgs&&... mArgs, const std::size_t& ZIndex = 0);
+
 			/// Function to remove a widget
 			void removeWidget(const TWidget::ID& WidgetID);
 			
@@ -40,12 +43,6 @@ namespace nne
 			std::shared_ptr<T> getWidget(const TWidget::ID& WidgetID) const;
 			template <class T>
 			std::shared_ptr<T> getWidget(const std::string& WidgetName) const;
-
-			/// Function to retrieve a widget from the vector by Index or by Name and cast it as a derived type
-			///template <class T>
-			///T* getWidgetWithCast(const TWidget::ID& WidgetID) const;
-			///template <class T>
-			///T* getWidgetWithCast(const std::string& WidgetName) const;
 
 			/// Get the position of the widget in the array
 			std::size_t getWidgetPos(const TWidget::ID& WidgetID) const;
@@ -115,8 +112,17 @@ namespace nne
 		{
 			// Creates a temp pointer that holds the value that we are gonna to insert in the array
 			TWidget::Ptr TempPtr = std::make_shared<TWidget>(std::forward<TArgs>(mArgs)...);
-
+		
 			addWidget(TempPtr, ZIndex);
+		}
+
+		template <class T, typename... TArgs>
+		void TGuiManager::addWidget(TArgs&&... mArgs, const std::size_t& ZIndex /*= 0*/)
+		{
+			// Creates a temp pointer that holds the value that we are gonna to insert in the array
+			std::shared_ptr<T> TempPtr = std::make_shared<T>(std::forward<TArgs>(mArgs)...);
+
+			addWidget<T>(TempPtr, ZIndex);
 		}
 
 		template <class T>

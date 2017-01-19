@@ -31,6 +31,11 @@ namespace nne
 			setSize({ X, Y });
 		}
 
+		sf::Vector2u TRenderCanvas::getSize()
+		{
+			return TWidget::getSize();
+		}
+
 		void TRenderCanvas::setPosition(const sf::Vector2f& NewPosition)
 		{
 			// Update base widget size
@@ -100,7 +105,7 @@ namespace nne
 			// Draw the sprite on the window
 			target.draw(mRenderSprite, states);
 		}
-		
+
 		void TRenderCanvas::resetView()
 		{
 			auto CurrentView = getView();

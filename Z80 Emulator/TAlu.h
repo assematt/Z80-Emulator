@@ -575,15 +575,15 @@ namespace nne
 		/// Helper function for setting/resetting and checking the F register bit (CPU flags)
 		inline void setFlag(const TU8BitValue Flag)
 		{
-			mRegistersReference.fLags() |= 1 << Flag;
+			mRegistersReference.flags() |= 1 << Flag;
 		}
 		inline void resetFlag(const TU8BitValue Flag)
 		{
-			mRegistersReference.fLags() &= ~(1 << Flag);
+			mRegistersReference.flags() &= ~(1 << Flag);
 		}
 		inline const bool checkFlag(const TU8BitValue Flag) const
 		{		
-			const auto& Flags = mRegistersReference.fLags();
+			const auto& Flags = mRegistersReference.flags();
 	
 			return (Flags >> Flag) & 1;
 		}

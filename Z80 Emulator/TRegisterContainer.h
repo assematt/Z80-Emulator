@@ -237,11 +237,11 @@ namespace nne
 		}
 	
 		/// Helper function to get the accumulator
-		nne::T8BitRegister& fLags()
+		nne::T8BitRegister& flags()
 		{
 			return mAFRegister.getLowOrderRegister();
 		}
-		const nne::T8BitRegister& fLags() const
+		const nne::T8BitRegister& flags() const
 		{
 			return mAFRegister.getLowOrderRegister();
 		}

@@ -30,7 +30,7 @@ namespace nne
 		showRegistersValue(Registers);
 	
 		// Print flags
-		showFlags(Registers.fLags());
+		showFlags(Registers.flags());
 
 		// Show data bus
 		showDataBus(DataBus);

@@ -46,7 +46,6 @@ namespace nne
 			sf::Vector2f getTextSize();
 
 		protected:
-			//sf::Text		mText;
 			TComplexText	mText;
 			sf::Vector2u	mTextPadding;
 		};

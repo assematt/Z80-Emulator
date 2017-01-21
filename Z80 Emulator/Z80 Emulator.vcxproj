@@ -275,7 +275,9 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TBusComponent.cpp" />
     <ClCompile Include="TChipComponent.cpp" />
     <ClCompile Include="TClock.cpp" />
+    <ClCompile Include="TCodeEditor.cpp" />
     <ClCompile Include="TComplexText.cpp" />
+    <ClCompile Include="TDebugWindow.cpp" />
     <ClCompile Include="TDialogWindow.cpp" />
     <ClCompile Include="TEventComponent.cpp" />
     <ClCompile Include="TImageButton.cpp" />
@@ -324,7 +326,9 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TCacheManager.h" />
     <ClInclude Include="TChipComponent.h" />
     <ClInclude Include="ILoadingScreen.h" />
+    <ClInclude Include="TCodeEditor.h" />
     <ClInclude Include="TComplexText.h" />
+    <ClInclude Include="TDebugWindow.h" />
     <ClInclude Include="TDialogWindow.h" />
     <ClInclude Include="TEventComponent.h" />
     <ClInclude Include="TImageButton.h" />
@@ -358,7 +362,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TDebugger.h" />
     <ClInclude Include="TEntity.h" />
     <ClInclude Include="TFrequency.h" />
-    <ClInclude Include="TInstruction.h" />
+    <ClInclude Include="TInstructions.h" />
     <ClInclude Include="TManager.h" />
     <ClInclude Include="TMemoryComponent.h" />
     <ClInclude Include="TMultiplexerComponent.h" />

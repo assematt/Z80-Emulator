@@ -7,6 +7,8 @@
 #include "TPinComponent.h"
 #include "TEventComponent.h"
 #include "TDialogWindow.h"
+#include "TDebugWindow.h"
+#include "TCodeEditor.h"
 
 namespace nne
 {
@@ -49,6 +51,16 @@ namespace nne
 
 		// Set the view of the grid component to be the one of the render canvas
 		mGridComponent->setView(mRenderCanvas->getView());
+
+		// Set-up some GUI event for the header
+		mGuiManager.getWidget("PCB_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			mGuiManager.getWidget("LEFT_TOOLS_PANEL")->setVisible(true);
+			mGuiManager.getWidget("CODE_PANEL")->setVisible(false);
+		});
+		mGuiManager.getWidget("CODE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			mGuiManager.getWidget("LEFT_TOOLS_PANEL")->setVisible(false);
+			mGuiManager.getWidget("CODE_PANEL")->setVisible(true);
+		});
 
 		// Set-up some GUI event for the left side tools
 		mGuiManager.getWidget("INSERT_CHIP_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
@@ -445,15 +457,24 @@ namespace nne
 			case sf::Keyboard::V:
 			{
 				// Get the Z80 and the ram entity
-				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
-				auto Ram = mGraphicEntity.getEntityByKey("Ram");
+				auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
+				auto RamEntity = mGraphicEntity.getEntityByKey("Ram");
 
 				// Se if both the CPU and the RAM are placed into the logic board
-				if (Z80 && Ram)
+				if (Z80Entity && RamEntity)
 				{
-					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->connectRam(Ram);
-					if (!Z80->getComponentAsPtr<tcomponents::TZ80Component>()->loadProgram("resources/programs/INC.A01"))
+					auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
+					Z80.connectRam(RamEntity);
+					if (!Z80.loadProgram("resources/programs/SUB.A01"))
+					{
 						std::cout << "Error! Could not open the file" << std::endl;
+					}
+					else
+					{
+						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
+
+						CodeEditor->attachSourceCode(Z80.getProgram());
+					}
 				}
 
 			}break;
@@ -580,6 +601,19 @@ namespace nne
 		mGuiManager.update(ElapsedTime);
 
 		mGraphicEntity.update(ElapsedTime);
+
+		// Update the debugger value
+		auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
+
+		if (Z80Entity)
+		{
+			auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
+
+			mGuiManager.getWidget<tgui::TDebugWindow>("REGISTER_DEBUGGER")->setDebugText(formatZ80Registers(Z80));
+
+			mGuiManager.getWidget<tgui::TDebugWindow>("FLAGS_DEBUGGER")->setDebugText(formatZ80Flags(Z80));
+		}
+		
 	}
 
 	void TNewGameScene::draw()
@@ -786,6 +820,78 @@ namespace nne
 		}
 	}
 	
+	std::string TNewGameScene::formatZ80Registers(const TZ80Component& Z80)
+	{
+		auto& Registers = Z80.getRegisterCointainer();
+
+		// Normal 16 bit registers
+		auto AF = Registers.getRegister<T16BitRegister>(TRegisterType::AF).getInternalValue();
+		auto BC = Registers.getRegister<T16BitRegister>(TRegisterType::BC).getInternalValue();
+		auto DE = Registers.getRegister<T16BitRegister>(TRegisterType::DE).getInternalValue();
+		auto HL = Registers.getRegister<T16BitRegister>(TRegisterType::HL).getInternalValue();
+
+		// Alternate 16 bit registers
+		auto AFAlt = Registers.getRegister<T16BitRegister>(TRegisterType::ALTAF).getInternalValue();
+		auto BCAlt = Registers.getRegister<T16BitRegister>(TRegisterType::ALTBC).getInternalValue();
+		auto DEAlt = Registers.getRegister<T16BitRegister>(TRegisterType::ALTDE).getInternalValue();
+		auto HLAlt = Registers.getRegister<T16BitRegister>(TRegisterType::ALTHL).getInternalValue();
+
+		// PC and SP register
+		auto SP = Registers.getRegister<T16BitRegister>(TRegisterType::SP).getInternalValue();
+		auto PC = Registers.getRegister<T16BitRegister>(TRegisterType::PC).getInternalValue();
+
+		// Index register
+		auto IX = Registers.getRegister<T16BitRegister>(TRegisterType::IX).getInternalValue();
+		auto IY = Registers.getRegister<T16BitRegister>(TRegisterType::IY).getInternalValue();
+
+		// I and R register
+		auto I = Registers.getRegister<T8BitRegister>(TRegisterType::I).getInternalValue();
+		auto R = Registers.getRegister<T8BitRegister>(TRegisterType::R).getInternalValue();
+
+		// Normal 8 bit registers
+		auto A = Registers.getRegister<T8BitRegister>(TRegisterType::A).getInternalValue();
+		auto B = Registers.getRegister<T8BitRegister>(TRegisterType::B).getInternalValue();
+		auto C = Registers.getRegister<T8BitRegister>(TRegisterType::C).getInternalValue();
+		auto D = Registers.getRegister<T8BitRegister>(TRegisterType::D).getInternalValue();
+		auto E = Registers.getRegister<T8BitRegister>(TRegisterType::E).getInternalValue();
+		auto F = Registers.getRegister<T8BitRegister>(TRegisterType::F).getInternalValue();
+		auto H = Registers.getRegister<T8BitRegister>(TRegisterType::H).getInternalValue();
+		auto L = Registers.getRegister<T8BitRegister>(TRegisterType::L).getInternalValue();
+
+		char FormattedCode[250];
+
+		sprintf_s(FormattedCode, "AF:%04XH  AF':%04XH\nBC:%04XH  BC':%04XH\nDE:%04XH  DE':%04XH\nHL:%04XH  HL':%04XH\nIX:%04XH   IY:%04XH\n I:%02XH      R:%02XH\nSP:%04XH   PC:%04XH\n\nA:%02XH  B:%02XH  C:%02XH \nD:%02XH  E:%02XH  F:%02XH \nH:%02XH  L:%02XH",
+			AF, AFAlt, BC, BCAlt, DE, DEAlt, HL, HLAlt,
+			IX, IY,
+			I, R,
+			SP, PC,
+			A, B, C, D, E, F, H, L);
+
+		return std::string(FormattedCode);
+	}
+
+	std::string TNewGameScene::formatZ80Flags(const TZ80Component& Z80)
+	{
+		// Flag register
+		auto F = Z80.getRegisterCointainer().flags();
+
+		/*
+		C = 0,	  // 0b00000001
+		N = 1,	  // 0b00000010
+		P_V = 2, // 0b00000100
+		H = 4,	 // 0b00010000
+		Z = 6,	  // 0b01000000
+		S = 7,	  // 0b10000000
+		*/
+
+		char FormattedCode[100];
+
+		sprintf_s(FormattedCode, "CARRY [%u]  ZERO  [%u]\nSIGN  [%u]  P/O   [%u]\nHALFC [%u]  SUBS  [%u]",
+			TUtility::getBit(F, 0), TUtility::getBit(F, 6), TUtility::getBit(F, 7), TUtility::getBit(F, 2), TUtility::getBit(F, 4), TUtility::getBit(F, 1));
+
+		return std::string(FormattedCode);
+	}
+
 	void TNewGameScene::updateDebugInfo()
 	{
 		auto XStaticText = mGuiManager.getWidget<tgui::TStaticText>("XVALUE_TEXT");

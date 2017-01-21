@@ -8,7 +8,7 @@ namespace nne
 
 	TGameApp::TGameApp() :
 		mAppName(PROGRAM_NAME),
-		mAppWindow(sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Default)
+		mAppWindow(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default)
 	{
 		//mAppWindow.setFramerateLimit(1);
 		//mAppWindow.setFramerateLimit(60);

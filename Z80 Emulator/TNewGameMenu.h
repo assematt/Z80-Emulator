@@ -17,6 +17,12 @@ namespace nne
 
 			virtual void init(TGuiManager* GuiManager) override;
 
+		private:
+			/// Create all the widgets for the PCB panel
+			void createPCBPanel(TGuiManager& Manager);
+
+			/// Create all the widgets for the CODE panel
+			void createCodePanel(TGuiManager& Manager);
 		};
 	}
 }

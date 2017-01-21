@@ -12,6 +12,10 @@ namespace nne
 	{
 		class TComplexText : public sf::Drawable, public sf::Transformable
 		{
+		private:
+
+			const int NotSet = std::numeric_limits<int>::max();
+
 		public:
 
 			enum TStyle
@@ -37,6 +41,9 @@ namespace nne
 
 			/// Set the character size of this component
 			void setCharacterSize(std::size_t Size);
+
+			/// Set the character leading
+			void setLeading(const int& Leading);
 
 			/// Set the style of this component
 			void setStyle(sf::Uint32 Style);
@@ -80,6 +87,9 @@ namespace nne
 
 			/// Get the character size
 			const std::size_t& getCharacterSize() const;
+
+			/// Get the character leading
+			const int& getLeading() const;
 
 			/// Get the current style of component
 			sf::Uint32 getStyle() const;
@@ -134,6 +144,7 @@ namespace nne
 			void addGlyphQuad(std::size_t CharactePos, sf::Vector2f Position, const sf::Color& Color, const sf::Glyph& Glyph, float Italic, float OutlineThickness = 0) const;
 
 		private:
+			int								mLeading;					///< Leading
 			sf::String						mString;					///< String to display
 			const sf::Font*					mFont;						///< Font used to display the string
 			unsigned int					mCharacterSize;				///< Base size of characters, in pixels

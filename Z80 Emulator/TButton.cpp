@@ -62,6 +62,10 @@ namespace nne
 
 		void TButton::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 		{
+			// Skip the rendering if we are not showing the widget
+			if (!isVisible())
+				return;
+
 			// draw the base class
 			TWidget::draw(Target, States);
 

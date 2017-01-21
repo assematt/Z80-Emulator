@@ -95,7 +95,6 @@ namespace nne
 			Quit->setPosition(getWidgetReferencePointPosition(TReferencePoint::CENTER) + sf::Vector2f(-(Quit->getSize().x / 2.f), 250.f));
 
 			// Adds the widgets to the menu
-			//GuiManager->addWidget(BackgroundColor, 1);
 			GuiManager->addWidget(MonitorEffect, 2);
 			GuiManager->addWidget(MonitorFrame, 2);
 			GuiManager->addWidget(StoryMode, 3);

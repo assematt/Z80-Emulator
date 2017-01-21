@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "TRegisterContainer.h"
-#include "TInstruction.h"
+#include "TInstructions.h"
 #include "TAlu.h"
 #include "TDebugger.h"
 
@@ -23,6 +23,9 @@
 
 namespace nne
 {
+		
+	using TSourceCode = std::vector<TInstruction>;
+
 	namespace tcomponents
 	{
 		namespace CPUPinGroup
@@ -61,8 +64,17 @@ namespace nne
 
 			void update(const sf::Time& ElapsedTime);
 
+			/// Get the TRegisterContainer 
+			const TRegisterContainer& getRegisterCointainer() const;
+
+			/// Load a HEX file source code into the attached
 			bool loadProgram(const std::string& Program);
 
+			/// Return the program source code 
+			const TSourceCode& getProgram() const;
+			const sf::Uint16& getProgramSize() const;
+
+			/// Connect a RAM to the z80 for easier program execution
 			bool connectRam(std::shared_ptr<TEntity>& Ram);
 
 			/// Pause the program execution
@@ -140,11 +152,13 @@ namespace nne
 			TMachineCycleMode	mMachineCycleMode;
 
 			// Cache the value of the address and data bus
-			TU16BitValue mAddressBus;
-			TU8BitValue mDataBus;
+			TU8BitValue		mDataBus;
+			TU16BitValue	mAddressBus;
 
 			// EXTERNAL ROM COMPONENT
-			std::shared_ptr<TEntity> mRam;
+			TSourceCode			mProgramSource;
+			sf::Uint16			mProgramSize;
+			TEntity::EntityPtr	mRam;
 
 			// Internal CPU ALU
 			TAlu mAlu;

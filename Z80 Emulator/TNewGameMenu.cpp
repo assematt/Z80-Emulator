@@ -5,9 +5,11 @@
 #include "TDialogWindow.h"
 #include "TRenderCanvas.h"
 #include "TCacheManager.h"
+#include "TDebugWindow.h"
 #include "TImageButton.h"
 #include "TGuiManager.h"
 #include "TStaticText.h"
+#include "TCodeEditor.h"
 #include "TButton.h"
 
 namespace nne
@@ -26,16 +28,23 @@ namespace nne
 			this->setColor({ 0, 0, 170 });
 			this->enableInput(false);
 
+			// Create the PCB panel
+			createPCBPanel(*GuiManager);
+
+			// Create the Code panel
+			createCodePanel(*GuiManager);
+		}
+
+		void TNewGameMenu::createPCBPanel(TGuiManager& Manager)
+		{
 			// Menu size
 			auto MenuSize = getSize();
 
-		#pragma region TOP PANEL
+			#pragma region TOP PANEL
 			// Top panel
 			TContainer::Ptr HeaderPanel = std::make_shared<TContainer>();
 			HeaderPanel->setName("HEADER_PANEL");
-			//HeaderPanel->setPosition(mParentManager->getReferencePointPosition(TReferencePoint::LEFT_TOP));
 			HeaderPanel->setPosition({ 0.f, 0.f });
-			//HeaderPanel->setSize({ RenderingWindow.getSize().x, 50u });
 			HeaderPanel->setSize({ MenuSize.x, 50u });
 			HeaderPanel->setColor({ 0, 21, 38 });
 
@@ -59,7 +68,7 @@ namespace nne
 			CodeButton->setCharacterSize(24);
 			CodeButton->setPosition({ static_cast<float>(PCBButton->getSize().x), 0.f });
 			HeaderPanel->addWidget(CodeButton.get());
-#pragma endregion
+			#pragma endregion
 
 			#pragma region MAIN MENU
 			// File button
@@ -101,12 +110,11 @@ namespace nne
 			HelpButton->setCharacterSize(16);
 			HelpButton->setPosition({ OptionsButton->getPosition().x + OptionsButton->getSize().x, 0.f });
 			HeaderPanel->addWidget(HelpButton.get());
-#pragma endregion
+			#pragma endregion
 
 			#pragma region DEBUG TEXT
 			// Z Index
 			TStaticText::Ptr ZIndexButton = std::make_shared<TStaticText>();
-			//ZIndexButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-243.f, 16.f) });
 			ZIndexButton->setPosition({ sf::Vector2f(MenuSize.x, 0.f) + sf::Vector2f(-243.f, 16.f) });
 			ZIndexButton->setZIndex(3);
 			ZIndexButton->setName("ZINDEX_TEXT");
@@ -116,7 +124,6 @@ namespace nne
 
 			// X Value
 			TStaticText::Ptr XValueButton = std::make_shared<TStaticText>();
-			//XValueButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-162.f, 16.f) });
 			XValueButton->setPosition({ sf::Vector2f(MenuSize.x, 0.f) + sf::Vector2f(-162.f, 16.f) });
 			XValueButton->setZIndex(3);
 			XValueButton->setName("XVALUE_TEXT");
@@ -126,21 +133,18 @@ namespace nne
 
 			// Y Value
 			TStaticText::Ptr YValueButton = std::make_shared<TStaticText>();
-			//YValueButton->setPosition({ mParentManager->getReferencePointPosition(TReferencePoint::RIGHT_TOP) + sf::Vector2f(-81.f, 16.f) });
 			YValueButton->setPosition({ sf::Vector2f(MenuSize.x, 0.f) + sf::Vector2f(-81.f, 16.f) });
 			YValueButton->setZIndex(3);
 			YValueButton->setName("YVALUE_TEXT");
 			YValueButton->setCaption("Y: 0");
 			YValueButton->setCharacterSize(16);
 			HeaderPanel->addWidget(YValueButton.get());
-#pragma endregion
+			#pragma endregion
 
-#pragma endregion
-
-		#pragma region LEFT TOOLS
+			#pragma region LEFT TOOLS
 			// Left tools panel
 			TContainer::Ptr LeftToolsPanel = std::make_shared<TContainer>();
-			LeftToolsPanel->setName("HEADER_PANEL");
+			LeftToolsPanel->setName("LEFT_TOOLS_PANEL");
 			LeftToolsPanel->setPosition(sf::Vector2f(0, 50.f));
 			LeftToolsPanel->setSize({ 300u, MenuSize.y - HeaderPanel->getSize().y });
 			LeftToolsPanel->setColor({ 0, 35, 64 });
@@ -254,6 +258,8 @@ namespace nne
 			ChipListPanel->addWidget(InsertPowerButton.get());
 			#pragma endregion
 
+			#pragma  endregion
+
 			// Insert wire button
 			TImageButton::Ptr InsertWireButton = std::make_shared<TImageButton>();
 			InsertWireButton->setZIndex(3);
@@ -277,9 +283,11 @@ namespace nne
 			InsertBusButton->setPadding({ 54u, 9u });
 			InsertBusButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("bus_btn"), { 21.f, 4.f });
 			LeftToolsPanel->addWidget(InsertBusButton.get());
+			#pragma endregion
+
 #pragma endregion
 
-	#pragma endregion
+			#pragma endregion
 
 			// Add the RenderCanvas widget
 			TRenderCanvas::Ptr Canvas = std::make_shared<TRenderCanvas>();
@@ -287,37 +295,75 @@ namespace nne
 			Canvas->create(MenuSize.x - LeftToolsPanel->getSize().x, MenuSize.y - HeaderPanel->getSize().y);
 			Canvas->setSize(MenuSize.x - LeftToolsPanel->getSize().x, MenuSize.y - HeaderPanel->getSize().y);
 			Canvas->setPosition(LeftToolsPanel->getSize().x, HeaderPanel->getSize().y);
-			
+
 			// Adds the widgets to the menu
-			GuiManager->addWidget(HeaderPanel, 2);
-			GuiManager->addWidget(PCBButton, 3);
-			GuiManager->addWidget(CodeButton, 3);
+			Manager.addWidget(HeaderPanel, 20);
+			Manager.addWidget(PCBButton, 21);
+			Manager.addWidget(CodeButton, 21);
 
-			GuiManager->addWidget(FileButton, 3);
-			GuiManager->addWidget(EditButton, 3);
-			GuiManager->addWidget(OptionsButton, 3);
-			GuiManager->addWidget(HelpButton, 3);
+			Manager.addWidget(FileButton, 3);
+			Manager.addWidget(EditButton, 3);
+			Manager.addWidget(OptionsButton, 3);
+			Manager.addWidget(HelpButton, 3);
 
-			GuiManager->addWidget(ZIndexButton, 3);
-			GuiManager->addWidget(XValueButton, 3);
-			GuiManager->addWidget(YValueButton, 3);
+			Manager.addWidget(ZIndexButton, 3);
+			Manager.addWidget(XValueButton, 3);
+			Manager.addWidget(YValueButton, 3);
 
-			GuiManager->addWidget(LeftToolsPanel, 2);
-			GuiManager->addWidget(InsertChipButton, 3);
+			Manager.addWidget(LeftToolsPanel, 2);
+			Manager.addWidget(InsertChipButton, 3);
 
 			// CHIP LIST
-			GuiManager->addWidget(ChipListPanel, 3);
-			GuiManager->addWidget(InsertCpuButton, 4);
-			GuiManager->addWidget(InsertRamButton, 4);
-			GuiManager->addWidget(InsertNandButton, 4);
-			GuiManager->addWidget(InsertLedButton, 4);
-			GuiManager->addWidget(InsertGroundButton, 4);
-			GuiManager->addWidget(InsertPowerButton, 4);
+			Manager.addWidget(ChipListPanel, 3);
+			Manager.addWidget(InsertCpuButton, 4);
+			Manager.addWidget(InsertRamButton, 4);
+			Manager.addWidget(InsertNandButton, 4);
+			Manager.addWidget(InsertLedButton, 4);
+			Manager.addWidget(InsertGroundButton, 4);
+			Manager.addWidget(InsertPowerButton, 4);
 
-			GuiManager->addWidget(InsertWireButton, 3);
-			GuiManager->addWidget(InsertBusButton, 3);
+			Manager.addWidget(InsertWireButton, 3);
+			Manager.addWidget(InsertBusButton, 3);
 
-			GuiManager->addWidget(Canvas, 1);
+			Manager.addWidget(Canvas, 1);
+		}
+
+		void TNewGameMenu::createCodePanel(TGuiManager& Manager)
+		{
+			// Menu size
+			auto MenuSize = getSize();
+
+			// Header panel size
+			auto HeaderPanelSize = Manager.getWidget("HEADER_PANEL")->getSize();
+
+			// Code panel container
+			TContainer::Ptr CodePanel = std::make_shared<TContainer>();
+			CodePanel->setName("CODE_PANEL");
+			CodePanel->setPosition(sf::Vector2f(0, 50.f));
+			CodePanel->setSize({ MenuSize.x / 2, MenuSize.y - HeaderPanelSize.y });
+			CodePanel->setColor({ 0, 35, 64 });
+			CodePanel->setVisible(false);
+
+			TCodeEditor::Ptr CodeEditor = std::make_shared<TCodeEditor>();
+			CodeEditor->setName("CODE_EDITOR");
+			CodePanel->addWidget(CodeEditor.get());
+
+			TDebugWindow::Ptr FlagsDebugger = std::make_shared<TDebugWindow>();
+			FlagsDebugger->setName("FLAGS_DEBUGGER");
+			FlagsDebugger->setTitleString("FLAGS");
+			FlagsDebugger->setPosition(CodePanel->getSize().x - FlagsDebugger->getSize().x, CodePanel->getSize().y - FlagsDebugger->getSize().y);
+			CodePanel->addWidget(FlagsDebugger.get());
+
+			TDebugWindow::Ptr RegisterDebugger = std::make_shared<TDebugWindow>();
+			RegisterDebugger->setName("REGISTER_DEBUGGER");
+			RegisterDebugger->setTitleString("REGISTERS");
+			RegisterDebugger->setPosition(FlagsDebugger->getPosition().x - RegisterDebugger->getSize().x, CodePanel->getSize().y - RegisterDebugger->getSize().y);
+			CodePanel->addWidget(RegisterDebugger.get());
+
+			Manager.addWidget(CodePanel, 2);
+			Manager.addWidget(CodeEditor, 3);
+			Manager.addWidget(FlagsDebugger, 4);
+			Manager.addWidget(RegisterDebugger, 4);
 		}
 
 	}

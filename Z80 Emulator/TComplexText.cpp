@@ -2,6 +2,7 @@
 
 namespace nne
 {
+	
 
 	namespace tgui
 	{
@@ -20,7 +21,8 @@ namespace nne
 			mStrikeThroughFillColor(255, 255, 255),
 			mStrikeThroughOutlineColor(0, 0, 0),
 			mUnderlineFillColor(255, 255, 255),
-			mUnderlineOutlineColor(0, 0, 0)
+			mUnderlineOutlineColor(0, 0, 0),
+			mLeading(NotSet)
 		{
 		}
 
@@ -38,7 +40,8 @@ namespace nne
 			mStrikeThroughFillColor(255, 255, 255),
 			mStrikeThroughOutlineColor(0, 0, 0),
 			mUnderlineFillColor(255, 255, 255),
-			mUnderlineOutlineColor(0, 0, 0)
+			mUnderlineOutlineColor(0, 0, 0),
+			mLeading(NotSet)
 		{
 		}
 
@@ -71,6 +74,11 @@ namespace nne
 
 			mCharacterSize = Size;
 			mGeometryNeedupdate = true;
+		}
+
+		void TComplexText::setLeading(const int& Leading)
+		{
+			mLeading = Leading;
 		}
 
 		void TComplexText::setStyle(sf::Uint32 Style)
@@ -339,6 +347,11 @@ namespace nne
 			return mCharacterSize;
 		}
 
+		const int& TComplexText::getLeading() const
+		{
+			return mLeading;
+		}
+
 		sf::Uint32 TComplexText::getStyle() const
 		{
 			return mStyle;
@@ -500,7 +513,7 @@ namespace nne
 
 			// Precompute the variables needed by the algorithm
 			float hspace = static_cast<float>(mFont->getGlyph(L' ', mCharacterSize, bold).advance);
-			float vspace = static_cast<float>(mFont->getLineSpacing(mCharacterSize));
+			float vspace = mLeading == NotSet ? static_cast<float>(mFont->getLineSpacing(mCharacterSize)) : static_cast<float>(mLeading);
 			float x = 0.f;
 			float substringX = 0.f;
 			float y = static_cast<float>(mCharacterSize);

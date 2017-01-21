@@ -59,7 +59,7 @@ namespace nne
 		void TImageButton::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 		{
 			// Skip the rendering if we are not showing the widget
-			if (!isVisible() || (mParent && !mParent->isVisible()))
+			if (!isVisible())
 				return;
 
 			TWidget::draw(Target, States);

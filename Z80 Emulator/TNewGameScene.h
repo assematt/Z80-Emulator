@@ -10,6 +10,7 @@
 #include "TRenderCanvas.h"
 #include "TGridComponent.h"
 #include "TLogicBoardComponent.h"
+#include "TZ80Component.h"
 
 namespace nne
 {
@@ -56,6 +57,12 @@ namespace nne
 
 		/// Check for temporary object we are currently trying to place and eventually remove it if we are trying to place another object
 		void removeTemporaryEntity();
+
+		/// Return the formatted string with the debug z80 registers
+		std::string formatZ80Registers(const tcomponents::TZ80Component& Z80);
+
+		/// Return the formatted string with the debug z80 flags
+		std::string formatZ80Flags(const tcomponents::TZ80Component& Z80);
 
 	private:
 		TManager				mGraphicEntity;

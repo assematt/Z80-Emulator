@@ -18,6 +18,7 @@ namespace nne
 			mDataBus(0),
 			mLowMemoryRWValue(0),
 			mHighMemoryRWValue(0),
+			mProgramSize(0),
 			mCurrentInstruction(TOpCodesMainInstruction::NOP),
 			mMachineCycleMode(TMachineCycleMode::INSTRUCTION_FETCH)
 		{
@@ -140,6 +141,11 @@ namespace nne
 			//mClock.wait();
 		}
 	
+		const nne::TRegisterContainer& TZ80Component::getRegisterCointainer() const
+		{
+			return mRegisters;
+		}
+
 		bool TZ80Component::loadProgram(const std::string& Program)
 		{
 			// Check if we have a connected ram to load the program into
@@ -147,6 +153,8 @@ namespace nne
 				return false;
 
 			auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
+
+			// Load the instruction set
 	
 			// Read the file		
 			std::ifstream InputFile(Program.c_str());
@@ -154,6 +162,10 @@ namespace nne
 			// Check if the file is opened
 			if (!InputFile.is_open())
 				return false;
+
+			// Reset the program source code and size
+			mProgramSize = 0;
+			mProgramSource.clear();
 	
 			// Scan the HEX file and reads it
 			std::string CodeLine;
@@ -161,9 +173,12 @@ namespace nne
 			{
 				// Read how much data it's in the line
 				std::size_t ByteCount = std::stoi(CodeLine.substr(1, 2).c_str(), 0, 16);
+
+				// 
+				mProgramSize += ByteCount;
 	
 				// Read where the data start
-				std::size_t StartAddress = std::stoi(CodeLine.substr(3, 4).c_str(), 0, 16);
+				sf::Uint16 StartAddress = std::stoi(CodeLine.substr(3, 4).c_str(), 0, 16);
 	
 				// Record types
 				std::size_t RecordType = std::stoi(CodeLine.substr(7, 2).c_str(), 0, 16);
@@ -171,11 +186,26 @@ namespace nne
 				// If record type it's 0 the following bytes are the program source code
 				if (RecordType == 0)
 				{
-					for (std::size_t Index = 0, MemoryIndex = 0; Index < ByteCount * 2; Index += 2, ++MemoryIndex)
+					for (sf::Uint16 Index = 0, MemoryIndex = StartAddress; Index < ByteCount * 2; Index += 2, ++MemoryIndex)
 					{
 						// Write the byte into memory only if the ram section pointed by the HEX file is within the range of the RAM if we using
-						if (StartAddress + MemoryIndex < Memory.size())
-							Memory[StartAddress + MemoryIndex] = std::stoi(CodeLine.substr(9 + Index, 2).c_str(), 0, 16);
+						if (MemoryIndex < Memory.size())
+						{
+							// Extract the instruction string
+							std::string InstructionString = CodeLine.substr(9 + Index, 2);
+
+							// Convert the instruction string in a 16 unsigned int
+							TU16BitValue InstructionCode = std::stoi(InstructionString, 0, 16);
+
+							// Put the instruction code in the RAM
+							Memory[MemoryIndex] = InstructionCode;
+
+							// Find the instruction data in the instruction set
+							auto Inst = std::find(InstructionSet.begin(), InstructionSet.end(), InstructionCode);
+
+							// Put the instruction data in the source code vector
+							mProgramSource.push_back({ Inst->InstructionSize, MemoryIndex, Inst->InstructionCode, Inst->InstructionName });
+						}
 					}
 				}
 			}
@@ -185,6 +215,16 @@ namespace nne
 			return true;
 		}
 		
+		const nne::TSourceCode& TZ80Component::getProgram() const
+		{
+			return mProgramSource;
+		}
+
+		const sf::Uint16& TZ80Component::getProgramSize() const
+		{
+			return mProgramSize;
+		}
+
 		bool TZ80Component::connectRam(std::shared_ptr<TEntity>& Ram)
 		{
 			// Check the the passed argument points to something
@@ -4963,8 +5003,7 @@ namespace nne
 				case 3:
 				{
 					// Execute the instruction
-					auto Instruction = static_cast<TOpCodesMainInstruction>(mCurrentInstruction);
-					executeInstruction(Instruction);
+					executeInstruction(static_cast<TOpCodesMainInstruction>(mCurrentInstruction));
 				} break;
 			}
 		

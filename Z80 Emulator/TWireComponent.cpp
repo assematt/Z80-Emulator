@@ -38,10 +38,12 @@ namespace nne
 		mDrawableComponent(nullptr),
 		mFixedPoints(0u),
 		mThickness(3.f),
+		mJunctionThickness(9.f),
 		mEnableDraw(false),
 		mIsSelected(false),
 		mLastPointPos(0.f, 0.f),
 		mLastPointPosTemp(0.f, 0.f),
+		mMidPointPosTemp(InvalidVector<float>),
 		mWireColor(WireColorNormal)
 	{
 	}
@@ -95,6 +97,9 @@ namespace nne
 		// Reset the state of the hover status by default
 		setHoveredStatus(false);
 
+		// Get a ref to the logic board component
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+
 		// Get a ref to the sf::RenderWindow
 		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
 
@@ -115,7 +120,7 @@ namespace nne
 			if (checkMouseClickOnWire(Quad, MousePositionAdj))
 			{
 				// Inform the logic board component that we selected this wire
-				mParent->getComponentAsPtr<TLogicBoardComponent>()->setSelectedWire(this);
+				LogicBoard.setSelectedWire(this);
 
 				// Change the selection status of this wire
 				setSelectedStatus(true);
@@ -132,6 +137,15 @@ namespace nne
 				// This function had done it's job we can exit now
 				return;
 			}
+		}
+
+		// If we arrive at this point maybe we have to deselect the chip
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		{
+// 			if (LogicBoard.getSelectedWire() == this)
+// 				LogicBoard.deselectWire();
+			if (LogicBoard.getSelectedWire() == this)
+				LogicBoard.deselectWire();
 		}
 	}
 
@@ -182,6 +196,13 @@ namespace nne
 		// Update the number of fixed point by validating the entire vertex array
 		mFixedPoints = mDrawableComponent->getVertexArray().getVertexCount();
 
+		// If we have a mid point
+		if (mMidPointPosTemp != InvalidVector<float>)
+		{
+			mVertices.push_back(mMidPointPosTemp);
+			mMidPointPosTemp = InvalidVector<float>;
+		}
+
 		// Add the last valid vertex in the array
 		mVertices.push_back(mLastPointPosTemp);
 
@@ -190,6 +211,12 @@ namespace nne
 
 		// Optimize the vertex vector by removing the uncessary vertices
 		optimizeVertexArray();
+	}
+
+	void TWireComponent::connectPins(TPin& LeftPin, TPin& RightPin)
+	{
+		mPins.push_back(LeftPin);
+		mPins.push_back(RightPin);
 	}
 
 	void TWireComponent::adjustLine(const sf::Vector2f& Point1, const sf::Vector2f& Point2)
@@ -202,11 +229,25 @@ namespace nne
 
 			lineToQuad(Point1, IntermediateLine);
 			lineToQuad(IntermediateLine, Point2);
+
+			mMidPointPosTemp = IntermediateLine;
 		}
 		else
 		{
 			lineToQuad(Point1, Point2);
 		}
+
+		mLastPointPosTemp = Point2;
+	}
+
+	nne::TPinList& TWireComponent::getPinList()
+	{
+		return mPins;
+	}
+
+	const nne::TPinList& TWireComponent::getPinList() const
+	{
+		return mPins;
 	}
 
 	void TWireComponent::placePointTemp(const sf::Vector2f& PointPos)
@@ -223,6 +264,14 @@ namespace nne
 		mFixedPoints == 0 ? placeInitialPoint(PointPos) : adjustLine(mLastPointPos, PointPos);
 	}
 
+	void TWireComponent::placeJunction(const sf::Vector2f& PointPos)
+	{
+		mJunctions.push_back(PointPos);
+
+		// Transform the vertices in mVertices in quads in the vertex array
+		renderWire();
+	}
+
 	bool TWireComponent::checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd)
 	{
 		// Check if horizontal (return true)
@@ -234,12 +283,21 @@ namespace nne
 
 	void TWireComponent::renderWire()
 	{
+		if (mVertices.size() == 0)
+			return;
+
 		// Clear the previous content of the vertex array
 		mDrawableComponent->getVertexArray().clear();
 
 		// Draw all the quad
 		for (auto Index = 0u; Index < mVertices.size() - 1; ++Index)
 			lineToQuad(mVertices[Index], mVertices[Index + 1]);
+
+		if (mJunctions.size() == 0)
+			return;
+
+		for (auto Index = 0u; Index < mJunctions.size(); ++Index)
+			pointToJunction(mJunctions[Index] + sf::Vector2f(1.f, 0.f));
 	}
 
 	void TWireComponent::removeUnnecessaryVertices()
@@ -392,8 +450,16 @@ namespace nne
 			VertexArray.append({ { LineEnd.x + (mThickness / 2) + 1.f, LineEnd.y }, mWireColor });
 			VertexArray.append({ { LineEnd.x - (mThickness / 2) + 1.f, LineEnd.y }, mWireColor });
 		}
+	}
 
-		mLastPointPosTemp = LineEnd;
+	void TWireComponent::pointToJunction(const sf::Vector2f& Point)
+	{
+		auto& VertexArray = mDrawableComponent->getVertexArray();
+
+		VertexArray.append({ { Point.x - (mJunctionThickness / 2.f), Point.y - (mJunctionThickness / 2.f) }, mWireColor });
+		VertexArray.append({ { Point.x - (mJunctionThickness / 2.f), Point.y + (mJunctionThickness / 2.f) }, mWireColor });
+		VertexArray.append({ { Point.x + (mJunctionThickness / 2.f), Point.y + (mJunctionThickness / 2.f) }, mWireColor });
+		VertexArray.append({ { Point.x + (mJunctionThickness / 2.f), Point.y - (mJunctionThickness / 2.f) }, mWireColor });
 	}
 
 	sf::FloatRect TWireComponent::extractQuad(const sf::Vertex* Vertices)

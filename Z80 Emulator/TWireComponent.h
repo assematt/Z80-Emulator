@@ -3,9 +3,9 @@
 #include <memory>
 #include <vector>
 
+#include "TDrawableComponent.h"
 #include "TPinComponent.h"
 #include "IComponent.h"
-#include "TDrawableComponent.h"
 #include "TEntity.h"
 
 namespace nne
@@ -48,8 +48,18 @@ namespace nne
 		/// place a fixed point
 		void confirmPoints();
 
+		/// Add the 2 pin connected by the wire
+		void connectPins(TPin& LeftPin, TPin& RightPin);
+
+		/// Get the pin list
+		TPinList& getPinList();
+		const TPinList& getPinList() const;
+
 		/// place a temp point
 		void placePointTemp(const sf::Vector2f& PointPos);
+
+		/// Place a junction point
+		void placeJunction(const sf::Vector2f& PointPos);
 		
 		/// Toggle the ability to draw the wire
 		void toggleDraw();
@@ -68,6 +78,9 @@ namespace nne
 	private:
 		/// Convert two points to a quad
 		void lineToQuad(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
+
+		/// Convert a point in a junction point
+		void pointToJunction(const sf::Vector2f& Point);
 
 		/// Convert a quad to two points
 		sf::FloatRect extractQuad(const sf::Vertex* Vertices);
@@ -107,11 +120,17 @@ namespace nne
 		bool						mIsSelected;
 		bool						mIsHovered;
 		float						mThickness;
+		float						mJunctionThickness;
+		TPinList					mPins;
 		sf::Color					mWireColor;
 		std::size_t					mFixedPoints;
+
 		sf::Vector2f				mLastPointPos;
+		sf::Vector2f				mMidPointPosTemp;
 		sf::Vector2f				mLastPointPosTemp;
+
 		TDrawableComponent*			mDrawableComponent;
 		std::vector<sf::Vector2f>	mVertices;
+		std::vector<sf::Vector2f>	mJunctions;
 	};
 }

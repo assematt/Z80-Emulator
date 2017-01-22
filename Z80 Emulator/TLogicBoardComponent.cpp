@@ -215,7 +215,7 @@ namespace nne
 		mSelectedChip = Chip;
 
 		// 
-		if (mFormerSelectedChip && mInsertionMethod != TInsertionMethod::WIRE)
+		if (mFormerSelectedChip && mInsertionMethod == TInsertionMethod::NONE)
 			mFormerSelectedChip->deselectPin();
 	}
 
@@ -253,6 +253,10 @@ namespace nne
 
 		// Set the selected wire
 		mSelectedWire = Wire;
+
+		// 
+		if (mFormerSelectedWire && mInsertionMethod == TInsertionMethod::NONE)
+			mFormerSelectedWire->setSelectedStatus(false);
 	}
 
 	TWireComponent* TLogicBoardComponent::getSelectedWire() const

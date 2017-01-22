@@ -50,6 +50,7 @@ namespace nne
 		return mPins[PinToSelect];
 	}
 
+
 	void TPinComponentUtility::connectPins(TPin& LeftPin, TPin& RightPin)
 	{
 		// Add the left pin to the right pin connections

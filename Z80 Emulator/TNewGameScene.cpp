@@ -148,7 +148,7 @@ namespace nne
 
 		// Set-up some GUI event to the RenderCanvas
 		mRenderCanvas->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
-			EventData.mouseButton.button == sf::Mouse::Left ? handleLeftMouseUpEvent() : handleRightMouseUpEvent();
+			EventData.mouseButton.button == sf::Mouse::Left ? handleLeftMouseUpEvent(sf::Vector2f(EventData.mouseButton.x - 300, EventData.mouseButton.y - 50)) : handleRightMouseUpEvent();
 		});
 		mRenderCanvas->attachEvent(tgui::events::onMouseMove, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			handleMouseMoveEvent(sf::Vector2f(EventData.mouseMove.x - 300, EventData.mouseMove.y - 50));
@@ -262,7 +262,7 @@ namespace nne
 			// Stop the wire tool
 			case TLogicBoardComponent::TInsertionMethod::WIRE:
 			{
-				// get a pointer to the selected wire
+				/*// get a pointer to the selected wire
 				auto CurrentWire = mLogicBoard->getSelectedWire();
 
 				// If we have a valid wire selected we stop the drawing and deselect it
@@ -270,7 +270,10 @@ namespace nne
 				{
 					CurrentWire->toggleDraw();
 					mLogicBoard->deselectWire();
-				}
+				}*/
+
+				// Remove temporary Entity
+				removeTemporaryEntity();
 			}break;
 
 			// Stop the bus tool
@@ -287,8 +290,13 @@ namespace nne
 		}
 	}
 
-	void TNewGameScene::handleLeftMouseUpEvent()
+	void TNewGameScene::handleLeftMouseUpEvent(const sf::Vector2f& MousePos)
 	{
+		// Get the mouse coordinate and transform them to make them stick to the grid		
+		auto MousePosAdj = mRenderCanvas->mapPixelToCoords(static_cast<sf::Vector2i>(MousePos));
+		auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(MousePosAdj));
+		auto CellPos = mGridComponent->transformCellCoords(GridCoord);
+
 		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
 
 		switch (InsertionMethod)
@@ -311,6 +319,139 @@ namespace nne
 			// If we are using the wire tool
 			case TLogicBoardComponent::TInsertionMethod::WIRE:
 			{
+				// Get the WireComponent of the entity we are inserting
+				auto& InsertingWire = mTempWire->getComponent<TWireComponent>();
+
+				InsertingWire.confirmPoints();
+
+				// get a pointer to the selected chip
+				auto CurrentSelectedChip = mLogicBoard->getSelectedChip();
+
+				// get a pointer to the former selected chip
+				auto FormerSelectedChip = mLogicBoard->getFormerSelectedChip();
+
+				// get a pointer to the selected bus
+				auto SelectedBus = mLogicBoard->getSelectedBus();
+
+				// Get a pointer to the selected wire
+				auto SelectedWire = mLogicBoard->getSelectedWire();
+
+				// Get a pointer to the selected wire
+				auto FormerSelectedWire = mLogicBoard->getFormerSelectedWire();
+
+				// Establish if we are drawing from a bus to chip or vice-versa
+				if (CurrentSelectedChip && !SelectedBus)
+					mDrawingFromBusToChip = false;
+				else if (!CurrentSelectedChip && SelectedBus)
+					mDrawingFromBusToChip = true;
+
+				// If we are trying to draw a wire between A wire and something else that we don't know yet
+				if (SelectedWire && (SelectedWire != &InsertingWire) && !CurrentSelectedChip && !FormerSelectedChip && !SelectedBus)
+				{
+					// Place the junction
+					InsertingWire.placeJunction(CellPos);
+
+					// Make sure we reset the selected wire at the one we are inserting
+					mLogicBoard->setSelectedWire(SelectedWire);
+					mLogicBoard->setSelectedWire(&InsertingWire);
+				}
+				// If we are trying to draw a wire between another wire and a chip
+				else if (SelectedWire && (SelectedWire == &InsertingWire) && FormerSelectedWire && CurrentSelectedChip && !FormerSelectedChip)
+				{
+					// Stop the drawing mode
+					InsertingWire.toggleDraw();
+
+					auto A = mLogicBoard->getSelectedWire();
+					auto B = mLogicBoard->getFormerSelectedWire();
+
+					// Connect the pins
+					auto& PinList = mLogicBoard->getSelectedWire()->getPinList();
+					auto& PinList2 = mLogicBoard->getFormerSelectedWire()->getPinList();
+
+					for (auto& Pin : FormerSelectedWire->getPinList())
+					{
+						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
+						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
+					}
+
+					// Reset the chip's pin selected status
+					CurrentSelectedChip->deselectPin();
+
+					// Deselect the chip/wire/bus from the logic board
+					mLogicBoard->deselectEverything();
+
+					// Start the drawing of a new wire
+					addWire();
+				}
+				// If we have drawn a wire between a chip and another wire
+				else if (CurrentSelectedChip && SelectedWire && (SelectedWire != &InsertingWire))
+				{
+					// Stop the drawing mode
+					InsertingWire.toggleDraw();
+
+					InsertingWire.placeJunction(CellPos);
+
+					// Connect the pins
+					for (auto& Pin : SelectedWire->getPinList())
+					{
+						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
+						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
+					}
+
+					// Reset the chip's pin selected status
+					CurrentSelectedChip->deselectPin();
+
+					// Deselect the chip/wire/bus from the logic board
+					mLogicBoard->deselectEverything();
+					
+					// Start the drawing of a new wire
+					addWire();
+				}
+
+				// If we have drawn a wire between 2 chips, exit wire drawing mode, and deselect the currently selected chips and wire
+				else if (CurrentSelectedChip && FormerSelectedChip)
+				{
+					// Stop the drawing mode
+					InsertingWire.toggleDraw();
+
+					// Connect the pins
+					TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), FormerSelectedChip->getSelectedPin());
+					InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), FormerSelectedChip->getSelectedPin());
+
+					// Reset the chip's pin selected status
+					CurrentSelectedChip->deselectPin();
+					FormerSelectedChip->deselectPin();
+
+					// Deselect the chip/wire/bus from the logic board
+					mLogicBoard->deselectEverything();
+
+					// Start the drawing of a new wire
+					addWire();
+				}
+
+				// If we have draw a wire between a chip and a bus, exit wire drawing mode, and deselect the currently selected chips and wire
+				else if (CurrentSelectedChip && SelectedBus)
+				{
+					// Stop the drawing mode
+					InsertingWire.toggleDraw();
+
+					// Connect the pin to the bus as an entry wire
+					if (mDrawingFromBusToChip)
+						SelectedBus->connectExitWire(CurrentSelectedChip->getSelectedPin());
+					else
+						SelectedBus->connectEntryWire(CurrentSelectedChip->getSelectedPin());
+
+					// Reset the chip's pin selected status
+					CurrentSelectedChip->deselectPin();
+
+					// Deselect the chip/wire/bus from the logic board
+					mLogicBoard->deselectEverything();
+
+					// Start the drawing of a new wire
+					addWire();
+				}
+
+				/*
 				// get a pointer to the selected wire
 				auto CurrentWire = mLogicBoard->getSelectedWire();
 
@@ -328,11 +469,19 @@ namespace nne
 					// get a pointer to the selected bus
 					auto CurrentBus = mLogicBoard->getSelectedBus();
 
+					// Get a pointer to the selected wire
+
 					// Establish if we are drawing from a bus to chip or vice-versa
 					if (CurrentChip && !CurrentBus)
 						mDrawingFromBusToChip = false;
 					else if (!CurrentChip && CurrentBus)
 						mDrawingFromBusToChip = true;
+
+					// If we have drawn a wire between a chip and another wire
+					if (CurrentChip && CurrentWire)
+					{
+
+					}
 
 					// If we have drawn a wire between 2 chips, exit wire drawing mode, and deselect the currently selected chips and wire
 					if (CurrentChip && FormerChip)
@@ -377,6 +526,8 @@ namespace nne
 					}
 
 				}
+				*/
+				
 			}break;
 
 			// If we are using the bus tool
@@ -405,6 +556,16 @@ namespace nne
 	{
 		switch (KeyCode)
 		{
+			// Select the NONE tool
+			case sf::Keyboard::R:
+			{
+				removeTemporaryEntity();
+
+				mLogicBoard->deselectEverything();
+
+				mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::NONE);
+			} break;
+
 			// See if we are trying to place a new wire
 			case sf::Keyboard::T:
 			{

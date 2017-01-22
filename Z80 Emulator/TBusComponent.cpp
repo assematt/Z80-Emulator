@@ -93,6 +93,9 @@ namespace nne
 		// Reset the state of the hover status by default
 		setHoveredStatus(false);
 
+		// Get a ref to the logic board component
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+
 		// Get a ref to the sf::RenderWindow
 		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
 
@@ -113,7 +116,7 @@ namespace nne
 			if (checkMouseClickOnWire(Quad, MousePositionAdj))
 			{
 				// Inform the logic board component that we selected this wire
-				mParent->getComponentAsPtr<TLogicBoardComponent>()->setSelectedBus(this);
+				LogicBoard.setSelectedBus(this);
 
 				// Change the selection status of this wire
 				setSelectedStatus(true);
@@ -131,6 +134,7 @@ namespace nne
 				return;
 			}
 		}
+	
 	}
 
 	void TBusComponent::init()

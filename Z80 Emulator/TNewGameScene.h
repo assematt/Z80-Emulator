@@ -50,7 +50,7 @@ namespace nne
 		void handleRightMouseUpEvent();
 
 		/// Handle all the left mouse up event for the RenderSurface/LogicBoard
-		void handleLeftMouseUpEvent();
+		void handleLeftMouseUpEvent(const sf::Vector2f& MousePos);
 
 		/// Handle all the keyboard inputs for the RenderSurface/LogicBoard
 		void handleKeyboardInputs(const sf::Keyboard::Key& KeyCode);

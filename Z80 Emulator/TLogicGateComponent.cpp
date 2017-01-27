@@ -36,24 +36,24 @@ namespace nne
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
 
 				// ADDRESS BUS
-				{ tcomponents::TPin::TMode::INPUT, "1A", tcomponents::TPin::TStatus::LOW, 1 }, // 1A
-				{ tcomponents::TPin::TMode::INPUT, "1B", tcomponents::TPin::TStatus::LOW, 2 }, // 1B
+				{ tcomponents::TPin::TMode::INPUT, "1A", tcomponents::TPin::TStatus::LOW,  1 }, // 1A
+				{ tcomponents::TPin::TMode::INPUT, "1B", tcomponents::TPin::TStatus::LOW,  2 }, // 1B
 				{ tcomponents::TPin::TMode::OUTPUT, "1Y", tcomponents::TPin::TStatus::LOW, 3 }, // 1Y
 
-				{ tcomponents::TPin::TMode::INPUT, "2A", tcomponents::TPin::TStatus::LOW, 4 }, // 2A
-				{ tcomponents::TPin::TMode::INPUT, "2B", tcomponents::TPin::TStatus::LOW, 5 }, // 2B
+				{ tcomponents::TPin::TMode::INPUT, "2A", tcomponents::TPin::TStatus::LOW,  4 }, // 2A
+				{ tcomponents::TPin::TMode::INPUT, "2B", tcomponents::TPin::TStatus::LOW,  5 }, // 2B
 				{ tcomponents::TPin::TMode::OUTPUT, "2Y", tcomponents::TPin::TStatus::LOW, 6 }, // 2Y
 
-				{ tcomponents::TPin::TMode::INPUT, "3A", tcomponents::TPin::TStatus::LOW, 9 }, // 3A
+				{ tcomponents::TPin::TMode::INPUT, "3A", tcomponents::TPin::TStatus::LOW,  9 }, // 3A
 				{ tcomponents::TPin::TMode::INPUT, "3B", tcomponents::TPin::TStatus::LOW, 10 },// 3B
 				{ tcomponents::TPin::TMode::OUTPUT, "3Y", tcomponents::TPin::TStatus::LOW, 8 },	// 3Y
 
-				{ tcomponents::TPin::TMode::INPUT, "4A", tcomponents::TPin::TStatus::LOW, 12 }, // 4A
-				{ tcomponents::TPin::TMode::INPUT, "4B", tcomponents::TPin::TStatus::LOW, 13 }, // 4B
+				{ tcomponents::TPin::TMode::INPUT, "4A", tcomponents::TPin::TStatus::LOW,  12 }, // 4A
+				{ tcomponents::TPin::TMode::INPUT, "4B", tcomponents::TPin::TStatus::LOW,  13 }, // 4B
 				{ tcomponents::TPin::TMode::OUTPUT, "4Y", tcomponents::TPin::TStatus::LOW, 11 }, // 4Y
 
 				{ tcomponents::TPin::TMode::INPUT, "VCC", tcomponents::TPin::TStatus::LOW, 14 }, // VCC
-				{ tcomponents::TPin::TMode::INPUT, "GND", tcomponents::TPin::TStatus::LOW, 7 },	// GND
+				{ tcomponents::TPin::TMode::INPUT, "GND", tcomponents::TPin::TStatus::LOW,  7 },	// GND
 
 			}, 14);
 		}

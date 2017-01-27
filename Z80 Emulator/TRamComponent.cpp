@@ -69,7 +69,7 @@ namespace nne
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
 
 				// ADDRESS BUS
-				{ tcomponents::TPin::TMode::INPUT, "A0", tcomponents::TPin::TStatus::LOW, 10, TRamPinGroup::AddressBus, 0 }, // A0
+				{ tcomponents::TPin::TMode::INPUT, "A0",  tcomponents::TPin::TStatus::LOW, 10, TRamPinGroup::AddressBus, 0 }, // A0
 				{ tcomponents::TPin::TMode::INPUT, "A1",  tcomponents::TPin::TStatus::LOW,  9, TRamPinGroup::AddressBus, 1 }, // A1
 				{ tcomponents::TPin::TMode::INPUT, "A2",  tcomponents::TPin::TStatus::LOW,  8, TRamPinGroup::AddressBus, 2 }, // A2
 				{ tcomponents::TPin::TMode::INPUT, "A3",  tcomponents::TPin::TStatus::LOW,  7, TRamPinGroup::AddressBus, 3 }, // A3
@@ -85,7 +85,7 @@ namespace nne
 				{ tcomponents::TPin::TMode::INPUT, "A13", tcomponents::TPin::TStatus::LOW, 26, TRamPinGroup::AddressBus, 13 }, // A13
 				{ tcomponents::TPin::TMode::INPUT, "A14", tcomponents::TPin::TStatus::LOW,  1, TRamPinGroup::AddressBus, 14 }, // A14
 
-																															   // DATA BUS
+				// DATA BUS
 				{ tcomponents::TPin::TMode::INPUT_OUTPUT, "D0", tcomponents::TPin::TStatus::LOW, 11, TRamPinGroup::DataBus, 0 }, // D0
 				{ tcomponents::TPin::TMode::INPUT_OUTPUT, "D1", tcomponents::TPin::TStatus::LOW, 12, TRamPinGroup::DataBus, 1 }, // D1
 				{ tcomponents::TPin::TMode::INPUT_OUTPUT, "D2", tcomponents::TPin::TStatus::LOW, 13, TRamPinGroup::DataBus, 2 }, // D2
@@ -95,12 +95,12 @@ namespace nne
 				{ tcomponents::TPin::TMode::INPUT_OUTPUT, "D6", tcomponents::TPin::TStatus::LOW, 18, TRamPinGroup::DataBus, 6 }, // D6
 				{ tcomponents::TPin::TMode::INPUT_OUTPUT, "D7", tcomponents::TPin::TStatus::LOW, 19, TRamPinGroup::DataBus, 7 }, // D7
 
-																																 // CHIP CONTROL
+				// CHIP CONTROL
 				{ tcomponents::TPin::TMode::INPUT, "CE", tcomponents::TPin::TStatus::HIGH, 20, TRamPinGroup::ChipControl }, // CE
 				{ tcomponents::TPin::TMode::INPUT, "OE", tcomponents::TPin::TStatus::HIGH, 22, TRamPinGroup::ChipControl }, // OE 
 				{ tcomponents::TPin::TMode::INPUT, "WE", tcomponents::TPin::TStatus::HIGH, 27, TRamPinGroup::ChipControl }, // WE 
 
-																															// Others
+				// Others
 				{ tcomponents::TPin::TMode::INPUT, "VCC", tcomponents::TPin::TStatus::LOW, 28, TRamPinGroup::Others }, // VCC
 				{ tcomponents::TPin::TMode::INPUT, "GND", tcomponents::TPin::TStatus::LOW, 14, TRamPinGroup::Others }, // GND
 			}, 28);

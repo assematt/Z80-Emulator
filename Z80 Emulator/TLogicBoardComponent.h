@@ -33,6 +33,12 @@ namespace nne
 
 		virtual void update(const sf::Time& ElapsedTime) override;
 
+		/// function to save the current board
+		bool saveBoard(const std::string& Path);
+
+		/// Function to lead a file in the board
+		bool loadBoard(const std::string& Path, TManager& EntityManager, IScene* Scene);
+
 		/// Function to place a chip in the board
 		void placeChip(TChipComponent* ChipToPlace);
 		void placeChip(TEntity* Entity);

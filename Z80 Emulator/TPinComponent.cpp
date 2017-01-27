@@ -53,6 +53,13 @@ namespace nne
 
 	void TPinComponentUtility::connectPins(TPin& LeftPin, TPin& RightPin)
 	{
+		// Create the connection
+		LeftPin.addConnections(RightPin);
+
+		// Update the status of the connected PINs based on their type
+		updatePinStatus(LeftPin, RightPin);
+
+/*
 		// Add the left pin to the right pin connections
 		RightPin.mPinConnections.push_back(&LeftPin);
 
@@ -61,26 +68,34 @@ namespace nne
 
 		// Update the status of the connected PINs based on their type
 		updatePinStatus(LeftPin, RightPin);
+*/
 	}
 
 	void TPinComponentUtility::connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
 	{
 		for (auto Pin : RightPins)
-		{
-			Pin.mPinConnections.push_back(&LeftPin);
+			connectPins(LeftPin, Pin);
 
-			LeftPin.mPinConnections.push_back(&Pin);
-		}
+// 		for (auto Pin : RightPins)
+// 		{
+// 			Pin.mPinConnections.push_back(&LeftPin);
+// 
+// 			LeftPin.mPinConnections.push_back(&Pin);
+// 		}
 	}
 
 	void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
 	{
-		// 
+		//
+
 		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
-		{
-			RightPin->mPinConnections.push_back(&(*LeftPin));
-			LeftPin->mPinConnections.push_back(&(*RightPin));
-		}
+			connectPins(*LeftPin, *RightPin);
+
+// 		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
+// 		{
+// 			RightPin->mPinConnections.push_back(&(*LeftPin));
+// 			LeftPin->mPinConnections.push_back(&(*RightPin));
+// 		}
 	}
 
 	void TPinComponentUtility::updatePinStatus(TPin& LeftPin, TPin& RightPin)

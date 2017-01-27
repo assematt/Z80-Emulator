@@ -78,19 +78,19 @@ namespace nne
 				{ tcomponents::TPin::TMode::INPUT_OUTPUT, "D7", tcomponents::TPin::TStatus::LOW, 13, CPUPinGroup::DataBus, 7 }, // D7
 
 				// SYSTEM CONTROL
-				{ tcomponents::TPin::TMode::OUTPUT, "M1", tcomponents::TPin::TStatus::HIGH, 27, CPUPinGroup::Others }, // M1
+				{ tcomponents::TPin::TMode::OUTPUT, "M1", tcomponents::TPin::TStatus::HIGH,   27, CPUPinGroup::Others }, // M1
 				{ tcomponents::TPin::TMode::OUTPUT, "MREQ", tcomponents::TPin::TStatus::HIGH, 19, CPUPinGroup::Others }, // MREQ
 				{ tcomponents::TPin::TMode::OUTPUT, "IORQ", tcomponents::TPin::TStatus::HIGH, 20, CPUPinGroup::Others }, // IORQ
-				{ tcomponents::TPin::TMode::OUTPUT, "RD", tcomponents::TPin::TStatus::HIGH, 21, CPUPinGroup::Others }, // RD
-				{ tcomponents::TPin::TMode::OUTPUT, "WR", tcomponents::TPin::TStatus::HIGH, 22, CPUPinGroup::Others }, // WR
+				{ tcomponents::TPin::TMode::OUTPUT, "RD", tcomponents::TPin::TStatus::HIGH,   21, CPUPinGroup::Others }, // RD
+				{ tcomponents::TPin::TMode::OUTPUT, "WR", tcomponents::TPin::TStatus::HIGH,	  22, CPUPinGroup::Others }, // WR
 				{ tcomponents::TPin::TMode::OUTPUT, "RFSH", tcomponents::TPin::TStatus::HIGH, 28, CPUPinGroup::Others }, // RFSH
 
 				// CPU CONTROL
 				{ tcomponents::TPin::TMode::OUTPUT, "HALT", tcomponents::TPin::TStatus::LOW, 18, CPUPinGroup::Others }, // HALT
 				{ tcomponents::TPin::TMode::INPUT, "WAIT", tcomponents::TPin::TStatus::LOW,  24, CPUPinGroup::Others }, // WAIT
-				{ tcomponents::TPin::TMode::INPUT, "INT", tcomponents::TPin::TStatus::LOW,  16, CPUPinGroup::Others }, // INT
-				{ tcomponents::TPin::TMode::INPUT, "NMI", tcomponents::TPin::TStatus::LOW,  17, CPUPinGroup::Others }, // NMI
-				{ tcomponents::TPin::TMode::INPUT, "RESET", tcomponents::TPin::TStatus::LOW,  26, CPUPinGroup::Others }, // RESET 
+				{ tcomponents::TPin::TMode::INPUT, "INT", tcomponents::TPin::TStatus::LOW,   16, CPUPinGroup::Others }, // INT
+				{ tcomponents::TPin::TMode::INPUT, "NMI", tcomponents::TPin::TStatus::LOW,   17, CPUPinGroup::Others }, // NMI
+				{ tcomponents::TPin::TMode::INPUT, "RESET", tcomponents::TPin::TStatus::LOW, 26, CPUPinGroup::Others }, // RESET 
 
 				// CPU BUS CONTROL
 				{ tcomponents::TPin::TMode::OUTPUT, "BUSAK", tcomponents::TPin::TStatus::LOW, 25, CPUPinGroup::Others }, // BUSAK

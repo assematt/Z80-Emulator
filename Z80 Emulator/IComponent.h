@@ -25,6 +25,8 @@ namespace nne
 
 		const TComponentID getComponentID() const;
 
+		TEntity* getParent() const;
+
 	protected:
 		TEntity* mParent;
 		TComponentID mID;

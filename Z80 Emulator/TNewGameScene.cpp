@@ -566,6 +566,17 @@ namespace nne
 				mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::NONE);
 			} break;
 
+			// Save the current board
+			case sf::Keyboard::Q:
+			{
+				mLogicBoard->saveBoard("resources/boards/test_board.brd");
+			} break;
+			// Load a board
+			case sf::Keyboard::Z:
+			{
+				mLogicBoard->loadBoard("resources/boards/test_board.brd", mGraphicEntity, this);
+			} break;
+
 			// See if we are trying to place a new wire
 			case sf::Keyboard::T:
 			{
@@ -619,7 +630,7 @@ namespace nne
 			{
 				// Get the Z80 and the ram entity
 				auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
-				auto RamEntity = mGraphicEntity.getEntityByKey("Ram");
+				auto RamEntity = mGraphicEntity.getEntityByKey("RAM");
 
 				// Se if both the CPU and the RAM are placed into the logic board
 				if (Z80Entity && RamEntity)
@@ -872,7 +883,7 @@ namespace nne
 		else if (ChipToAdd == "RAM")
 		{
 			FactoryFunction = TFactory::makeRam;
-			NewChipID = "Ram";
+			NewChipID = "RAM";
 		}
 		// If we are creating a NAND chip
 		else if (ChipToAdd == "NAND")
@@ -906,6 +917,7 @@ namespace nne
 		auto NewChip = mGraphicEntity.getEntityByKey(NewChipID);
 		NewChip->init();
 		NewChip->getComponent<TChipComponent>().setPlacedStatus(false);
+		NewChip->getComponent<TChipComponent>().setChipName(NewChipID);
 
 		// And adds it to the logic board
 		mLogicBoard->placeChip(NewChip.get());

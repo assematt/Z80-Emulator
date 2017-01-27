@@ -47,8 +47,8 @@ namespace nne
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 			//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
-			{ tcomponents::TPin::TMode::INPUT, "ANODE", tcomponents::TPin::TStatus::LOW, 1, 0, 0 },		// A1
-			{ tcomponents::TPin::TMode::OUTPUT, "CATHODE",  tcomponents::TPin::TStatus::LOW, 2, 0, 0 }, // A2
+			{ tcomponents::TPin::TMode::INPUT, "ANODE", tcomponents::TPin::TStatus::LOW, 1 },	 // A1
+			{ tcomponents::TPin::TMode::OUTPUT, "CATHODE",  tcomponents::TPin::TStatus::LOW, 2 }, // A2
 		}, 2);
 				
 		renderLed();

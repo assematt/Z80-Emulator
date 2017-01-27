@@ -13,6 +13,7 @@ namespace nne
 		mIsPlaced(false),
 		mIsValid(true)
 	{
+		mChipName = "chip_" + std::to_string(getComponentID());
 	}
 
 	void TChipComponent::init()
@@ -26,6 +27,12 @@ namespace nne
 		mLabels->setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
 		mLabels->setCharacterSize(13);
 		mLabels->setFillColor({ 171,171,171 });
+
+		// Set the pin parent name
+		auto& PinList = mParent->getComponent<TPinComponent>().getPinList();
+
+		for (auto& Pin : PinList)
+			Pin.setPinParent(mChipName);
 	}
 
 	void TChipComponent::update(const sf::Time& ElapsedTime)
@@ -53,6 +60,22 @@ namespace nne
 	const bool& TChipComponent::isPlaced() const
 	{
 		return mIsPlaced;
+	}
+
+	void TChipComponent::setChipName(const std::string& Name)
+	{
+		mChipName = Name;
+
+		// Update the pin parent name
+		auto& PinList = mParent->getComponent<TPinComponent>().getPinList();
+
+		for (auto& Pin : PinList)
+			Pin.setPinParent(mChipName);
+	}
+
+	const std::string& TChipComponent::getName() const
+	{
+		return mChipName;
 	}
 
 	sf::FloatRect TChipComponent::getLocalBound() const

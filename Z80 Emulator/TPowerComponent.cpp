@@ -42,7 +42,7 @@ namespace nne
 
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
-				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 1, 0, 0 }, // GND
+				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 1 }, // GND
 			}, 1);
 
 		}
@@ -53,7 +53,7 @@ namespace nne
 
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
-				{ tcomponents::TPin::TMode::POWER, "VCC", tcomponents::TPin::TStatus::HIGH, 1, 0, 0 }, // GND
+				{ tcomponents::TPin::TMode::POWER, "VCC", tcomponents::TPin::TStatus::HIGH, 1 }, // GND
 			}, 1);
 		}
 

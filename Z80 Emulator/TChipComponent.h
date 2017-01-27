@@ -36,6 +36,10 @@ namespace nne
 		/// Toggle the ability to draw the chip
 		void setPlacedStatus(const bool& IsPlaced = true);
 		const bool& isPlaced() const;
+
+		/// Set/Get chip name
+		void setChipName(const std::string& Name);
+		const std::string& getName() const;
 		
 		/// Get the local/global bound of the chip
 		sf::FloatRect getLocalBound() const;
@@ -58,6 +62,7 @@ namespace nne
 	private:
 		bool				mIsPlaced;
 		bool				mIsValid;
+		std::string			mChipName;
 		sf::Vector2u		mChipSize;
 		TTextComponent*		mLabels;
 		TDrawableComponent*	mDrawableComponent;

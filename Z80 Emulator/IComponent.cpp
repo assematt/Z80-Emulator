@@ -8,7 +8,13 @@ namespace nne
 	}
 
 	const nne::TComponentID IComponent::getComponentID() const
-{
+	{
 		return mID;
 	}
+
+	nne::TEntity* IComponent::getParent() const
+	{
+		return mParent;
+	}
+
 }

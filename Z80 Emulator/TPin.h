@@ -2,11 +2,12 @@
 
 #include <memory>
 #include <vector>
+#include <map>
+
 #include "TValues.h"
 
 namespace nne
 {
-	struct TPinComponent;
 
 	namespace tcomponents
 	{
@@ -43,9 +44,21 @@ namespace nne
 			
 			TPin(const TMode& PinMode, const TPinName& PinName, const TStatus& PinStatus = TStatus::LOW, const TPinNumber& PinNumber = 0, const TPinGroupID& PinGroupID = 0, const TPinNumber& PinGroupNumber = 0);
 
+			// Copy constructor
+			TPin(const TPin& Copy);
+
+			// Move constructor
+			TPin(TPin&& Move);
+
+			~TPin();
+
 			/// Comparison operator
-			bool operator ==(TPin const& Right);
-			bool operator !=(TPin const& Right);
+			bool operator ==(const TPin& Right);
+			bool operator !=(const TPin& Right);
+
+			/// Comparison operator
+			bool operator ==(const TStatus& Right);
+			bool operator !=(const TStatus& Right);
 
 			/// TStatus cast operator
 			operator TStatus();
@@ -54,6 +67,10 @@ namespace nne
 			/// Function to change the pin status
 			void changePinStatus(const TStatus& NewStatus, bool Propagate = false);
 
+			/// Function to update the pin owner name
+			void setPinParent(const std::string& ParentName);
+			const std::string& getPinParent() const;
+
 			/// Explicit member assignment
 			TStatus getPinStatus();
 			const TStatus getPinStatus() const;
@@ -61,14 +78,31 @@ namespace nne
 			/// Get Pin ID
 			const TPinID& getPinID();
 
+			/// create a connection between this pin and another Pin
+			void addConnections(TPin& RightPin);
+
 			/// Return true if the PIN it's connected to at least another PIN
 			bool hasConnections() const;
+
+			/// Return the vector with all the connections
+			const TPinConnections& getPinConnections() const;
 
 			/// Check if this PIN it's valid, meaning that is not the "NotFound" PIN
 			bool isValid();
 
+			/// STATIC FUNCTIONS
+		public:
+			/// Get a pin by ID
+			static TPin& getPinByID(const TPinID& ID);
+			static TPin& getPinByName(const std::string& PinName, const std::string& ParentEntity);
+
+			static const std::vector<TPin*> getGlobalPinVector();
+
 		private:
 			static TPinID generateID();
+
+		private:
+			static std::vector<TPin*>			mPinVectors;
 			
 		private:
 			friend TPin::TStatus logicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);
@@ -80,16 +114,16 @@ namespace nne
 			friend TPin::TStatus logicXnor(const TPin::TStatus& Left, const TPin::TStatus& Right);
 
 		public:
-			TMode			mPinMode;
-			TPinName		mPinName;
-			TPinNumber		mPinNumber;
-			TPinNumber		mPinGroupNumber;
-			TPinGroupID		mPinGroupID;
-			TPinConnections	mPinConnections;
+			TMode				mPinMode;
+			TPinName			mPinName;
+			TPinNumber			mPinNumber;
+			TPinNumber			mPinGroupNumber;
+			TPinGroupID			mPinGroupID;
 
 		private:
 			TStatus	mPinStatus;
 			TPinID mPinID;			
+			mutable std::string	mParentName;
 		};
 	
 

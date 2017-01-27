@@ -307,6 +307,8 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="TDrawableComponent.cpp" />
     <ClCompile Include="TSceneManager.cpp" />
     <ClCompile Include="TTextComponent.cpp" />
+    <ClCompile Include="TXMLFile.cpp" />
+    <ClCompile Include="TXMLNode.cpp" />
     <ClCompile Include="TZ80Component.cpp" />
     <ClCompile Include="TButton.cpp" />
     <ClCompile Include="TContainer.cpp" />
@@ -351,6 +353,8 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TResourceLoader.h" />
     <ClInclude Include="TResourceVector.h" />
     <ClInclude Include="TLoaders.h" />
+    <ClInclude Include="TXMLFile.h" />
+    <ClInclude Include="TXMLNode.h" />
     <ClInclude Include="TZ80Component.h" />
     <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TFactory.h" />

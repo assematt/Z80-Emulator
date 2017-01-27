@@ -143,7 +143,7 @@ namespace nne
 		inline IComponent* getComponent(TComponentID ID) const
 		{
 			// Make sure the component we are trying to get exist
-			assert(hasComponent(ID) && "A is not equal to B");
+			assert(hasComponent(ID) && "ID is not present");
 
 			// Get the component from the array
 			return mComponents[mComponentsArray[ID]].get();

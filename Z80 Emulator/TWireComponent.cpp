@@ -140,7 +140,7 @@ namespace nne
 		}
 
 		// If we arrive at this point maybe we have to deselect the chip
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::Mouse::isButtonPressed(sf::Mouse::Right))
 		{
 // 			if (LogicBoard.getSelectedWire() == this)
 // 				LogicBoard.deselectWire();
@@ -248,6 +248,16 @@ namespace nne
 	const nne::TPinList& TWireComponent::getPinList() const
 	{
 		return mPins;
+	}
+
+	const std::vector<sf::Vector2f>& TWireComponent::getVerticesVector() const
+	{
+		return mVertices;
+	}
+
+	const std::vector<sf::Vector2f>& TWireComponent::getJunctionsVector() const
+	{
+		return mJunctions;
 	}
 
 	void TWireComponent::placePointTemp(const sf::Vector2f& PointPos)

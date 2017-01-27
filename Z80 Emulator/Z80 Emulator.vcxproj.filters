@@ -91,6 +91,12 @@
     <Filter Include="Header Files\include\gui\base">
       <UniqueIdentifier>{2ade1568-48a5-4b8b-9fa8-1efe023d65a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\xml">
+      <UniqueIdentifier>{702e8b9c-11ad-4d74-b654-e80a6130e421}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\xml">
+      <UniqueIdentifier>{4c69974b-397e-4c6e-818a-40b3cf613e5e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -233,6 +239,12 @@
     </ClCompile>
     <ClCompile Include="TDebugWindow.cpp">
       <Filter>Source Files\src\gui\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="TXMLNode.cpp">
+      <Filter>Source Files\src\xml</Filter>
+    </ClCompile>
+    <ClCompile Include="TXMLFile.cpp">
+      <Filter>Source Files\src\xml</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -430,6 +442,12 @@
     </ClInclude>
     <ClInclude Include="TDebugWindow.h">
       <Filter>Header Files\include\gui\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="TXMLFile.h">
+      <Filter>Header Files\include\xml</Filter>
+    </ClInclude>
+    <ClInclude Include="TXMLNode.h">
+      <Filter>Header Files\include\xml</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

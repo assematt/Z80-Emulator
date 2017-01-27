@@ -55,6 +55,12 @@ namespace nne
 		TPinList& getPinList();
 		const TPinList& getPinList() const;
 
+		/// Get the vertices ready only vector
+		const std::vector<sf::Vector2f>& getVerticesVector() const;
+
+		/// Get the junctions ready only vector
+		const std::vector<sf::Vector2f>& getJunctionsVector() const;
+
 		/// place a temp point
 		void placePointTemp(const sf::Vector2f& PointPos);
 

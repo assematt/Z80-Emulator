@@ -121,8 +121,9 @@ namespace nne
 			TPinGroupID			mPinGroupID;
 
 		private:
-			TStatus	mPinStatus;
-			TPinID mPinID;			
+			TPinID				mPinID;			
+			TStatus				mPinStatus;
+			TPinConnections		mPinConnections;
 			mutable std::string	mParentName;
 		};
 	

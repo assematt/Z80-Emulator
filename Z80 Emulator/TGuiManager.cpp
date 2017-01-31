@@ -152,7 +152,6 @@ namespace nne
 			while (WidgetsNumber-- > 0)
 			{
 				// First get a ref to the shared_ptr<TWidget> inside the reverse iterator
-				//auto& Widget = **WidgetIterator;
 				auto& Widget = *mWidgetsContainer[WidgetsNumber];
 
 				// By default reset the state of the widget
@@ -189,7 +188,7 @@ namespace nne
 				if (Event.type == sf::Event::MouseButtonPressed)
 				{
 					// Change the Widget state
-					//Widget.changeState(TWidget::CLICKED);
+					Widget.changeState(TWidget::CLICKED);
 
 					// Fire the click event
 					Widget.fireEvent(events::onClick, &Widget, Event);
@@ -203,7 +202,7 @@ namespace nne
 				else if (Event.type == sf::Event::MouseButtonReleased)
 				{
 					// Change the Widget state
-					Widget.changeState(TWidget::CLICKED);
+					Widget.changeState(TWidget::SELECTED);
 
 					// Mouse down event
 					Widget.fireEvent(events::onMouseUp, &Widget, Event);

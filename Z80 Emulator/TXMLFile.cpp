@@ -39,13 +39,15 @@ namespace nne
 		bool TXMLFile::writeFile(const std::string& Path, TXMLNode::Ptr Head)
 		{
 			// Open the file specified by Path
-			mFile.open(Path);
+			mFile.open(Path, std::fstream::out);
 
 			// If something goes bad return false
 			if (!mFile.is_open())
 				return false;
 
-			mFile << Head->renderNode();
+			mFile << Head->renderNode(true);
+
+			mFile.close();
 
 			// If we made to this point everything went ok so return true
 			return true;

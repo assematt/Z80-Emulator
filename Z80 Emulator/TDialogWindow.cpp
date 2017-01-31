@@ -95,7 +95,7 @@ namespace nne
 		{
 			mDialogTitleString = Title;
 
-			mDialogTitleText.setString(transforText(Title));
+			mDialogTitleText.setString(transformText(Title));
 			adjustText(mDialogTitleText, sf::FloatRect(0.f, 0.f, 450.f, 350.f));
 		}
 
@@ -108,7 +108,7 @@ namespace nne
 		{
 			mDialogMessageString = Message;
 
-			mDialogMessageText.setString(transforText(Message));
+			mDialogMessageText.setString(transformText(Message));
 			adjustText(mDialogMessageText, sf::FloatRect(0.f, 0.f, 450.f, 350.f));
 
 			// Update the size of the dialog background
@@ -258,7 +258,7 @@ namespace nne
 			Text.setString(StrData);
 		}
 
-		std::string TDialogWindow::transforText(const std::string& TextToTransform)
+		std::string TDialogWindow::transformText(const std::string& TextToTransform)
 		{
 			std::string TempStr;
 			for (auto& Char : TextToTransform)

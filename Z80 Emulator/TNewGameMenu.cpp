@@ -56,6 +56,8 @@ namespace nne
 			PCBButton->setName("PCB_BUTTON");
 			PCBButton->setCaption("PCB");
 			PCBButton->setCharacterSize(24);
+			PCBButton->setToggleable(true);
+			PCBButton->setSelected(true);
 			PCBButton->setPosition({ 0.f, 0.f });
 			HeaderPanel->addWidget(PCBButton.get());
 
@@ -66,6 +68,8 @@ namespace nne
 			CodeButton->setName("CODE_BUTTON");
 			CodeButton->setCaption("CODE");
 			CodeButton->setCharacterSize(24);
+			CodeButton->setToggleable(true);
+			CodeButton->setSelected(false);
 			CodeButton->setPosition({ static_cast<float>(PCBButton->getSize().x), 0.f });
 			HeaderPanel->addWidget(CodeButton.get());
 			#pragma endregion
@@ -297,18 +301,18 @@ namespace nne
 			Canvas->setPosition(LeftToolsPanel->getSize().x, HeaderPanel->getSize().y);
 
 			// Adds the widgets to the menu
-			Manager.addWidget(HeaderPanel, 20);
-			Manager.addWidget(PCBButton, 21);
-			Manager.addWidget(CodeButton, 21);
+			Manager.addWidget(HeaderPanel, 9);
+			Manager.addWidget(PCBButton, 10);
+			Manager.addWidget(CodeButton, 10);
 
-			Manager.addWidget(FileButton, 3);
-			Manager.addWidget(EditButton, 3);
-			Manager.addWidget(OptionsButton, 3);
-			Manager.addWidget(HelpButton, 3);
+			Manager.addWidget(FileButton, 11);
+			Manager.addWidget(EditButton, 11);
+			Manager.addWidget(OptionsButton, 11);
+			Manager.addWidget(HelpButton, 1);
 
-			Manager.addWidget(ZIndexButton, 3);
-			Manager.addWidget(XValueButton, 3);
-			Manager.addWidget(YValueButton, 3);
+			Manager.addWidget(ZIndexButton, 12);
+			Manager.addWidget(XValueButton, 12);
+			Manager.addWidget(YValueButton, 12);
 
 			Manager.addWidget(LeftToolsPanel, 2);
 			Manager.addWidget(InsertChipButton, 3);

@@ -1,5 +1,8 @@
 #include "TNewGameScene.h"
+
+#include "TEntity.h"
 #include "TLogicBoardComponent.h"
+#include "TWireComponent.h"
 #include "TGridComponent.h"
 #include "TNewGameMenu.h"
 #include "TStaticText.h"
@@ -32,9 +35,6 @@ namespace nne
 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", this);
 		mGraphicEntity.initEntities();
 
-		// Create the logic board who will contain all the chip and set some property
-		mLogicBoard = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TLogicBoardComponent>();
-
 		// Init the GUI
 		tgui::TNewGameMenu::Ptr NewGameMenu = std::make_shared<tgui::TNewGameMenu>("NEW_GAME_MENU");		
 		NewGameMenu->setSize(WindowSize);
@@ -53,34 +53,54 @@ namespace nne
 		mGridComponent->setView(mRenderCanvas->getView());
 
 		// Set-up some GUI event for the header
-		mGuiManager.getWidget("PCB_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
-			mGuiManager.getWidget("LEFT_TOOLS_PANEL")->setVisible(true);
-			mGuiManager.getWidget("CODE_PANEL")->setVisible(false);
+		mGuiManager.getWidget("PCB_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+
+			auto& LeftToolsPanel = mGuiManager.getWidget("LEFT_TOOLS_PANEL");
+
+			if (!LeftToolsPanel->isVisible())
+			{
+				LeftToolsPanel->setVisible(true);
+				mGuiManager.getWidget("CODE_PANEL")->setVisible(false);
+			}
+
+			mGuiManager.getWidget("PCB_BUTTON")->setSelected(true);
+			mGuiManager.getWidget("CODE_BUTTON")->setSelected(false);
 		});
-		mGuiManager.getWidget("CODE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
-			mGuiManager.getWidget("LEFT_TOOLS_PANEL")->setVisible(false);
-			mGuiManager.getWidget("CODE_PANEL")->setVisible(true);
+		mGuiManager.getWidget("CODE_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+
+			auto& CodePanel = mGuiManager.getWidget("CODE_PANEL");
+
+			if (!CodePanel->isVisible())
+			{
+				CodePanel->setVisible(true);
+				mGuiManager.getWidget("LEFT_TOOLS_PANEL")->setVisible(false);
+			}
+
+			mGuiManager.getWidget("PCB_BUTTON")->setSelected(false);
+			mGuiManager.getWidget("CODE_BUTTON")->setSelected(true);
 		});
 
 		// Set-up some GUI event for the left side tools
 		mGuiManager.getWidget("INSERT_CHIP_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			auto& ChipList = *mGuiManager.getWidget("CHIP_LIST_PANEL");
 
+			float ChipListHeight = ChipList.getSize().y;
+
 			// If we are displaying the chip list close it
 			if (ChipList.isVisible())
 			{
 				ChipList.setVisible(false);
 
-				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, -210.f);
-				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, -210.f);
+				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, -ChipListHeight);
+				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, -ChipListHeight);
 			}
 			// Otherwise show it
 			else
 			{
 				ChipList.setVisible(true);
 
-				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, 210.f);
-				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, 210.f);
+				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, ChipListHeight);
+				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, ChipListHeight);
 			}
 		});
 		mGuiManager.getWidget("INSERT_WIRE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
@@ -148,10 +168,10 @@ namespace nne
 
 		// Set-up some GUI event to the RenderCanvas
 		mRenderCanvas->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
-			EventData.mouseButton.button == sf::Mouse::Left ? handleLeftMouseUpEvent(sf::Vector2f(EventData.mouseButton.x - 300, EventData.mouseButton.y - 50)) : handleRightMouseUpEvent();
+			EventData.mouseButton.button == sf::Mouse::Left ? handleLeftMouseUpEvent(sf::Vector2f(EventData.mouseButton.x - 300.f, EventData.mouseButton.y - 50.f)) : handleRightMouseUpEvent();
 		});
 		mRenderCanvas->attachEvent(tgui::events::onMouseMove, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
-			handleMouseMoveEvent(sf::Vector2f(EventData.mouseMove.x - 300, EventData.mouseMove.y - 50));
+			handleMouseMoveEvent(sf::Vector2f(EventData.mouseMove.x - 300.f, EventData.mouseMove.y - 50.f));
 
 			updateDebugInfo();
 		});
@@ -201,93 +221,55 @@ namespace nne
 		auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(MousePosAdj));
 		auto CellPos = mGridComponent->transformCellCoords(GridCoord);
 
-		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
+		auto& InsertionMethod = mLogicBoard.getInsertionMethod();
 
 		switch (InsertionMethod)
 		{
 			// If we are using the chip tool
-			case TLogicBoardComponent::TInsertionMethod::CHIP:
+			case TBoard::TInsertionMethod::CHIP:
 			{
 				// get a pointer to the selected wire
-				auto CurrentChip = mLogicBoard->getSelectedChip();
+				auto CurrentChip = mLogicBoard.getSelectedComponent<TChipComponent>();
 
 				if (CurrentChip && !CurrentChip->isPlaced())
 				{
 					mTempChip->getComponentAsPtr<TDrawableComponent>()->setPosition(CellPos);
 
 					/// Does the collision check
-					mLogicBoard->checkCollisions(CurrentChip);
+					mLogicBoard.checkCollisions(CurrentChip);
 				}
 			}break;
 
 			// If we are using the wire tool
-			case TLogicBoardComponent::TInsertionMethod::WIRE:
+			case TBoard::TInsertionMethod::WIRE:
 			{
 				// get a pointer to the selected wire
-				auto CurrentWire = mLogicBoard->getSelectedWire();
+				auto CurrentWire = mLogicBoard.getSelectedComponent<TWireComponent>();
 
 				if (CurrentWire)
 					CurrentWire->placePointTemp(CellPos);
 			}break;
 
 			// If we are using the bus tool
-			case TLogicBoardComponent::TInsertionMethod::BUS:
+			case TBoard::TInsertionMethod::BUS:
 			{
 				// get a pointer to the selected wire
-				auto CurrentBus = mLogicBoard->getSelectedBus();
+				auto CurrentBus = mLogicBoard.getSelectedComponent<TBusComponent>();
 
 				if (CurrentBus)
 					CurrentBus->placePointTemp(CellPos);
 			}break;
 
 			// If we are not using any tool
-			case TLogicBoardComponent::TInsertionMethod::NONE:
+			case TBoard::TInsertionMethod::NONE:
 				break;
 		}
 	}
 
 	void TNewGameScene::handleRightMouseUpEvent()
 	{
-		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
-
-		switch (InsertionMethod)
-		{
-			// Stop the chip tool
-			case TLogicBoardComponent::TInsertionMethod::CHIP:
-			{
-				// Remove temporary Entity
-				removeTemporaryEntity();
-			}break;
-
-			// Stop the wire tool
-			case TLogicBoardComponent::TInsertionMethod::WIRE:
-			{
-				/*// get a pointer to the selected wire
-				auto CurrentWire = mLogicBoard->getSelectedWire();
-
-				// If we have a valid wire selected we stop the drawing and deselect it
-				if (CurrentWire)
-				{
-					CurrentWire->toggleDraw();
-					mLogicBoard->deselectWire();
-				}*/
-
-				// Remove temporary Entity
-				removeTemporaryEntity();
-			}break;
-
-			// Stop the bus tool
-			case TLogicBoardComponent::TInsertionMethod::BUS:
-			{
-				// get a pointer to the selected bus
-				auto CurrentBus = mLogicBoard->getSelectedBus();
-				if (CurrentBus)
-				{
-					CurrentBus->toggleDraw();
-					mLogicBoard->deselectBus();
-				}
-			}
-		}
+		if (mLogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::NONE)
+			removeTemporaryEntity();
 	}
 
 	void TNewGameScene::handleLeftMouseUpEvent(const sf::Vector2f& MousePos)
@@ -297,27 +279,28 @@ namespace nne
 		auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(MousePosAdj));
 		auto CellPos = mGridComponent->transformCellCoords(GridCoord);
 
-		auto& InsertionMethod = mLogicBoard->getInsertionMethod();
+		auto& InsertionMethod = mLogicBoard.getInsertionMethod();
 
 		switch (InsertionMethod)
 		{
 			// If we are using the chip tool
-			case TLogicBoardComponent::TInsertionMethod::CHIP:
+			case TBoard::TInsertionMethod::CHIP:
 			{
 				// get a pointer to the selected wire
-				auto CurrentChip = mLogicBoard->getSelectedChip();
+				//auto CurrentChip = mLogicBoard->getSelectedChip();
+				auto CurrentChip = mLogicBoard.getSelectedComponent<TChipComponent>();
 
 				if (CurrentChip && !CurrentChip->isPlaced() && CurrentChip->isValid())
 				{
 					CurrentChip->setPlacedStatus(true);
-
-					mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::NONE);
-					mLogicBoard->deselectEverything();
+					
+					mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::NONE);
+					mLogicBoard.deselectEverything();
 				}
 			}break;
 
 			// If we are using the wire tool
-			case TLogicBoardComponent::TInsertionMethod::WIRE:
+			case TBoard::TInsertionMethod::WIRE:
 			{
 				// Get the WireComponent of the entity we are inserting
 				auto& InsertingWire = mTempWire->getComponent<TWireComponent>();
@@ -325,19 +308,19 @@ namespace nne
 				InsertingWire.confirmPoints();
 
 				// get a pointer to the selected chip
-				auto CurrentSelectedChip = mLogicBoard->getSelectedChip();
+				auto CurrentSelectedChip = mLogicBoard.getSelectedComponent<TChipComponent>();
 
 				// get a pointer to the former selected chip
-				auto FormerSelectedChip = mLogicBoard->getFormerSelectedChip();
+				auto FormerSelectedChip = mLogicBoard.getFormerSelectedComponent<TChipComponent>();
 
 				// get a pointer to the selected bus
-				auto SelectedBus = mLogicBoard->getSelectedBus();
+				auto SelectedBus = mLogicBoard.getSelectedComponent<TBusComponent>();
 
 				// Get a pointer to the selected wire
-				auto SelectedWire = mLogicBoard->getSelectedWire();
+				auto SelectedWire = mLogicBoard.getSelectedComponent<TWireComponent>();
 
 				// Get a pointer to the selected wire
-				auto FormerSelectedWire = mLogicBoard->getFormerSelectedWire();
+				auto FormerSelectedWire = mLogicBoard.getFormerSelectedComponent<TWireComponent>();
 
 				// Establish if we are drawing from a bus to chip or vice-versa
 				if (CurrentSelectedChip && !SelectedBus)
@@ -352,33 +335,26 @@ namespace nne
 					InsertingWire.placeJunction(CellPos);
 
 					// Make sure we reset the selected wire at the one we are inserting
-					mLogicBoard->setSelectedWire(SelectedWire);
-					mLogicBoard->setSelectedWire(&InsertingWire);
+					mLogicBoard.setSelectedComponent<TWireComponent>(SelectedWire);
+					mLogicBoard.setSelectedComponent<TWireComponent>(&InsertingWire);
 				}
 				// If we are trying to draw a wire between another wire and a chip
 				else if (SelectedWire && (SelectedWire == &InsertingWire) && FormerSelectedWire && CurrentSelectedChip && !FormerSelectedChip)
 				{
 					// Stop the drawing mode
 					InsertingWire.toggleDraw();
-
-					auto A = mLogicBoard->getSelectedWire();
-					auto B = mLogicBoard->getFormerSelectedWire();
-
-					// Connect the pins
-					auto& PinList = mLogicBoard->getSelectedWire()->getPinList();
-					auto& PinList2 = mLogicBoard->getFormerSelectedWire()->getPinList();
-
-					for (auto& Pin : FormerSelectedWire->getPinList())
+										
+					for (auto Pin : FormerSelectedWire->getPinList())
 					{
-						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
-						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
+						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
 					}
 
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
 
 					// Deselect the chip/wire/bus from the logic board
-					mLogicBoard->deselectEverything();
+					mLogicBoard.deselectEverything();
 
 					// Start the drawing of a new wire
 					addWire();
@@ -392,17 +368,17 @@ namespace nne
 					InsertingWire.placeJunction(CellPos);
 
 					// Connect the pins
-					for (auto& Pin : SelectedWire->getPinList())
+					for (auto Pin : SelectedWire->getPinList())
 					{
-						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
-						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), Pin);
+						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
 					}
 
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
 
 					// Deselect the chip/wire/bus from the logic board
-					mLogicBoard->deselectEverything();
+					mLogicBoard.deselectEverything();
 					
 					// Start the drawing of a new wire
 					addWire();
@@ -423,7 +399,7 @@ namespace nne
 					FormerSelectedChip->deselectPin();
 
 					// Deselect the chip/wire/bus from the logic board
-					mLogicBoard->deselectEverything();
+					mLogicBoard.deselectEverything();
 
 					// Start the drawing of a new wire
 					addWire();
@@ -445,109 +421,28 @@ namespace nne
 					CurrentSelectedChip->deselectPin();
 
 					// Deselect the chip/wire/bus from the logic board
-					mLogicBoard->deselectEverything();
+					mLogicBoard.deselectEverything();
 
 					// Start the drawing of a new wire
 					addWire();
 				}
-
-				/*
-				// get a pointer to the selected wire
-				auto CurrentWire = mLogicBoard->getSelectedWire();
-
-				// If we have selected a wire
-				if (CurrentWire)
-				{
-					CurrentWire->confirmPoints();
-
-					// get a pointer to the selected chip
-					auto CurrentChip = mLogicBoard->getSelectedChip();
-
-					// get a pointer to the former selected chip
-					auto FormerChip = mLogicBoard->getFormerSelectedChip();
-
-					// get a pointer to the selected bus
-					auto CurrentBus = mLogicBoard->getSelectedBus();
-
-					// Get a pointer to the selected wire
-
-					// Establish if we are drawing from a bus to chip or vice-versa
-					if (CurrentChip && !CurrentBus)
-						mDrawingFromBusToChip = false;
-					else if (!CurrentChip && CurrentBus)
-						mDrawingFromBusToChip = true;
-
-					// If we have drawn a wire between a chip and another wire
-					if (CurrentChip && CurrentWire)
-					{
-
-					}
-
-					// If we have drawn a wire between 2 chips, exit wire drawing mode, and deselect the currently selected chips and wire
-					if (CurrentChip && FormerChip)
-					{
-						// Stop the drawing mode
-						CurrentWire->toggleDraw();
-
-						// Connect the pins
-						TPinComponentUtility::connectPins(CurrentChip->getSelectedPin(), FormerChip->getSelectedPin());
-
-						// Reset the chip's pin selected status
-						CurrentChip->deselectPin();
-						FormerChip->deselectPin();
-
-						// Deselect the chip/wire/bus from the logic board
-						mLogicBoard->deselectEverything();
-
-						// Start the drawing of a new wire
-						addWire();
-					}
-
-					// If we have draw a wire between a chip and a bus, exit wire drawing mode, and deselect the currently selected chips and wire
-					if (CurrentChip && CurrentBus)
-					{
-						// Stop the drawing mode
-						CurrentWire->toggleDraw();
-
-						// Connect the pin to the bus as an entry wire
-						if (mDrawingFromBusToChip)
-							CurrentBus->connectExitWire(CurrentChip->getSelectedPin());
-						else
-							CurrentBus->connectEntryWire(CurrentChip->getSelectedPin());
-
-						// Reset the chip's pin selected status
-						CurrentChip->deselectPin();
-
-						// Deselect the chip/wire/bus from the logic board
-						mLogicBoard->deselectEverything();
-
-						// Start the drawing of a new wire
-						addWire();
-					}
-
-				}
-				*/
 				
 			}break;
 
 			// If we are using the bus tool
-			case TLogicBoardComponent::TInsertionMethod::BUS:
+			case TBoard::TInsertionMethod::BUS:
 			{
 				// get a pointer to the selected bus
-				auto CurrentBus = mLogicBoard->getSelectedBus();
+				auto CurrentBus = mLogicBoard.getSelectedComponent<TBusComponent>();
 
 				// If we have selected a bus
 				if (CurrentBus)
 					CurrentBus->confirmPoints();
-
-				// Start the drawing of a new bus
-				//addBus();
 			}break;
 
 			// If we are not using any tool
-			case TLogicBoardComponent::TInsertionMethod::NONE:
+			case TBoard::TInsertionMethod::NONE:
 			{
-				//mLogicBoard->deselectEverything();
 			}break;
 		}
 	}
@@ -561,20 +456,30 @@ namespace nne
 			{
 				removeTemporaryEntity();
 
-				mLogicBoard->deselectEverything();
-
-				mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::NONE);
+				mLogicBoard.deselectEverything();
+				mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::NONE);
 			} break;
 
 			// Save the current board
 			case sf::Keyboard::Q:
 			{
-				mLogicBoard->saveBoard("resources/boards/test_board.brd");
+				if (mLogicBoard.saveBoard("resources/boards/test_board.brd"))
+					::MessageBoxA(NULL, "The file was successfully saved", "Success!", MB_ICONEXCLAMATION | MB_OK);
+				else
+					::MessageBoxA(NULL, "The file couldn't be saved", "Error!", MB_ICONERROR | MB_OK);
 			} break;
 			// Load a board
 			case sf::Keyboard::Z:
 			{
-				mLogicBoard->loadBoard("resources/boards/test_board.brd", mGraphicEntity, this);
+				if (mLogicBoard.loadBoard("resources/boards/test_board.brd", mLogicBoard, mGraphicEntity, this))
+					::MessageBoxA(NULL, "The file was successfully loaded", "Success!", MB_ICONEXCLAMATION | MB_OK);
+				else
+					::MessageBoxA(NULL, "The file couldn't be loaded", "Error!", MB_ICONERROR | MB_OK);
+
+				mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::NONE);
+
+				// Get the number of loaded entities
+				mEntityCounter = mGraphicEntity.getTotalEntities();
 			} break;
 
 			// See if we are trying to place a new wire
@@ -645,7 +550,10 @@ namespace nne
 					{
 						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
 
-						CodeEditor->attachSourceCode(Z80.getProgram());
+						CodeEditor->attachZ80(Z80);
+
+						//CodeEditor->attachSourceCode(Z80.getProgram());
+						//CodeEditor->attachProgramCounter(Z80.getRegisterCointainer().programCounter());
 					}
 				}
 
@@ -750,16 +658,6 @@ namespace nne
 				mRenderCanvas->moveView({ 0.f, -100.f });
 				mGridComponent->forceRefresh();
 			}break;
-
-			// Toggle conductive wire
-			case sf::Keyboard::P:
-			{
-				// get a pointer to the selected wire
-				auto CurrentWire = mLogicBoard->getSelectedWire();
-
-				if (CurrentWire)
-					CurrentWire->toggleDraw();
-			}break;
 		}
 	}
 
@@ -814,27 +712,56 @@ namespace nne
 		// Remove temporary Entity
 		removeTemporaryEntity();
 
+		++mEntityCounter;
+
 		// Create a wire entity and add it to the manger
-		mGraphicEntity.addEntity(TFactory::makeWire(), "Wire_" + std::to_string(mWireCounter++), this);
+		mGraphicEntity.addEntity(TFactory::makeWire(), "Wire_" + std::to_string(mEntityCounter), this);
 
 		// Retrieve the newly added entity
-		mTempWire = mGraphicEntity.getEntityByKey("Wire_" + std::to_string(mWireCounter - 1));
+		mTempWire = mGraphicEntity.getEntityByKey("Wire_" + std::to_string(mEntityCounter));
 
 		// Init the newly added wire
 		mTempWire->init();
 
+		// Set the used board
+		mTempWire->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
+
+		mTempWire->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData){
+
+			if (mLogicBoard.getInsertionMethod() == TBoard::TInsertionMethod::NONE)
+			{
+				// Get the wire ID
+				auto WireID = Sender->getComponent<TWireComponent>().getComponentID();
+
+				// Get the wire connections
+				auto WireConnections = Sender->getComponent<TWireComponent>().getPinList();
+
+				// Dialog title
+				std::string DialogTitle = "Wire ID: " + std::to_string(WireID);
+
+				// Dialog message
+				std::string DialogMessage = WireConnections.empty() ? "Connections not set" : "";
+				for (auto& Pin : WireConnections)
+					DialogMessage += "Connection PIN id: " + std::to_string(Pin->getPinID()) + "\n";
+
+				::MessageBoxA(NULL, DialogMessage.c_str(), DialogTitle.c_str(), MB_OK);
+			}
+
+		});
+
 		// And adds it to the logic board
-		mLogicBoard->placeWire(mTempWire.get());
+		mLogicBoard.placeComponent<TWireComponent>(mTempWire);
 
 		// And set it as the active wire
-		mLogicBoard->deselectEverything();
-		mLogicBoard->setSelectedWire(mTempWire->getComponentAsPtr<TWireComponent>());
+		mLogicBoard.deselectEverything();
+		mLogicBoard.setSelectedComponent<TWireComponent>(mTempWire);
 
 		// Allow to draw the wire
-		mLogicBoard->getSelectedWire()->toggleDraw();
+		mLogicBoard.getSelectedComponent<TWireComponent>()->toggleDraw();
 
 		// Change the insertion method
-		mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::WIRE);
+		mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::WIRE);
+
 	}
 
 	void TNewGameScene::addBus()
@@ -842,27 +769,32 @@ namespace nne
 		// Remove temporary Entity
 		removeTemporaryEntity();
 
+		++mEntityCounter;
+
 		// Create a conductive bus entity and add it to the manger
-		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mBusCounter++), this);
+		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mEntityCounter), this);
 
 		// Retrieve the newly added entity
-		mTempBus = mGraphicEntity.getEntityByKey("Bus_" + std::to_string(mBusCounter - 1));
+		mTempBus = mGraphicEntity.getEntityByKey("Bus_" + std::to_string(mEntityCounter));
 
 		// Init the newly added bus
 		mTempBus->init();
 
+		// Set the used board
+		mTempBus->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
+
 		// And adds it to the logic board
-		mLogicBoard->placeBus(mTempBus.get());
+		mLogicBoard.placeComponent<TBusComponent>(mTempBus);
 
 		// And set it as the active bus
-		mLogicBoard->deselectEverything();
-		mLogicBoard->setSelectedBus(mTempBus->getComponentAsPtr<TBusComponent>());
+		mLogicBoard.deselectEverything();
+		mLogicBoard.setSelectedComponent<TBusComponent>(mTempBus);
 
 		// Allow to draw the bus
-		mLogicBoard->getSelectedBus()->toggleDraw();
+		mLogicBoard.getSelectedComponent<TBusComponent>()->toggleDraw();
 
 		// Change the insertion method
-		mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::BUS);
+		mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::BUS);
 	}
 
 	void TNewGameScene::addChip(const std::string& ChipToAdd)
@@ -914,23 +846,23 @@ namespace nne
 		mGraphicEntity.addEntity(FactoryFunction(), NewChipID, this);
 
 		// Get the newly added CHIP
-		auto NewChip = mGraphicEntity.getEntityByKey(NewChipID);
-		NewChip->init();
-		NewChip->getComponent<TChipComponent>().setPlacedStatus(false);
-		NewChip->getComponent<TChipComponent>().setChipName(NewChipID);
+		mTempChip = mGraphicEntity.getEntityByKey(NewChipID);
+		mTempChip->init();
+		mTempChip->getComponent<TChipComponent>().setPlacedStatus(false);
+		mTempChip->getComponent<TChipComponent>().setChipName(NewChipID);
+		
+		// Set the used board
+		mTempChip->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
 
 		// And adds it to the logic board
-		mLogicBoard->placeChip(NewChip.get());
+		mLogicBoard.placeComponent<TChipComponent>(mTempChip);
 
 		// And set it as the active chip
-		mLogicBoard->deselectEverything();
-		mLogicBoard->setSelectedChip(NewChip->getComponentAsPtr<TChipComponent>());
-		
-		// Cache a shared_ptr to the newly added entity
-		mTempChip = NewChip;
+		mLogicBoard.deselectEverything();
+		mLogicBoard.setSelectedComponent<TChipComponent>(mTempChip);
 
 		// Change the insertion method
-		mLogicBoard->setInsertionMethod(TLogicBoardComponent::TInsertionMethod::CHIP);
+		mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::CHIP);
 }
 
 	void TNewGameScene::removeTemporaryEntity()
@@ -941,10 +873,10 @@ namespace nne
 		if (mTempBus && mTempBus->getComponent<TBusComponent>().isDrawing())
 		{
 			// Make sure we reset the state of the selected bus
-			mLogicBoard->deselectBus(true);
+			mLogicBoard.deselectComponent<TBusComponent>(true);
 
 			// Remove the chip from the logic board
-			mLogicBoard->removeBus(mTempBus.get());
+			mLogicBoard.removeComponent<TBusComponent>(mTempBus);
 
 			// Remove the entity
 			mGraphicEntity.removeEntity(mTempBus->getEntityID());
@@ -959,10 +891,10 @@ namespace nne
 		if (mTempWire && mTempWire->getComponent<TWireComponent>().isDrawing())
 		{
 			// Make sure we reset the state of the selected wire
-			mLogicBoard->deselectWire(true);
+			mLogicBoard.deselectComponent<TWireComponent>(true);
 
 			// Remove the chip from the logic board
-			mLogicBoard->removeWire(mTempWire.get());
+			mLogicBoard.removeComponent<TWireComponent>(mTempWire);
 
 			// Remove the entity
 			mGraphicEntity.removeEntity(mTempWire->getEntityID());
@@ -977,12 +909,12 @@ namespace nne
 		if (mTempChip)
 		{
 			// Make sure we reset the state of the selected chip
-			mLogicBoard->deselectChip(true);
+			mLogicBoard.deselectComponent<TChipComponent>(true);
 
 			if (!mTempChip->getComponent<TChipComponent>().isPlaced())
 			{
 				// Remove the chip from the logic board
-				mLogicBoard->removeChip(mTempChip.get());
+				mLogicBoard.removeComponent<TChipComponent>(mTempChip);
 
 				// Remove the entity
 				mGraphicEntity.removeEntity(mTempChip->getEntityID());

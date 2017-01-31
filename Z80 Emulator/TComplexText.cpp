@@ -116,6 +116,15 @@ namespace nne
 // 			}
 		}
 
+		void TComplexText::setOpacity(const sf::Uint8& Opacity)
+		{
+			mOpacity = Opacity;
+
+			auto VertexCount = mVertices.getVertexCount();
+			for (std::size_t Index = 0u; Index < VertexCount; ++Index)
+				mVertices[Index].color.a = mOpacity;
+		}
+
 		void TComplexText::setCharacterFillColor(const sf::Color& Color, const std::size_t CharacterPos)
 		{
 			// If we try to modify a character that doesn't exist
@@ -360,6 +369,11 @@ namespace nne
 		const sf::Color& TComplexText::getFillColor() const
 		{
 			return mFillColor;
+		}
+
+		const sf::Uint8& TComplexText::getOpacity() const
+		{
+			return mOpacity;
 		}
 
 		const sf::Color& TComplexText::getCharacterFillColor(const std::size_t& CharactePos) const

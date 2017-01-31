@@ -32,7 +32,12 @@ namespace nne
 			/// Attach/Detach the source code
 			void attachSourceCode(const TSourceCode& SourceCode);
 			void detachSourceCode();
-			
+
+			/// Attach/Detach the PC counter
+			void attachProgramCounter(const T16BitRegister& PC);
+			void detachProgramCounter();
+
+			void attachZ80(const TZ80Component& Z80);
 
 		protected:
 			virtual void draw(sf::RenderTarget& Target, sf::RenderStates States) const override;
@@ -54,12 +59,19 @@ namespace nne
 			/// Convert the source code from bytes to 
 			std::string convertBytesToString(const TSourceCode& Source) const;
 
+			/// Adjust the position of the te
+			void adjustTextPosition(const TComplexText& Text);
+
 		private:
+			const TSourceCode*		mSourceCode;
+			const T16BitRegister*	mPCRegister;
+			const TZ80Component*	mZ80Component;
+
 			std::size_t			mCharacterSize;
-			const TSourceCode*	mSourceCode;
+			sf::VertexArray		mLineDividers;
+			sf::RectangleShape	mSelectedLine;				// sf::RectangleShape object that stores the background of the current selected line
 			sf::RectangleShape	mBreakpointsBarBackground;	// sf::RectangleShape object that stores the background of the breakpoints bar
-			sf::RectangleShape	mCodeLineBarBackground;		// sf::RectangleShape object that stores the background of the code line
-			sf::RectangleShape	mMemoryDebuggerBackground;	// sf::RectangleShape object that stores the background of memeory debugger code line
+			sf::RectangleShape	mCodeMemoryDebuggerBackground;
 			sf::RectangleShape	mMainCodeWindowBackground;	// sf::RectangleShape object that stores the background of memeory debugger code line
 
 			TComplexText		mCodeLinesCounter;			// TComplexText object that stores all the code lines

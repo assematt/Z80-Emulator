@@ -8,12 +8,13 @@ namespace nne
 
 	TDrawableComponent::TDrawableComponent()
 	{
+		mVertexArray = std::make_shared<sf::VertexArray>(sf::Quads, 4);
+		mTexture = std::make_shared<sf::Texture>();
 	}
 
 	void TDrawableComponent::init()
 	{
-		mVertexArray = std::make_shared<sf::VertexArray>(sf::Quads, 4);
-		mTexture = std::make_shared<sf::Texture>();
+		
 	}
 
 	void TDrawableComponent::setTexture(const sf::Texture& Texture, bool UpdateBounds /*= true*/)

@@ -59,6 +59,9 @@ namespace nne
 		/// Get the number of alive entities in the array
 		const std::size_t& getAliveEntities() const;
 
+		/// Get the number of all the entities in the array
+		std::size_t getTotalEntities() const;
+
 		/// Helper function for for-each style loop
 		EntityIterator begin();
 		EntityIterator end();

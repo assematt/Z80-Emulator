@@ -85,6 +85,15 @@ namespace nne
 
 			/// Restart the program execution
 			void restartExecution();
+
+			/// Return true if the z80 is currently powered on and running, otherwise return false
+			const bool & isRunning() const;
+
+			/// Return true if the z80 is currently halted
+			const bool& isHalted() const;
+
+			/// Return in what type of M cycle we are currently opereting under
+			const TMachineCycleMode& getCurrentCycleMode() const;
 			
 			/// Fetch the instruction from memory
 			TU8BitValue fetchInstruction(const TU16BitValue& Address = 0);

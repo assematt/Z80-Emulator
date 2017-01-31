@@ -17,7 +17,7 @@ namespace nne
 			/// TXMLNode Iterator
 			using Ptr = TXMLNode*;
 			using SharedPtr = std::shared_ptr<TXMLNode>;
-
+			using TChildren = std::vector<Ptr>;
 			using TAttributes = std::unordered_map<std::string, std::string>;
 
 			TXMLNode();
@@ -111,7 +111,7 @@ namespace nne
 
 			/// Functions to retrieve a child or a vector of child based on the supplied name
 			Ptr getChildNode(const std::string& Name) const;
-			std::vector<Ptr> getChildrenNodes(const std::string& Name, const std::size_t& Depth = 0) const;
+			TChildren getChildrenNodes(const std::string& Name, const std::size_t& Depth = 0) const;
 
 			/// Remove a child
 			void removeChildNode(Ptr Child);
@@ -133,11 +133,11 @@ namespace nne
 			std::string printEndNodeNameTag(const std::string& Name);
 
 		private:
-			Ptr					mParentNode;
-			std::string			mNodeName;
-			std::string			mNodeContent;
-			TAttributes			mAttributes;
-			std::vector<Ptr>	mChilds;
+			Ptr			mParentNode;
+			TChildren	mChilds;
+			std::string	mNodeName;
+			std::string	mNodeContent;
+			TAttributes	mAttributes;
 		};
 	}
 }

@@ -113,6 +113,12 @@ namespace nne
 			if (!mIsRunning || !mParent->getComponent<TPackageComponent>().isPoweredOn())
 				return;
 
+			if (mIsHalted)
+			{
+				mCurrentInstruction = TOpCodesMainInstruction::NOP;
+				return;
+			}
+
 			switch (mMachineCycleMode)
 			{
 			case TMachineCycleMode::INSTRUCTION_FETCH:
@@ -272,8 +278,26 @@ namespace nne
 			// Reset the state of the register
 			mRegisters.reset();
 
+			// Remove halted states
+			mIsHalted = false;
+
 			// Reset the TState
 			mTStates = 0;
+		}
+
+		const bool& TZ80Component::isRunning() const
+		{
+			return mIsRunning;
+		}
+
+		const bool& TZ80Component::isHalted() const
+		{
+			return mIsHalted;
+		}
+
+		const TZ80Component::TMachineCycleMode& TZ80Component::getCurrentCycleMode() const
+		{
+			return mMachineCycleMode;
 		}
 
 		TU8BitValue TZ80Component::fetchInstruction(const TU16BitValue& Address /*= 0*/)

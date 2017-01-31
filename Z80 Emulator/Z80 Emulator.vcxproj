@@ -272,6 +272,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClCompile Include="IComponent.cpp" />
     <ClCompile Include="IScene.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="TBoard.cpp" />
     <ClCompile Include="TBusComponent.cpp" />
     <ClCompile Include="TChipComponent.cpp" />
     <ClCompile Include="TClock.cpp" />
@@ -324,6 +325,7 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="IScene.h" />
     <ClInclude Include="TAlu.h" />
     <ClInclude Include="IComponent.h" />
+    <ClInclude Include="TBoard.h" />
     <ClInclude Include="TBusComponent.h" />
     <ClInclude Include="TCacheManager.h" />
     <ClInclude Include="TChipComponent.h" />
@@ -387,6 +389,10 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="TNewGameMenu.h" />
     <ClInclude Include="TStaticText.h" />
     <ClInclude Include="TWidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TBoard.inl" />
+    <None Include="TComponentArray.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

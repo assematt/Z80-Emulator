@@ -2,7 +2,9 @@
 
 #include <SFML/Window/Event.hpp>
 
+#include "TBoard.h"
 #include "TSceneManager.h"
+#include "TChipComponent.h"
 #include "TEventComponent.h"
 #include "TStateComponent.h"
 #include "TDrawableComponent.h"
@@ -58,30 +60,12 @@ namespace nne
 
 		// Update the status of the connected PINs based on their type
 		updatePinStatus(LeftPin, RightPin);
-
-/*
-		// Add the left pin to the right pin connections
-		RightPin.mPinConnections.push_back(&LeftPin);
-
-		// Add the right pin to the left pin connections
-		LeftPin.mPinConnections.push_back(&RightPin);
-
-		// Update the status of the connected PINs based on their type
-		updatePinStatus(LeftPin, RightPin);
-*/
 	}
 
 	void TPinComponentUtility::connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
 	{
 		for (auto Pin : RightPins)
 			connectPins(LeftPin, Pin);
-
-// 		for (auto Pin : RightPins)
-// 		{
-// 			Pin.mPinConnections.push_back(&LeftPin);
-// 
-// 			LeftPin.mPinConnections.push_back(&Pin);
-// 		}
 	}
 
 	void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
@@ -90,12 +74,6 @@ namespace nne
 
 		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
 			connectPins(*LeftPin, *RightPin);
-
-// 		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
-// 		{
-// 			RightPin->mPinConnections.push_back(&(*LeftPin));
-// 			LeftPin->mPinConnections.push_back(&(*RightPin));
-// 		}
 	}
 
 	void TPinComponentUtility::updatePinStatus(TPin& LeftPin, TPin& RightPin)
@@ -358,6 +336,13 @@ namespace nne
 		// Update the pin color only we placed the chip
 		for (auto Index = 0u; Index < PinsNumber; ++Index)
 		{
+			if (!getPin(Index + 1).hasConnections())
+			{
+				setPinColor(PinColorNormal, Index);
+
+				continue;
+			}
+
 			switch (getPin(Index + 1).getPinStatus())
 			{
 			case tcomponents::TPin::LOW:
@@ -403,7 +388,8 @@ namespace nne
 			return;
 
 		// Get a ref to the logic board component
-		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+		//auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>().getBoard();
 
 		// Get the number of pins
 		std::size_t NumberOfPins = mPins.size();
@@ -430,7 +416,8 @@ namespace nne
 				mSelectedPin = Index;
 
 				// Inform the logic board component that we selected this component
-				LogicBoard.setSelectedChip(&mParent->getComponent<TChipComponent>());
+				//LogicBoard.setSelectedChip(&mParent->getComponent<TChipComponent>());
+				LogicBoard.setSelectedComponent<TChipComponent>(mParent->getComponentAsPtr<TChipComponent>());
 
 				return;
 			}
@@ -444,10 +431,13 @@ namespace nne
 		}
 	
 		// If we arrive at this point maybe we have to deselect the chip
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TLogicBoardComponent::TInsertionMethod::WIRE)
+		//if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TLogicBoardComponent::TInsertionMethod::WIRE)
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::WIRE)
 		{
-			if (LogicBoard.getSelectedChip() == mParent->getComponentAsPtr<TChipComponent>())
-				LogicBoard.deselectChip();
+// 			if (LogicBoard.getSelectedChip() == mParent->getComponentAsPtr<TChipComponent>())
+// 				LogicBoard.deselectChip();
+			if (LogicBoard.getSelectedComponent<TChipComponent>() == mParent->getComponentAsPtr<TChipComponent>())
+				LogicBoard.deselectComponent<TChipComponent>();
 		}
 	}
 }

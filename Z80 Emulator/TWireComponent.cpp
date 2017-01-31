@@ -2,7 +2,7 @@
 
 #include <SFML/Window/Mouse.hpp>
 
-
+#include "TBoard.h"
 #include "IScene.h"
 #include "TEventComponent.h"
 #include "TStateComponent.h"
@@ -98,7 +98,7 @@ namespace nne
 		setHoveredStatus(false);
 
 		// Get a ref to the logic board component
-		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>().getBoard();
 
 		// Get a ref to the sf::RenderWindow
 		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
@@ -117,10 +117,10 @@ namespace nne
 			adjustWireBound(Quad);
 
 			// If we are clicking on the wire
-			if (checkMouseClickOnWire(Quad, MousePositionAdj))
+			if (checkMouseClickOnWireSegment(Quad, MousePositionAdj))
 			{
 				// Inform the logic board component that we selected this wire
-				LogicBoard.setSelectedWire(this);
+				LogicBoard.setSelectedComponent<TWireComponent>(this);
 
 				// Change the selection status of this wire
 				setSelectedStatus(true);
@@ -129,7 +129,7 @@ namespace nne
 				return;
 			} 
 			// If we are just hovering on the wire
-			else if (checkMouseOverOnWire(Quad, MousePositionAdj))
+			else if (checkMouseOverOnWireSegment(Quad, MousePositionAdj))
 			{
 				// Change the selection status of this wire
 				setHoveredStatus(true);
@@ -142,10 +142,8 @@ namespace nne
 		// If we arrive at this point maybe we have to deselect the chip
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::Mouse::isButtonPressed(sf::Mouse::Right))
 		{
-// 			if (LogicBoard.getSelectedWire() == this)
-// 				LogicBoard.deselectWire();
-			if (LogicBoard.getSelectedWire() == this)
-				LogicBoard.deselectWire();
+			if (LogicBoard.getSelectedComponent<TWireComponent>() == this)
+				LogicBoard.deselectComponent<TWireComponent>();
 		}
 	}
 
@@ -209,14 +207,14 @@ namespace nne
 		// The last point it's the last temp point
 		mLastPointPos = mLastPointPosTemp;
 
-		// Optimize the vertex vector by removing the uncessary vertices
+		// Optimize the vertex vector by removing the unnecessary vertices
 		optimizeVertexArray();
 	}
 
 	void TWireComponent::connectPins(TPin& LeftPin, TPin& RightPin)
 	{
-		mPins.push_back(LeftPin);
-		mPins.push_back(RightPin);
+		mPins.push_back(&LeftPin);
+		mPins.push_back(&RightPin);
 	}
 
 	void TWireComponent::adjustLine(const sf::Vector2f& Point1, const sf::Vector2f& Point2)
@@ -240,12 +238,12 @@ namespace nne
 		mLastPointPosTemp = Point2;
 	}
 
-	nne::TPinList& TWireComponent::getPinList()
+	TWireComponent::TPinConnections& TWireComponent::getPinList()
 	{
 		return mPins;
 	}
 
-	const nne::TPinList& TWireComponent::getPinList() const
+	const TWireComponent::TPinConnections& TWireComponent::getPinList() const
 	{
 		return mPins;
 	}
@@ -282,7 +280,7 @@ namespace nne
 		renderWire();
 	}
 
-	bool TWireComponent::checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd)
+	bool TWireComponent::checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd) const
 	{
 		// Check if horizontal (return true)
 		if (LineBegin.y == LineEnd.y)
@@ -387,7 +385,7 @@ namespace nne
 		renderWire();
 	}
 
-	bool TWireComponent::checkMouseClickOnWire(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos)
+	bool TWireComponent::checkMouseClickOnWireSegment(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos) const
 	{
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && WireBound.contains(MousePos))
 			return true;
@@ -395,7 +393,7 @@ namespace nne
 		return false;
 	}
 
-	bool TWireComponent::checkMouseOverOnWire(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos)
+	bool TWireComponent::checkMouseOverOnWireSegment(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos) const
 	{
 		if (WireBound.contains(MousePos))
 			return true;
@@ -403,7 +401,7 @@ namespace nne
 		return false;
 	}
 
-	void TWireComponent::adjustWireBound(sf::FloatRect& WireBound)
+	void TWireComponent::adjustWireBound(sf::FloatRect& WireBound) const
 	{
 		auto Width = std::abs(WireBound.width - WireBound.left);
 		auto Height = std::abs(WireBound.height - WireBound.top);
@@ -472,7 +470,7 @@ namespace nne
 		VertexArray.append({ { Point.x + (mJunctionThickness / 2.f), Point.y - (mJunctionThickness / 2.f) }, mWireColor });
 	}
 
-	sf::FloatRect TWireComponent::extractQuad(const sf::Vertex* Vertices)
+	sf::FloatRect TWireComponent::extractQuad(const sf::Vertex* Vertices) const
 	{
 		// Return value 
 		sf::FloatRect ReturnValue;
@@ -497,6 +495,26 @@ namespace nne
 	const bool& TWireComponent::isDrawing() const
 	{
 		return mEnableDraw;
+	}
+
+	bool TWireComponent::checkMouseOverWire(const sf::Vector2f& MousePos) const
+	{
+		// Get a ref to the vertex array
+		auto& VertexArray = mDrawableComponent->getVertexArray();
+		auto VerticesNumber = VertexArray.getVertexCount();
+
+		// Iterates through all the quads
+		for (auto Index = 0u; Index < VerticesNumber; Index += 4)
+		{
+			// Get the quad bounding box and adjust it
+			sf::FloatRect Segment = extractQuad(&VertexArray[Index]);
+			adjustWireBound(Segment);
+
+			if (checkMouseOverOnWireSegment(Segment, MousePos))
+				return true;
+		}
+
+		return false;
 	}
 
 	sf::FloatRect TWireComponent::getLocalBound()

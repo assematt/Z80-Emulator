@@ -30,6 +30,7 @@ namespace nne
 			TempPtr->addComponent<TWireComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -42,6 +43,7 @@ namespace nne
 			TempPtr->addComponent<TBusComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -52,7 +54,6 @@ namespace nne
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TGridComponent>();
-			TempPtr->addComponent<TLogicBoardComponent>();
 			
 			return std::move(TempPtr);
 		}
@@ -69,6 +70,7 @@ namespace nne
 			TempPtr->addComponent<TPackageComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -86,6 +88,7 @@ namespace nne
 			TempPtr->addComponent<TPackageComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -101,6 +104,7 @@ namespace nne
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -117,6 +121,7 @@ namespace nne
 			TempPtr->addComponent<TPackageComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}
@@ -132,6 +137,7 @@ namespace nne
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
+			TempPtr->addComponent<TLogicBoardComponent>();
 
 			return std::move(TempPtr);
 		}

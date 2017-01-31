@@ -2,6 +2,7 @@
 
 #include <SFML/Window/Mouse.hpp>
 
+#include "TBoard.h"
 #include "IScene.h"
 #include "TEventComponent.h"
 #include "TStateComponent.h"
@@ -94,7 +95,8 @@ namespace nne
 		setHoveredStatus(false);
 
 		// Get a ref to the logic board component
-		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+		//auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>().getBoard();
 
 		// Get a ref to the sf::RenderWindow
 		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
@@ -116,7 +118,8 @@ namespace nne
 			if (checkMouseClickOnWire(Quad, MousePositionAdj))
 			{
 				// Inform the logic board component that we selected this wire
-				LogicBoard.setSelectedBus(this);
+				//LogicBoard.setSelectedBus(this);
+				LogicBoard.setSelectedComponent<TBusComponent>(this);
 
 				// Change the selection status of this wire
 				setSelectedStatus(true);

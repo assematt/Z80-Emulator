@@ -245,6 +245,7 @@ namespace nne
 			bool				mIsVisible;
 			bool				mIsAlive;
 			TState				mState;
+			sf::Uint8			mOpacity;
 			std::size_t			mZIndex;
 			sf::IntRect			mTextureRect;
 			std::string			mName;

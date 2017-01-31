@@ -32,22 +32,7 @@ namespace nne
 			} break;
 			case TWidget::CLICKED:
 			{
-				TWidget::setColor(ClickedColor);
-				
-				if (TWidget::isToggleable())
-				{
-					if (TWidget::isSelected())
-					{
-						TWidget::changeState(TWidget::NORMAL);
-						TWidget::setSelected(false);
-					}
-					else
-					{
-						TWidget::changeState(TWidget::SELECTED);
-						TWidget::setSelected(true);
-					}
-				}
-					
+				TWidget::setColor(ClickedColor);					
 			} break;
 			case TWidget::DISABLED:
 			{
@@ -70,8 +55,6 @@ namespace nne
 			// draw this widget
 			Target.draw(mButtonImage, States);
 			Target.draw(mText, States);
-
-			//TButton::draw(Target, States);
 		}
 
 	}

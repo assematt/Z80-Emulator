@@ -246,6 +246,9 @@
     <ClCompile Include="TXMLFile.cpp">
       <Filter>Source Files\src\xml</Filter>
     </ClCompile>
+    <ClCompile Include="TBoard.cpp">
+      <Filter>Source Files\src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -449,5 +452,16 @@
     <ClInclude Include="TXMLNode.h">
       <Filter>Header Files\include\xml</Filter>
     </ClInclude>
+    <ClInclude Include="TBoard.h">
+      <Filter>Header Files\include\graphics</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TBoard.inl">
+      <Filter>Source Files\src\graphics</Filter>
+    </None>
+    <None Include="TComponentArray.inl">
+      <Filter>Source Files\src\component_system</Filter>
+    </None>
   </ItemGroup>
 </Project>

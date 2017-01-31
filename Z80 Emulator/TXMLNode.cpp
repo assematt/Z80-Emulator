@@ -114,7 +114,7 @@ namespace nne
 			return mChilds.back();
 		}
 
-		std::vector<TXMLNode::Ptr> TXMLNode::getChildrenNodes(const std::string& Name, const std::size_t& Depth /*= 0*/) const
+		nne::xml::TXMLNode::TChildren TXMLNode::getChildrenNodes(const std::string& Name, const std::size_t& Depth /*= 0*/) const
 		{
 			std::vector<Ptr> Result;
 

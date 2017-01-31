@@ -219,6 +219,8 @@ namespace nne
 
 		void TWidget::setOpacity(const sf::Uint8& Opacity)
 		{
+			mOpacity = Opacity;
+
 			mVertices[0].color.a = Opacity;
 			mVertices[1].color.a = Opacity;
 			mVertices[2].color.a = Opacity;
@@ -227,7 +229,7 @@ namespace nne
 
 		const sf::Uint8& TWidget::getOpacity() const
 		{
-			return mVertices[0].color.a;
+			return mOpacity;
 		}
 
 		void TWidget::setZIndex(const std::size_t& ZIndex)
@@ -421,6 +423,8 @@ namespace nne
 		void TWidget::setSelected(const bool& Select)
 		{
 			mIsSelected = Select;
+
+			mIsSelected ? changeState(TWidget::SELECTED) : resetState();
 		}
 
 		const bool& TWidget::isSelected() const
@@ -441,6 +445,8 @@ namespace nne
 		void TWidget::setHovered(const bool& Hovered)
 		{
 			mIsHovered = true;
+
+			mIsHovered ? changeState(TWidget::HOVER) : resetState();
 		}
 
 		const bool& TWidget::isHovered() const

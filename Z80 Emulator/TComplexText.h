@@ -51,6 +51,9 @@ namespace nne
 			/// Set the fill color of the displayed text
 			void setFillColor(const sf::Color& Color, const bool& OverrideOtherColor = true);
 
+			/// Set the text opacity
+			void setOpacity(const sf::Uint8& Opacity);
+
 			/// Set the fill color of one single character text
 			void setCharacterFillColor(const sf::Color& Color, const std::size_t CharacterPos);
 
@@ -96,6 +99,9 @@ namespace nne
 
 			/// Get the general fill color of the component
 			const sf::Color& getFillColor() const;
+
+			/// Get the text opacity
+			const sf::Uint8& getOpacity() const;
 
 			/// Get the general fill color of one single character text
 			const sf::Color& getCharacterFillColor(const std::size_t& CharactePos) const;
@@ -148,6 +154,7 @@ namespace nne
 			sf::String						mString;					///< String to display
 			const sf::Font*					mFont;						///< Font used to display the string
 			unsigned int					mCharacterSize;				///< Base size of characters, in pixels
+			sf::Uint8						mOpacity;
 			sf::Uint32						mStyle;						///< Text style (see Style enum)
 			sf::Color						mFillColor;					///< Text fill color
 			sf::Color						mStrikeThroughFillColor;	///< Fill color for the StrikeThrough style, by default it's the same color of the Fill Color

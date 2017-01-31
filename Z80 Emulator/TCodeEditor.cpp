@@ -4,6 +4,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include "TPackageComponent.h"
+
 namespace nne
 {
 	namespace tgui
@@ -17,19 +19,22 @@ namespace nne
 			mBreakpointsBarBackground.setFillColor(BreakpointsBarColor);
 			mBreakpointsBarBackground.setSize({ 20.f, 850.f });
 
-			// Set some property for the memory debugger
-			mCodeLineBarBackground.setFillColor(CodeLineBarColor);
-			mCodeLineBarBackground.setPosition(20.f, 0.f);
-			mCodeLineBarBackground.setSize({ 60.f, 850.f });
-			mCodeLineBarBackground.setOutlineColor({ 128, 128, 191 });
-			mCodeLineBarBackground.setOutlineThickness(1.f);
+			// Set some property for the selected line bar
+			mSelectedLine.setSize({ 252.f, 24.f });
+			mSelectedLine.setFillColor({ 0, 14, 26 });
+			mSelectedLine.setPosition(20.f, 14.f);
 
-			// Set some property for the memory debugger
-			mMemoryDebuggerBackground.setFillColor(MemoryDebuggerColor);
-			mMemoryDebuggerBackground.setPosition(81.f, 0.f);
-			mMemoryDebuggerBackground.setSize({ 191.f, 850.f });
-			mMemoryDebuggerBackground.setOutlineColor({ 255, 255, 255 });
-			mMemoryDebuggerBackground.setOutlineThickness(1.f);
+			// Set some property for the line dividers
+			mLineDividers.setPrimitiveType(sf::Lines);
+			mLineDividers.append(sf::Vertex({ 81.f, 0.f }, { 128, 128,191 }));
+			mLineDividers.append(sf::Vertex({ 81.f, 850.f }, { 128, 128,191 }));
+			mLineDividers.append(sf::Vertex({ 273.f, 0.f }, sf::Color::White));
+			mLineDividers.append(sf::Vertex({ 273.f, 850.f }, sf::Color::White));
+
+			// Set some property for the memory debugger background
+			mCodeMemoryDebuggerBackground.setFillColor({ 0, 21, 39 });
+			mCodeMemoryDebuggerBackground.setPosition(20.f, 0.f);
+			mCodeMemoryDebuggerBackground.setSize({ 253.f, 850.f });
 
 			// Set some property for the memory debugger
 			mMainCodeWindowBackground.setFillColor(MainCodeWindowColor);
@@ -38,7 +43,7 @@ namespace nne
 
 			// Set some property for the code lines text
 			mCodeLinesCounter.setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
-			mCodeLinesCounter.setLeading(23);
+			mCodeLinesCounter.setLeading(24);
 			mCodeLinesCounter.setCharacterSize(mCharacterSize);
 			mCodeLinesCounter.setFillColor(sf::Color::White);
 			mCodeLinesCounter.setString(createLineCounterString(1u, 40u));
@@ -46,7 +51,7 @@ namespace nne
 
 			// Set some property for the position of code lines in memory
 			mCodeMemoryCounter.setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
-			mCodeMemoryCounter.setLeading(23);
+			mCodeMemoryCounter.setLeading(24);
 			mCodeMemoryCounter.setCharacterSize(mCharacterSize);
 			mCodeMemoryCounter.setFillColor({ 191, 191, 191 });
 			mCodeMemoryCounter.setString(createMemoryCounterString({}));
@@ -54,7 +59,7 @@ namespace nne
 
 			// Set some property for source code memory bytes
 			mCodeMemoryBytes.setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
-			mCodeMemoryBytes.setLeading(23);
+			mCodeMemoryBytes.setLeading(24);
 			mCodeMemoryBytes.setCharacterSize(mCharacterSize);
 			mCodeMemoryBytes.setFillColor({ 191, 191, 191 });
 			mCodeMemoryBytes.setString(createSourceCodeBytes({}));
@@ -62,7 +67,7 @@ namespace nne
 
 			// Set some property for source code memory bytes
 			mCodeSourceText.setFont(TCacheManager::getInstance().getResource<sf::Font>("font_1"));
-			mCodeSourceText.setLeading(23);
+			mCodeSourceText.setLeading(24);
 			mCodeSourceText.setCharacterSize(mCharacterSize);
 			mCodeSourceText.setFillColor({ 255, 255, 255 });
 			mCodeSourceText.setString(convertBytesToString({}));
@@ -93,6 +98,24 @@ namespace nne
 			mSourceCode = nullptr;
 		}
 
+		void TCodeEditor::attachProgramCounter(const T16BitRegister& PC)
+		{
+			mPCRegister = &PC;
+		}
+
+		void TCodeEditor::detachProgramCounter()
+		{
+			mPCRegister = nullptr;
+		}
+
+		void TCodeEditor::attachZ80(const TZ80Component& Z80)
+		{
+			mZ80Component = &Z80;
+
+			attachProgramCounter(Z80.getRegisterCointainer().programCounter());
+			attachSourceCode(Z80.getProgram());
+		}
+
 		void TCodeEditor::draw(sf::RenderTarget& Target, sf::RenderStates States) const
 		{
 			// Skip the rendering if we are not showing the widget
@@ -108,10 +131,11 @@ namespace nne
 			// draw this widget
 
 			// Draw the backgrounds
-			Target.draw(mMemoryDebuggerBackground, States);
-			Target.draw(mCodeLineBarBackground, States);
+			Target.draw(mCodeMemoryDebuggerBackground, States);
 			Target.draw(mBreakpointsBarBackground, States);
 			Target.draw(mMainCodeWindowBackground, States);
+			Target.draw(mSelectedLine, States);
+			Target.draw(mLineDividers, States);
 
 			// Draw the text
 			Target.draw(mCodeLinesCounter, States);
@@ -122,7 +146,22 @@ namespace nne
 
 		void TCodeEditor::update(const sf::Time& ElapsedTime)
 		{
-			
+			if (!mSourceCode || !mPCRegister || !mZ80Component->isRunning() || mZ80Component->getCurrentCycleMode() != TZ80Component::TMachineCycleMode::INSTRUCTION_FETCH)
+				return;
+
+			auto	Counter = 0u;
+			auto	Index = 0u;
+			auto&	Source = *mSourceCode;
+
+			while (Counter < Source.size() && Source[Counter].InstructionPosition != mPCRegister->getInternalValue())
+			{
+				++Index;
+
+				// Advance the program by the program size
+				Counter += Source[Counter].InstructionSize;
+			}
+
+			mSelectedLine.setPosition(20.f, 14.f + 24 * Index);
 		}
 
 		std::string TCodeEditor::createLineCounterString(const sf::Uint32& Begin, const sf::Uint32& End) const
@@ -144,7 +183,7 @@ namespace nne
 
 			auto SourceSize = Source.size();
 			auto SourcePos = 0;
-			auto Counter = 0;
+			auto Counter = 0u;
 
 			while (Counter < SourceSize)
 			{
@@ -173,7 +212,7 @@ namespace nne
 			std::stringstream Result;
 
 			auto SourceSize = Source.size();
-			auto Counter = 0;
+			auto Counter = 0u;
 
 			while (Counter < SourceSize)
 			{
@@ -208,7 +247,7 @@ namespace nne
 			std::stringstream Result;
 
 			auto SourceSize = Source.size();
-			auto Counter = 0;
+			auto Counter = 0u;
 
 			while (Counter < SourceSize)
 			{

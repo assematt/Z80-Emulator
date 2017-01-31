@@ -4,6 +4,7 @@
 
 #include "TEventComponent.h"
 #include "TStateComponent.h"
+#include "TWireComponent.h"
 
 namespace nne
 {
@@ -80,10 +81,10 @@ namespace nne
 
 			// Get the bound of that object
 			auto& EntityBound = Entity.getComponent<TDrawableComponent>().getGlobalBounds();
-
+			
 			// Establish if the mouse it's above the widget
 			auto MousePos = EventCanvas.mapPixelToCoords(sf::Mouse::getPosition(EventWindow) - sf::Vector2i(300, 50));
-			bool IsInsideWidget = EntityBound.contains(MousePos);
+			bool IsInsideWidget = Entity.hasComponent<TWireComponent>() ? Entity.getComponent<TWireComponent>().checkMouseOverWire(MousePos) : EntityBound.contains(MousePos);
 
 			// Make sure the update the position of the mouse
 			EventComponent.setMousePosition(MousePos);
@@ -153,6 +154,8 @@ namespace nne
 	void TManager::initLastEntity()
 	{
 		mEntityVector.back()->init();
+
+		mAliveElement++;
 	}
 
 	void TManager::update(const sf::Time& ElapsedTime)
@@ -178,6 +181,11 @@ namespace nne
 	const std::size_t& TManager::getAliveEntities() const
 	{
 		return mAliveElement;
+	}
+
+	std::size_t TManager::getTotalEntities() const
+	{
+		return mEntityVector.size();
 	}
 
 	TManager::EntityIterator TManager::begin()

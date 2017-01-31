@@ -1,7 +1,7 @@
 #include "TChipComponent.h"
 
 #include "TLogicBoardComponent.h"
-#include "TLedComponent.h"
+#include "TPackageComponent.h"
 #include "TCacheManager.h"
 #include "TSceneManager.h"
 
@@ -68,6 +68,10 @@ namespace nne
 
 		// Update the pin parent name
 		auto& PinList = mParent->getComponent<TPinComponent>().getPinList();
+
+		// Update the displayed chip name if we have one
+		if (mParent->hasComponent<TPackageComponent>())
+			mParent->getComponent<TPackageComponent>().updateChipName();
 
 		for (auto& Pin : PinList)
 			Pin.setPinParent(mChipName);

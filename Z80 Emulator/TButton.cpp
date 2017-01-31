@@ -1,6 +1,8 @@
 #include "TButton.h"
 #include "TCacheManager.h"
 
+#include <SFML/OpenGL.hpp>
+
 namespace nne
 {
 	namespace tgui
@@ -65,7 +67,7 @@ namespace nne
 			// Skip the rendering if we are not showing the widget
 			if (!isVisible())
 				return;
-
+			
 			// draw the base class
 			TWidget::draw(Target, States);
 
@@ -78,31 +80,33 @@ namespace nne
 
 		void TButton::update(const sf::Time& ElapsedTime)
 		{
+			mText.setOpacity(TWidget::getOpacity());
+
 			// Get the current widget state
 			const auto& State = getState();
 
 			switch (State)
 			{
-			case TWidget::NORMAL:
-			{
-				TWidget::setColor(NormalColor);
-			} break;
-			case TWidget::HOVER:
-			{
-				TWidget::setColor(HoverColor);
-			} break;
-			case TWidget::SELECTED:
-			{
-				TWidget::setColor(SelectedColorColor);
-			} break;
-			case TWidget::CLICKED:
-			{
-				TWidget::setColor(ClickedColor);
-			} break;
-			case TWidget::DISABLED:
-			{
-				TWidget::setColor(DisabledColorColor);
-			} break;
+				case TWidget::NORMAL:
+				{
+					TWidget::setColor(NormalColor);
+				} break;
+				case TWidget::HOVER:
+				{
+					TWidget::setColor(HoverColor);
+				} break;
+				case TWidget::SELECTED:
+				{
+					TWidget::setColor(SelectedColorColor);
+				} break;
+				case TWidget::CLICKED:
+				{
+					TWidget::setColor(ClickedColor);
+				} break;
+				case TWidget::DISABLED:
+				{
+					TWidget::setColor(DisabledColorColor);
+				} break;
 			}
 		}
 

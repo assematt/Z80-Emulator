@@ -47,7 +47,7 @@ namespace nne
 			void adjustText(sf::Text& Text, sf::FloatRect& Bound);
 
 			/// Make sure that all the letters are in Uppercase
-			std::string transforText(const std::string& TextToTransform);
+			std::string transformText(const std::string& TextToTransform);
 
 
 		private:

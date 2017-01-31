@@ -10,6 +10,7 @@
 
 namespace nne
 {
+	class TBoard;
 
 	class TWireComponent : public IComponent
 	{
@@ -22,6 +23,8 @@ namespace nne
 		static const sf::Color WireColorStatusLow;
 		static const sf::Color WireColorStatusHigh;
 		static const sf::Color WireColorStatusHighZ;
+
+		using TPinConnections = std::vector<TPin*>;
 
 		/// constructor
 		TWireComponent();
@@ -52,8 +55,8 @@ namespace nne
 		void connectPins(TPin& LeftPin, TPin& RightPin);
 
 		/// Get the pin list
-		TPinList& getPinList();
-		const TPinList& getPinList() const;
+		TPinConnections& getPinList();
+		const TPinConnections& getPinList() const;
 
 		/// Get the vertices ready only vector
 		const std::vector<sf::Vector2f>& getVerticesVector() const;
@@ -73,6 +76,9 @@ namespace nne
 		/// Return the number of placed point
 		const bool& isDrawing() const;
 
+		/// Check if the mouse it's above the wire
+		bool checkMouseOverWire(const sf::Vector2f& MousePos) const;
+
 		/// Get the bound of the wire
 		sf::FloatRect getLocalBound();
 		sf::FloatRect getGlobalBound();
@@ -89,7 +95,7 @@ namespace nne
 		void pointToJunction(const sf::Vector2f& Point);
 
 		/// Convert a quad to two points
-		sf::FloatRect extractQuad(const sf::Vertex* Vertices);
+		sf::FloatRect extractQuad(const sf::Vertex* Vertices) const;
 
 		/// Put a single point in the vertex array
 		void placeInitialPoint(const sf::Vector2f& PointPos);
@@ -98,7 +104,7 @@ namespace nne
 		void adjustLine(const sf::Vector2f& Point1, const sf::Vector2f& Point2);
 
 		/// Check the orientation of the lines we want to draw
-		bool checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd);
+		bool checkOrentation(const sf::Vector2f& LineBegin, const sf::Vector2f& LineEnd) const;
 
 		/// Optimize the vertex array removing the unnecessary vertices
 		void optimizeVertexArray();
@@ -110,13 +116,13 @@ namespace nne
 		void removeUnnecessaryVertices();
 		
 		/// Check if we clicked on a wire
-		bool checkMouseClickOnWire(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos);
+		bool checkMouseClickOnWireSegment(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos) const;
 
 		/// Check if we are hovering a wire
-		bool checkMouseOverOnWire(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos);
+		bool checkMouseOverOnWireSegment(const sf::FloatRect& WireBound, const sf::Vector2f& MousePos) const;
 
 		/// Because the wire size can be negative due to the fact vertex array data is relative to the main view we have to do some math to figure out the wire real size
-		void adjustWireBound(sf::FloatRect& WireBound);
+		void adjustWireBound(sf::FloatRect& WireBound) const;
 
 		/// Shift the vertex array left by a specified amount
 		void shiftVerticesLeft(std::size_t BeginIndex, std::size_t EndIndex, std::size_t Steps);
@@ -127,7 +133,7 @@ namespace nne
 		bool						mIsHovered;
 		float						mThickness;
 		float						mJunctionThickness;
-		TPinList					mPins;
+		TPinConnections				mPins;
 		sf::Color					mWireColor;
 		std::size_t					mFixedPoints;
 
@@ -138,5 +144,7 @@ namespace nne
 		TDrawableComponent*			mDrawableComponent;
 		std::vector<sf::Vector2f>	mVertices;
 		std::vector<sf::Vector2f>	mJunctions;
+
+		friend class TBoard;
 	};
 }

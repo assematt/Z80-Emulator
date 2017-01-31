@@ -4,12 +4,12 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 
 #include "IScene.h"
+#include "TBoard.h"
 #include "TManager.h"
 #include "TFactory.h"
 #include "TGuiManager.h"
 #include "TRenderCanvas.h"
 #include "TGridComponent.h"
-#include "TLogicBoardComponent.h"
 #include "TZ80Component.h"
 
 namespace nne
@@ -71,12 +71,14 @@ namespace nne
 		tgui::TGuiManager		mGuiManager;
 		TGridComponent*			mGridComponent;
 		tgui::TRenderCanvas*	mRenderCanvas;
-		TLogicBoardComponent*	mLogicBoard;
+		
+		TBoard					mLogicBoard;
 
 		/// Variable to keep track of how many wires/bus/chips we have in the logic board
 		std::size_t				mWireCounter;
 		std::size_t				mChipCounter;
 		std::size_t				mBusCounter;
+		std::size_t				mEntityCounter;
 
 		/// Variable the old a shared_ptr to the last added wires/bus/chips
 		TEntity::EntityPtr		mTempChip;

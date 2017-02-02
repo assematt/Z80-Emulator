@@ -43,7 +43,7 @@ namespace nne
 
 		private:
 			/// Get the size of the displayed text string
-			sf::Vector2f getTextSize();
+			sf::Vector2f getTextSize(const bool& IncludePadding = false);
 
 		protected:
 			TComplexText	mText;

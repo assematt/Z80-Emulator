@@ -92,7 +92,7 @@ namespace nne
 			/// Return true if the z80 is currently halted
 			const bool& isHalted() const;
 
-			/// Return in what type of M cycle we are currently opereting under
+			/// Return in what type of M cycle we are currently operating under
 			const TMachineCycleMode& getCurrentCycleMode() const;
 			
 			/// Fetch the instruction from memory
@@ -174,7 +174,9 @@ namespace nne
 			TRegisterContainer mRegisters;
 
 			// Debugger window
-			TDebugger mDebugger;
+			TDebugger				mDebugger;
+
+			//friend class TCodeEditor;
 		};
 
 		template <class T, class S /*= T*/>

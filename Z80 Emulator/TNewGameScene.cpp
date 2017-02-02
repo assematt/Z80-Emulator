@@ -471,12 +471,39 @@ namespace nne
 			// Load a board
 			case sf::Keyboard::Z:
 			{
-				if (mLogicBoard.loadBoard("resources/boards/test_board.brd", mLogicBoard, mGraphicEntity, this))
-					::MessageBoxA(NULL, "The file was successfully loaded", "Success!", MB_ICONEXCLAMATION | MB_OK);
-				else
+				// Display an error message if something goes wrong
+				if (!mLogicBoard.loadBoard("resources/boards/test_board.brd", mLogicBoard, mGraphicEntity, this))
+				{
 					::MessageBoxA(NULL, "The file couldn't be loaded", "Error!", MB_ICONERROR | MB_OK);
+					return;
+				}
 
+				// Display a success message if everything goes well
+				::MessageBoxA(NULL, "The file was successfully loaded", "Success!", MB_ICONEXCLAMATION | MB_OK);
+
+				// Set the new insertion method
 				mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::NONE);
+
+				// Get the Z80 and the ram entity
+				auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
+				auto RamEntity = mGraphicEntity.getEntityByKey("RAM");
+
+				// Se if both the CPU and the RAM are placed into the logic board
+				if (Z80Entity && RamEntity)
+				{
+					auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
+					Z80.connectRam(RamEntity);
+					if (!Z80.loadProgram("resources/programs/SUB.A01"))
+					{
+						std::cout << "Error! Could not open the file" << std::endl;
+					}
+					else
+					{
+						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
+
+						CodeEditor->attachZ80(Z80);
+					}
+				}
 
 				// Get the number of loaded entities
 				mEntityCounter = mGraphicEntity.getTotalEntities();
@@ -551,12 +578,8 @@ namespace nne
 						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
 
 						CodeEditor->attachZ80(Z80);
-
-						//CodeEditor->attachSourceCode(Z80.getProgram());
-						//CodeEditor->attachProgramCounter(Z80.getRegisterCointainer().programCounter());
 					}
 				}
-
 			}break;
 						
 			// Reset the CPU

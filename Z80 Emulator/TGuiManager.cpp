@@ -228,6 +228,14 @@ namespace nne
 
 					EventFound = true;
 				}
+				// Handle key press up
+				else if (Event.type == sf::Event::KeyReleased)
+				{
+					// Key press event
+					Widget.fireEvent(events::onKeyUp, &Widget, Event);
+
+					EventFound = true;
+				}
 				// Mouse move event
 				else
 				{

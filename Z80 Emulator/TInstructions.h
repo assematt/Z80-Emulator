@@ -993,11 +993,12 @@ enum TOpCodesIYBitInstructions : sf::Uint16
 
 struct TInstruction
 {
-	TInstruction(const sf::Uint16& Size, const sf::Uint16& Position, const sf::Uint16& Code, const std::string& Name ) :
+	TInstruction(const sf::Uint16& Size, const sf::Uint16& Position, const sf::Uint16& Code, const std::string& Name, const sf::Uint32& CodeNumber = 0) :
 		InstructionSize(Size),
 		InstructionPosition(Position),
 		InstructionCode(Code),
-		InstructionName(Name)
+		InstructionName(Name),
+		InstructionCodeNumber(CodeNumber)
 	{
 	}
 
@@ -1014,6 +1015,7 @@ struct TInstruction
 	sf::Uint16	InstructionSize;
 	sf::Uint16	InstructionPosition;
 	sf::Uint16	InstructionCode;
+	sf::Uint32	InstructionCodeNumber;
 	std::string	InstructionName;
 };
 

@@ -77,18 +77,16 @@ namespace nne
 			#pragma region MAIN MENU
 			// File button
 			TButton::Ptr FileButton = std::make_shared<TButton>();
-			FileButton->setZIndex(3);
-			FileButton->setPadding({ 12u, 16u });
+			FileButton->setPadding({ 14u, 16u });
 			FileButton->setName("FILE_BUTTON");
 			FileButton->setCaption("FILE");
 			FileButton->setCharacterSize(16);
-			FileButton->setPosition({ 325.f, 0.f });
+			FileButton->setPosition({ 300.f, 0.f });
 			HeaderPanel->addWidget(FileButton.get());
 
 			// Edit button
 			TButton::Ptr EditButton = std::make_shared<TButton>();
-			EditButton->setZIndex(3);
-			EditButton->setPadding({ 12u, 16u });
+			EditButton->setPadding({ 14u, 16u });
 			EditButton->setName("EDIT_BUTTON");
 			EditButton->setCaption("EDIT");
 			EditButton->setCharacterSize(16);
@@ -97,8 +95,7 @@ namespace nne
 
 			// Options button
 			TButton::Ptr OptionsButton = std::make_shared<TButton>();
-			OptionsButton->setZIndex(3);
-			OptionsButton->setPadding({ 12u, 16u });
+			OptionsButton->setPadding({ 14u, 16u });
 			OptionsButton->setName("OPTIONS_BUTTON");
 			OptionsButton->setCaption("OPTIONS");
 			OptionsButton->setCharacterSize(16);
@@ -107,8 +104,7 @@ namespace nne
 
 			// Help button
 			TButton::Ptr HelpButton = std::make_shared<TButton>();
-			HelpButton->setZIndex(3);
-			HelpButton->setPadding({ 12u, 16u });
+			HelpButton->setPadding({ 14u, 16u });
 			HelpButton->setName("HELP_BUTTON");
 			HelpButton->setCaption("HELP");
 			HelpButton->setCharacterSize(16);
@@ -308,7 +304,7 @@ namespace nne
 			Manager.addWidget(FileButton, 11);
 			Manager.addWidget(EditButton, 11);
 			Manager.addWidget(OptionsButton, 11);
-			Manager.addWidget(HelpButton, 1);
+			Manager.addWidget(HelpButton, 11);
 
 			Manager.addWidget(ZIndexButton, 12);
 			Manager.addWidget(XValueButton, 12);
@@ -345,10 +341,10 @@ namespace nne
 			CodePanel->setName("CODE_PANEL");
 			CodePanel->setPosition(sf::Vector2f(0, 50.f));
 			CodePanel->setSize({ MenuSize.x / 2, MenuSize.y - HeaderPanelSize.y });
-			CodePanel->setColor({ 0, 35, 64 });
 			CodePanel->setVisible(false);
 
 			TCodeEditor::Ptr CodeEditor = std::make_shared<TCodeEditor>();
+			CodeEditor->setSize(CodePanel->getSize());
 			CodeEditor->setName("CODE_EDITOR");
 			CodePanel->addWidget(CodeEditor.get());
 

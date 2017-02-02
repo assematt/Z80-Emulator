@@ -1,14 +1,20 @@
 #pragma once
 
-#include <windows.h> 
+#include <SFML/Graphics/Sprite.hpp>
+#include <unordered_map>
+#include <unordered_set>
+#include <windows.h>
 #include <iostream>
 #include <chrono>
 
 #include "TAlu.h"
 #include "TClock.h"
+#include "TInstructions.h"
+#include "TCacheManager.h"
 
 namespace nne
 {
+	
 	class TDebugger
 	{
 	public:

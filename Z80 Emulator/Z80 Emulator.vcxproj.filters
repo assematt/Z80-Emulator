@@ -97,6 +97,12 @@
     <Filter Include="Source Files\src\xml">
       <UniqueIdentifier>{4c69974b-397e-4c6e-818a-40b3cf613e5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\debugger">
+      <UniqueIdentifier>{3c2e12b8-82c6-4e07-818b-9cbacb94c054}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\debugger">
+      <UniqueIdentifier>{d01fd82b-058d-4067-9c76-abaac07ef161}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp">
@@ -122,9 +128,6 @@
     </ClCompile>
     <ClCompile Include="TMultiplexerComponent.cpp">
       <Filter>Source Files\src\components</Filter>
-    </ClCompile>
-    <ClCompile Include="TDebugger.cpp">
-      <Filter>Source Files\src</Filter>
     </ClCompile>
     <ClCompile Include="TGameApp.cpp">
       <Filter>Source Files\src</Filter>
@@ -249,6 +252,12 @@
     <ClCompile Include="TBoard.cpp">
       <Filter>Source Files\src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="TDebugger.cpp">
+      <Filter>Source Files\src\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="TBreakpoint.cpp">
+      <Filter>Source Files\src\debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TRegister.h">
@@ -279,9 +288,6 @@
       <Filter>Header Files\include\components</Filter>
     </ClInclude>
     <ClInclude Include="TAlu.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="TDebugger.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="TGameApp.h">
@@ -454,6 +460,12 @@
     </ClInclude>
     <ClInclude Include="TBoard.h">
       <Filter>Header Files\include\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="TDebugger.h">
+      <Filter>Header Files\include\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="TBreakpoint.h">
+      <Filter>Header Files\include\debugger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -39,7 +39,7 @@ namespace nne
 				onGesture,			//&	Occurs when you perform a gesture associated with this control.
 				onKeyDown,			//&	Occurs when a user presses any key while the control has focus.
 				onKeyPress,			//*	Occurs when a key is pressed.
-				onKeyUp,			//&	Occurs when the user releases a key that was pressed.
+				onKeyUp,			//*	Occurs when the user releases a key that was pressed.
 				onMouseActivate,	//&	Occurs when the user presses a mouse button with the mouse pointer over a control and the parent form is not active.
 				onMouseDown,		//*	Occurs when the user presses a mouse button with the mouse pointer over a control.
 				onMouseEnter,		//&	Occurs when the user moves the mouse into a control.

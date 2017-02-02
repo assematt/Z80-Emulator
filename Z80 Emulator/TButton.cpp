@@ -21,6 +21,8 @@ namespace nne
 		void TButton::setCharacterSize(const std::size_t& CharacterSize)
 		{
 			mText.setCharacterSize(CharacterSize);
+
+			TWidget::setSize({ static_cast<sf::Uint32>(getTextSize(true).x), 50u });
 		}
 
 		std::size_t TButton::getCharacterSize()
@@ -32,7 +34,7 @@ namespace nne
 		{
 			mText.setString(Caption);
 
-			TWidget::setSize({ static_cast<unsigned int>(getTextSize().x) + mTextPadding.x * 2u, 50u });
+			TWidget::setSize({ static_cast<sf::Uint32>(getTextSize(true).x), 50u });
 		}
 
 		const sf::String& TButton::getCaption() const
@@ -110,12 +112,14 @@ namespace nne
 			}
 		}
 
-		sf::Vector2f TButton::getTextSize()
+		sf::Vector2f TButton::getTextSize(const bool& IncludePadding /*= false*/)
 		{
 			// Bounding box
 			auto& TextBound = mText.getLocalBounds();
 
-			return{ TextBound.width - TextBound.left, TextBound.height - TextBound.top };
+			sf::Vector2f TextSize = { TextBound.width - TextBound.left, TextBound.height - TextBound.top };
+
+			return IncludePadding ? (TextSize + sf::Vector2f(mTextPadding.x * 2.f + 3.f, 0.f)) : TextSize;
 		}
 
 	}

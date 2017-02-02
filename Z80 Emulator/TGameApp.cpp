@@ -6,12 +6,16 @@
 namespace nne
 {
 
+#ifdef _DEBUG
+#define WINDOW_PROPERTY() sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Close
+#else
+#define WINDOW_PROPERTY() sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Fullscreen
+#endif // _DEBUG
+
 	TGameApp::TGameApp() :
 		mAppName(PROGRAM_NAME),
-		mAppWindow(sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Default)
+		mAppWindow(WINDOW_PROPERTY())
 	{
-		//mAppWindow.setFramerateLimit(1);
-		//mAppWindow.setFramerateLimit(60);
 	}
 
 	bool TGameApp::init()
@@ -38,6 +42,9 @@ namespace nne
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/led_btn.png"), "led_btn"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/ground_btn.png"), "ground_btn"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/power_btn.png"), "power_btn"));
+
+		// Debugger
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/breakpoint.png"), "breakpoint"));
 
 		// Dialog exit
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/exit_dialog.png"), "exit_dialog"));

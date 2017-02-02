@@ -4874,7 +4874,7 @@ namespace nne
 		#pragma endregion
 		
 			}
-		
+					
 			return 0;
 		}
 	

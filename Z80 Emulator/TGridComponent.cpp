@@ -98,11 +98,8 @@ namespace nne
 	sf::Vector2i TGridComponent::mouseCoordsToWindowCellCoords(const sf::Vector2i& MousePos)
 	{
 		// Compute in which column and row of the grid we are
-		//auto Col = std::roundf(MousePos.x / mCellSize.x);
-		//auto Row = std::roundf(MousePos.y / mCellSize.y);
-
-		auto Col = static_cast<int>(MousePos.x / mCellSize.x);
-		auto Row = static_cast<int>(MousePos.y / mCellSize.y);
+		auto Col = std::roundf(MousePos.x / mCellSize.x);
+		auto Row = std::roundf(MousePos.y / mCellSize.y);
 
 		// Multiplies the selected row and col by the grid gap
 		return sf::Vector2i(Col, Row);

@@ -12,6 +12,7 @@
 #include "IComponent.h"
 #include "TUtility.h"
 #include "TPin.h"
+//#include "TPinComponentUtility.h"
 #include "TValues.h"
 #include "TEntity.h"
 
@@ -19,12 +20,12 @@ namespace nne
 {
 	using namespace tcomponents;
 
-	using TPinBusIndex = std::size_t;
+	/*using TPinBusIndex = std::size_t;
 	using TPinList = std::vector<TPin>;
-	using TPinBus = std::pair<TPinList::iterator, TPinList::iterator>;
+	using TPinBus = std::pair<TPinList::iterator, TPinList::iterator>;*/
 	
 	// Connect a single Pin to another single pin or multiple pin
-	namespace TPinComponentUtility
+	/*namespace TPinComponentUtility
 	{
 		void connectPins(TPin& LeftPin, TPin& RightPin);
 		void connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
@@ -36,7 +37,7 @@ namespace nne
 
 		/// Update the status of the connected PINs based on their type
 		void updatePinStatus(TPin& LeftPin, TPin& RightPin);
-	}
+	}*/
 
 	struct TPinComponent : nne::IComponent
 	{

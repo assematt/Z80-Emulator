@@ -43,6 +43,15 @@ namespace nne
 		/// Add a chip in the manager and logic board 
 		void addChip(const std::string& ChipToAdd);
 
+		/// Remove a wire in the manager and logic board and disconnect the eventually connected pin
+		void removeWire(TWireComponent* Wire);
+
+		/// Remove a bus in the manager and logic board and disconnect the eventually connected wires
+		void removeBus(TBusComponent* Bus);
+
+		/// Remove a chip in the manager and logic board and disconnect the eventually connected wires and pins
+		void removeChip(TChipComponent* Chip);
+
 		/// Handle all the mouse move event for the RenderSurface/LogicBoard
 		void handleMouseMoveEvent(const sf::Vector2f& MousePos);
 

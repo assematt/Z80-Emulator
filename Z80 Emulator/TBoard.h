@@ -21,14 +21,18 @@ namespace nne
 			CHIP,
 			WIRE,
 			BUS,
+			REMOVE,
 			NONE
-		};
+		} TReturnType;
 
 		/// function to save the current board
 		bool saveBoard(const std::string& Path);
 
 		/// Function to lead a file in the board
 		bool loadBoard(const std::string& Path, TBoard& Board, TManager& EntityManager, IScene* Scene);
+
+		/// Get what we clicked
+		std::pair<IComponent*, std::string> getLastSelectedItem(const sf::Vector2f& MousePos) const;
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -212,6 +216,8 @@ namespace nne
 		void savePins(const xml::TXMLNode::Ptr PinsNode);
 
 	private:
+		std::string						mLastSelectedItem;
+
 		TBusComponent*					mSelectedBus;
 		TBusComponent*					mFormerSelectedBus;
 

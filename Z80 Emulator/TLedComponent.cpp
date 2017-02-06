@@ -96,6 +96,9 @@ namespace nne
 		auto& Anode = PinComponent.getPin(1);
 		auto& Cathode = PinComponent.getPin(2);
 
+		// By default we assume the led is off
+		mIsOn = false;
+
 		// If both pin are connected to something
 		if (Anode.hasConnections() && Cathode.hasConnections())
 		{

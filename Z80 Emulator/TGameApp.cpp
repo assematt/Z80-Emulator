@@ -42,6 +42,7 @@ namespace nne
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/led_btn.png"), "led_btn"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/ground_btn.png"), "ground_btn"));
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/power_btn.png"), "power_btn"));
+		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/delete_btn.png"), "delete_btn"));
 
 		// Debugger
 		CacheManager.addResource(nne::TResourceLoader<sf::Texture>(nne::SFPathLoader<sf::Texture>("resources/images/icons/breakpoint.png"), "breakpoint"));

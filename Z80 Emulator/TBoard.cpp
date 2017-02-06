@@ -69,6 +69,21 @@ namespace nne
 		return Result;
 	}
 
+	std::pair<IComponent*, std::string> TBoard::getLastSelectedItem(const sf::Vector2f& MousePos) const
+	{
+		// If we last selected a chip
+		if (mLastSelectedItem == "CHIP" && mSelectedChip)
+			return{ mSelectedChip, mLastSelectedItem };
+		// If we last selected a wire
+		else if (mLastSelectedItem == "WIRE" && mSelectedWire)
+			return{ mSelectedWire, mLastSelectedItem };
+		// If we last selected a bus
+		else if (mLastSelectedItem == "BUS" && mSelectedBus)
+			return{ mSelectedBus, mLastSelectedItem };
+
+		return { nullptr, "" };
+	}
+
 	void TBoard::deselectEverything()
 	{
 		deselectComponent<TChipComponent>(true);
@@ -176,6 +191,33 @@ namespace nne
 			NewChip->getComponent<TDrawableComponent>().setPosition(PositionX, PositionY);
 			NewChip->getComponent<TChipComponent>().setChipName(ChipName);
 
+			NewChip->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
+
+				if (Board.getInsertionMethod() != TBoard::TInsertionMethod::NONE)
+					return;
+
+				auto& SelectedPin = Sender->getComponent<TPinComponent>().getSelectedPin();
+
+				if (SelectedPin != TPin::NotFound)
+				{
+					// Message 
+					std::string Message =
+					"Pin ID:   " + std::to_string(SelectedPin.getPinID()) + "\n" +
+					"Pin Mode: " + std::to_string(static_cast<int>(SelectedPin.mPinMode)) + "\n" +
+					"Pin Name: " + SelectedPin.mPinName + "\n" +
+					"Pin Numb: " + std::to_string(SelectedPin.mPinNumber) + "\n" +
+					"Pin GNum: " + std::to_string(SelectedPin.mPinGroupNumber) + "\n" +
+					"Pin GrID: " + std::to_string(SelectedPin.mPinGroupID) + "\n" +
+					"--------------------" + "\n";
+
+					for (auto& Pin : SelectedPin.getPinConnections())
+						Message += "Connection ID" + std::to_string(Pin->getPinID()) + "\n";
+
+					::MessageBoxA(NULL, Message.c_str(), "PinSelected", MB_OK);
+				}
+
+			});
+
 			// And adds it to the logic board
 			placeComponent<TChipComponent>(NewChip);
 		}
@@ -209,7 +251,7 @@ namespace nne
 					auto WireID = Sender->getEntityID();
 
 					// Get the wire connections
-					auto WireConnections = Sender->getComponent<TWireComponent>().getPinList();
+					auto WireConnections = Sender->getComponent<TWireComponent>().getConnectedPins();
 
 					// Dialog title
 					std::string DialogTitle = "Entity ID: " + std::to_string(WireID);
@@ -227,6 +269,9 @@ namespace nne
 			// Get the wire component
 			auto& WireComponent = TempWire->getComponent<TWireComponent>();
 
+			// Set the wire name
+			WireComponent.setWireName(Wire->getChildNode("name")->getContent());
+
 			// Load the vertices
 			auto VerticesVector = Wire->getChildrenNodes("point", 0);
 			for (auto& WireVertex : VerticesVector)
@@ -238,18 +283,7 @@ namespace nne
 				WireComponent.mVertices.push_back({ PositionX, PositionY });
 			}
 
-			// Load the junctions
-			auto JunctionsVector = Wire->getChildrenNodes("junction", 0);
-			for (auto& WireJunction : JunctionsVector)
-			{
-				float PositionX = WireJunction->getChildNode("x")->getContent<float>();
-				float PositionY = WireJunction->getChildNode("y")->getContent<float>();
-
-				// Add the vertices in the junction vector
-				WireComponent.mJunctions.push_back({ PositionX, PositionY });
-			}
-
-			// Load the connections
+			// Load the pin connections
 			auto ConnectionVector = Wire->getChildrenNodes("connection", 0);
 			for (auto& WireConnection : ConnectionVector)
 			{
@@ -258,7 +292,9 @@ namespace nne
 				auto& Pin = TPin::getPinByName(PinName, ParentEntity);
 
 				// Add the PIN in the connection vector
-				WireComponent.mPins.push_back(&Pin);
+				/// OLD
+				/*WireComponent.mPins.push_back(&Pin);*/
+				WireComponent.mConnectedPins.insert(&Pin);
 			}
 
 			// Render the wire
@@ -266,6 +302,47 @@ namespace nne
 
 			// And adds it to the logic board
 			placeComponent<TWireComponent>(TempWire);
+		}
+
+		// Now that we loaded all the wire add the connection between wire
+		for (auto& Wire : WireVector)
+		{
+			// Get the wire name
+			auto WireName = Wire->getChildNode("name")->getContent();
+
+			// Get the TWireComponent
+			auto WireComponent = TWireComponent::getWireByName(WireName);
+
+			// Skip this cycle if we can't find this wire
+			if (!WireComponent)
+				continue;
+
+			// Load all the junction if we have any
+			auto JunctionsVector = Wire->getChildrenNodes("junction", 0);
+			for (auto& WireJunction : JunctionsVector)
+			{
+				auto PositionX = WireJunction->getChildNode("x")->getContent<float>();
+				auto PositionY = WireJunction->getChildNode("y")->getContent<float>();
+				auto JunctionName = WireJunction->getChildNode("junction_name")->getContent();
+
+				// Add the vertices in the junction vector
+				WireComponent->mJunctions.push_back({ { PositionX, PositionY }, TWireComponent::getWireByName(JunctionName) });
+
+				// Re-render the wire
+				WireComponent->renderWire();
+			}
+
+			// Load all the wire connection if we have any
+			auto ConnectionsWires = Wire->getChildrenNodes("wire_name");
+			for (auto ConnectedWire : ConnectionsWires)
+			{
+				// Get the pointer of the connected wire
+				auto ConnectedWireName = ConnectedWire->getContent();
+				auto ConnectedWireComponent = TWireComponent::getWireByName(ConnectedWireName);
+
+				// Add the wire and the connection
+				WireComponent->connectWire(ConnectedWireComponent);
+			}
 		}
 	}
 
@@ -329,6 +406,9 @@ namespace nne
 			// Create the wire node
 			auto WireNode = WiresNode->addChildNode("wire");
 
+			// Save the wire name
+			WireNode->addChildNode("name", Wire->getWireName());
+
 			// Create the wire points node
 			auto PointsNode = WireNode->addChildNode("points");
 
@@ -352,24 +432,27 @@ namespace nne
 				for (auto& WireJunction : Junctions)
 				{
 					// Add a point node
-					auto JunctionNode = PointsNode->addChildNode("junction");
+					auto JunctionNode = JunctionsNode->addChildNode("junction");
 
 					// Add the x and y position
-					JunctionNode->addChildNode("x", std::to_string(WireJunction.x));
-					JunctionNode->addChildNode("y", std::to_string(WireJunction.y));
+					JunctionNode->addChildNode("x", std::to_string(WireJunction.first.x));
+					JunctionNode->addChildNode("y", std::to_string(WireJunction.first.y));
+
+					// Add the junction name
+					JunctionNode->addChildNode("junction_name", WireJunction.second->mWireName);
 				}
 			}
 
-			// Wire connections
-			auto& Connections = Wire->getPinList();
-			if (!Connections.empty())
+			// Wire pin connections
+			auto& PinConnections = Wire->getConnectedPins();
+			if (!PinConnections.empty())
 			{
-				auto ConnectionsNode = WireNode->addChildNode("connections");
+				auto ConnectionsNode = WireNode->addChildNode("pin_connections");
 
-				for (auto& Pin : Connections)
+				for (auto& Pin : PinConnections)
 				{
 					// Add a point node
-					auto ConnectionNode = PointsNode->addChildNode("connection");
+					auto ConnectionNode = ConnectionsNode->addChildNode("connection");
 
 					// Add the x and y position
 					ConnectionNode->addChildNode("pin_parent_entity", Pin->getPinParent());
@@ -377,6 +460,15 @@ namespace nne
 				}
 			}
 
+			// Wire wire connections
+			auto& WireConnections = Wire->getConnectedWires();
+			if (!WireConnections.empty())
+			{
+				auto ConnectionsNode = WireNode->addChildNode("wire_connections");
+
+				for (auto& Wire : WireConnections)
+					ConnectionsNode->addChildNode("wire_name", Wire->mWireName);
+			}
 		}
 	}
 

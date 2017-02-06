@@ -53,29 +53,6 @@ namespace nne
 	}
 
 
-	void TPinComponentUtility::connectPins(TPin& LeftPin, TPin& RightPin)
-	{
-		// Create the connection
-		LeftPin.addConnections(RightPin);
-
-		// Update the status of the connected PINs based on their type
-		updatePinStatus(LeftPin, RightPin);
-	}
-
-	void TPinComponentUtility::connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
-	{
-		for (auto Pin : RightPins)
-			connectPins(LeftPin, Pin);
-	}
-
-	void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
-	{
-		//
-
-		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
-			connectPins(*LeftPin, *RightPin);
-	}
-
 	void TPinComponentUtility::updatePinStatus(TPin& LeftPin, TPin& RightPin)
 	{
 		switch (LeftPin.mPinMode)
@@ -114,22 +91,6 @@ namespace nne
 				RightPin.changePinStatus(LeftPin.getPinStatus(), false);
 			} break;
 		}
-	}
-
-	void TPinComponentUtility::detachPins(TPin& LeftPin, TPin& RightPin)
-	{
-
-	}
-
-
-	void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus)
-	{
-
-	}
-
-	void TPinComponentUtility::detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins)
-	{
-
 	}
 
 	TPinBus TPinComponent::getPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin /*= 0*/, const TPinBusIndex BusEnd /*= 0*/)
@@ -431,11 +392,8 @@ namespace nne
 		}
 	
 		// If we arrive at this point maybe we have to deselect the chip
-		//if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TLogicBoardComponent::TInsertionMethod::WIRE)
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::WIRE)
 		{
-// 			if (LogicBoard.getSelectedChip() == mParent->getComponentAsPtr<TChipComponent>())
-// 				LogicBoard.deselectChip();
 			if (LogicBoard.getSelectedComponent<TChipComponent>() == mParent->getComponentAsPtr<TChipComponent>())
 				LogicBoard.deselectComponent<TChipComponent>();
 		}

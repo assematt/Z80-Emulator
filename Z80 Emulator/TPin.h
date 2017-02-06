@@ -2,12 +2,37 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_set>
 #include <map>
 
 #include "TValues.h"
 
 namespace nne
 {
+	namespace tcomponents
+	{
+		struct TPin;
+	}
+
+	using namespace tcomponents;
+
+	using TPinBusIndex = std::size_t;
+	using TPinList = std::vector<TPin>;
+	using TPinBus = std::pair<TPinList::iterator, TPinList::iterator>;
+
+	namespace TPinComponentUtility
+	{
+		void connectPins(TPin& LeftPin, TPin& RightPin);
+		void connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+		void connectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+
+		void detachPins(TPin& LeftPin, TPin& RightPin);
+		void detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+		void detachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+
+		/// Update the status of the connected PINs based on their type
+		void updatePinStatus(TPin& LeftPin, TPin& RightPin);
+	}
 
 	namespace tcomponents
 	{
@@ -19,7 +44,9 @@ namespace nne
 			using TPinName = std::string;
 			using TPinNumber = TU8BitValue;
 			using TPinGroupID = std::size_t;
-			using TPinConnections = std::vector<TPin*>;
+			/// OLD
+			//using TPinConnections = std::vector<TPin*>;
+			using TPinConnections = std::unordered_set<TPin*>;
 			
 			enum TStatus : TU8BitValue
 			{
@@ -76,13 +103,16 @@ namespace nne
 			const TStatus getPinStatus() const;
 
 			/// Get Pin ID
-			const TPinID& getPinID();
+			const TPinID& getPinID() const;
 
 			/// create a connection between this pin and another Pin
 			void addConnections(TPin& RightPin);
 
 			/// Return true if the PIN it's connected to at least another PIN
 			bool hasConnections() const;
+
+			/// Remove a connection between this pin and another PIN
+			void removeConnection(TPin& RightPin);
 
 			/// Return the vector with all the connections
 			const TPinConnections& getPinConnections() const;
@@ -91,6 +121,17 @@ namespace nne
 			bool isValid();
 
 			/// STATIC FUNCTIONS
+			/// Connect a single Pin to another single pin or multiple pin
+			friend void TPinComponentUtility::connectPins(TPin& LeftPin, TPin& RightPin);
+			friend void TPinComponentUtility::connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+			friend void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+
+			/// Function to detach pin
+			friend void TPinComponentUtility::detachPins(TPin& LeftPin, TPin& RightPin);
+			friend void TPinComponentUtility::detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
+			friend void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
+
+
 		public:
 			/// Get a pin by ID
 			static TPin& getPinByID(const TPinID& ID);
@@ -102,7 +143,7 @@ namespace nne
 			static TPinID generateID();
 
 		private:
-			static std::vector<TPin*>			mPinVectors;
+			static std::vector<TPin*> mPinVectors;
 			
 		private:
 			friend TPin::TStatus logicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right);

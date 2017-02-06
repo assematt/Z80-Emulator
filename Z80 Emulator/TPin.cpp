@@ -119,23 +119,64 @@ namespace nne
 			return mPinStatus;
 		}
 
-		const TPin::TPinID& TPin::getPinID()
+		const TPin::TPinID& TPin::getPinID() const
 		{
 			return mPinID;
 		}
 
 		void TPin::addConnections(TPin& RightPin)
 		{
+			/// OLD
+			/*
+
 			// Add the left pin to the right pin connections
 			RightPin.mPinConnections.push_back(this);
-
+			
 			// Add the right pin to the left pin connections
 			this->mPinConnections.push_back(&RightPin);
+			*/
+
+			// Add the left pin to the right pin connections
+			RightPin.mPinConnections.insert(this);
+
+			// Add the right pin to the left pin connections
+			this->mPinConnections.insert(&RightPin);
+
 		}
 
 		bool TPin::hasConnections() const
 		{
-			return static_cast<bool>(mPinConnections.size());
+			return mPinConnections.empty() ? false : true;
+		}
+
+		void TPin::removeConnection(TPin& RightPin)
+		{
+			/// OLD
+			/*
+
+			// Remove the right pin from the left pin (*this)
+			auto LeftIt = std::find_if(mPinConnections.begin(), mPinConnections.end(), [&](const TPin* Pin) {
+				return Pin->getPinID() == RightPin.getPinID();
+			});
+
+			if (LeftIt != mPinConnections.end())
+				mPinConnections.erase(LeftIt);
+
+			// Remove the right pin from the left pin (*this)
+			auto RightIt = std::find_if(RightPin.mPinConnections.begin(), RightPin.mPinConnections.end(), [&](const TPin* Pin) {
+				return Pin->getPinID() == this->getPinID();
+			});
+
+			if (RightIt != RightPin.mPinConnections.end())
+				RightPin.mPinConnections.erase(RightIt);
+			*/
+
+			// Remove the left pin from the right pin connections
+			RightPin.mPinConnections.erase(this);
+
+			// Remove the right pin from the left pin connections
+			this->mPinConnections.erase(&RightPin);
+
 		}
 
 		const TPin::TPinConnections& TPin::getPinConnections() const
@@ -207,6 +248,8 @@ namespace nne
 			return mParentName;
 		}
 
+		//////////////////////////////////////////////////////////////////////////
+
 		TPin::TStatus logicAnd(const TPin::TStatus& Left, const TPin::TStatus& Right)
 		{
 			return static_cast<TPin::TStatus>(Left && Right);
@@ -252,5 +295,67 @@ namespace nne
 			return logicNot(logicXor(Left, Right));
 		}
 
+		//////////////////////////////////////////////////////////////////////////
+
+		
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	void TPinComponentUtility::connectPins(tcomponents::TPin& LeftPin, tcomponents::TPin& RightPin)
+	{
+		// Create the connection only if we don't have already connected the pin
+		LeftPin.addConnections(RightPin);
+
+		// Update the status of the connected PINs based on their type
+		updatePinStatus(LeftPin, RightPin);
+	}
+
+	void TPinComponentUtility::connectPins(tcomponents::TPin& LeftPin, std::initializer_list<tcomponents::TPin>& RightPins)
+	{
+		for (auto Pin : RightPins)
+			TPinComponentUtility::connectPins(LeftPin, Pin);
+	}
+
+	void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
+	{
+		//
+
+		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
+			connectPins(*LeftPin, *RightPin);
+	}
+	//////////////////////////////////////////////////////////////////////////
+
+
+	//////////////////////////////////////////////////////////////////////////
+	void TPinComponentUtility::detachPins(tcomponents::TPin& LeftPin, tcomponents::TPin& RightPin)
+	{
+		/// OLD
+// 
+// 		auto& LeftConnections = LeftPin.mPinConnections;
+// 		auto& RightConnections = RightPin.mPinConnections;
+// 
+// 		// Find the right pin in the left pin connection and remove it
+// 		std::for_each(LeftConnections.begin(), LeftConnections.end(), [&](TPin* Pin) {
+// 			Pin->removeConnection(LeftPin);
+// 		});
+// 
+// 		// Find the left pin in the right pin connection and remove it
+// 		std::for_each(RightConnections.begin(), RightConnections.end(), [&](TPin* Pin) {
+// 			Pin->removeConnection(RightPin);
+// 		});
+
+		LeftPin.removeConnection(RightPin);
+	}
+
+	void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus)
+	{
+
+	}
+
+	void TPinComponentUtility::detachPins(tcomponents::TPin& LeftPin, std::initializer_list<tcomponents::TPin>& RightPins)
+	{
+
+	}
+	//////////////////////////////////////////////////////////////////////////
+
 }

@@ -93,6 +93,7 @@ namespace nne
 
 				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, -ChipListHeight);
 				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, -ChipListHeight);
+				mGuiManager.getWidget("DELETE_BUTTON")->move(0.f, -ChipListHeight);
 			}
 			// Otherwise show it
 			else
@@ -101,6 +102,7 @@ namespace nne
 
 				mGuiManager.getWidget("INSERT_WIRE_BUTTON")->move(0.f, ChipListHeight);
 				mGuiManager.getWidget("INSERT_BUS_BUTTON")->move(0.f, ChipListHeight);
+				mGuiManager.getWidget("DELETE_BUTTON")->move(0.f, ChipListHeight);
 			}
 		});
 		mGuiManager.getWidget("INSERT_WIRE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
@@ -108,6 +110,13 @@ namespace nne
 		});
 		mGuiManager.getWidget("INSERT_BUS_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addBus();
+		});
+		mGuiManager.getWidget("DELETE_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+			// Remove temporary Entity
+			removeTemporaryEntity();
+
+			// Change the insertion method
+			mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::REMOVE);
 		});
 		
 		// Set-up some GUI event for the button that create components
@@ -332,7 +341,7 @@ namespace nne
 				if (SelectedWire && (SelectedWire != &InsertingWire) && !CurrentSelectedChip && !FormerSelectedChip && !SelectedBus)
 				{
 					// Place the junction
-					InsertingWire.placeJunction(CellPos);
+					InsertingWire.placeJunction(CellPos, SelectedWire);
 
 					// Make sure we reset the selected wire at the one we are inserting
 					mLogicBoard.setSelectedComponent<TWireComponent>(SelectedWire);
@@ -343,13 +352,22 @@ namespace nne
 				{
 					// Stop the drawing mode
 					InsertingWire.toggleDraw();
-										
-					for (auto Pin : FormerSelectedWire->getPinList())
-					{
-						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-					}
+					
+					/// OLD
+// 					for (auto Pin : FormerSelectedWire->getPinList())
+// 					{
+// 						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+// 						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+// 					}
 
+					// Connect the wire
+					InsertingWire.connectPin(CurrentSelectedChip->getSelectedPin());
+					InsertingWire.connectWire(FormerSelectedWire);
+
+					// Connect the pin
+					for (auto& Pin : FormerSelectedWire->getConnectedPins())
+						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+					
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
 
@@ -365,14 +383,23 @@ namespace nne
 					// Stop the drawing mode
 					InsertingWire.toggleDraw();
 
-					InsertingWire.placeJunction(CellPos);
+					InsertingWire.placeJunction(CellPos, SelectedWire);
 
 					// Connect the pins
-					for (auto Pin : SelectedWire->getPinList())
-					{
+					/// OLD
+// 					for (auto Pin : SelectedWire->getPinList())
+// 					{
+// 						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+// 						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+// 					}
+
+					// Connect the wire
+					InsertingWire.connectPin(CurrentSelectedChip->getSelectedPin());
+					InsertingWire.connectWire(SelectedWire);
+
+					// Connect the pin
+					for (auto& Pin : SelectedWire->getConnectedPins())
 						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-					}
 
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
@@ -439,6 +466,37 @@ namespace nne
 				if (CurrentBus)
 					CurrentBus->confirmPoints();
 			}break;
+
+			// If we are using the delete tool
+			case TBoard::TInsertionMethod::REMOVE:
+			{
+				auto LastSelectedComponent = mLogicBoard.getLastSelectedItem(MousePos);
+
+				if (LastSelectedComponent.second == "CHIP" && LastSelectedComponent.first)
+				{
+					auto& ChipComponent = *dynamic_cast<TChipComponent*>(LastSelectedComponent.first);
+
+					std::string Message = "Chip name: " + ChipComponent.getName();
+
+					::MessageBoxA(NULL, Message.c_str(), "Chip", MB_OK);
+
+					removeChip(&ChipComponent);
+				}
+				else if (LastSelectedComponent.second == "WIRE" && LastSelectedComponent.first)
+				{
+					std::string Message = "Wire id: " + std::to_string(LastSelectedComponent.first->getComponentID());
+
+					::MessageBoxA(NULL, Message.c_str(), "Wire", MB_OK);
+
+					removeWire(dynamic_cast<TWireComponent*>(LastSelectedComponent.first));
+				}
+				else if (LastSelectedComponent.second == "BUS" && LastSelectedComponent.first)
+				{
+					std::string Message = "Bus id: " + std::to_string(LastSelectedComponent.first->getComponentID());
+
+					removeBus(dynamic_cast<TBusComponent*>(LastSelectedComponent.first));
+				}
+			} break;
 
 			// If we are not using any tool
 			case TBoard::TInsertionMethod::NONE:
@@ -735,13 +793,17 @@ namespace nne
 		// Remove temporary Entity
 		removeTemporaryEntity();
 
+		// Increment the entity counter
 		++mEntityCounter;
 
+		// Wire name
+		std::string WireName = "Wire_" + std::to_string(mEntityCounter);
+
 		// Create a wire entity and add it to the manger
-		mGraphicEntity.addEntity(TFactory::makeWire(), "Wire_" + std::to_string(mEntityCounter), this);
+		mGraphicEntity.addEntity(TFactory::makeWire(), WireName, this);
 
 		// Retrieve the newly added entity
-		mTempWire = mGraphicEntity.getEntityByKey("Wire_" + std::to_string(mEntityCounter));
+		mTempWire = mGraphicEntity.getEntityByKey(WireName);
 
 		// Init the newly added wire
 		mTempWire->init();
@@ -757,7 +819,7 @@ namespace nne
 				auto WireID = Sender->getComponent<TWireComponent>().getComponentID();
 
 				// Get the wire connections
-				auto WireConnections = Sender->getComponent<TWireComponent>().getPinList();
+				auto WireConnections = Sender->getComponent<TWireComponent>().getConnectedPins();
 
 				// Dialog title
 				std::string DialogTitle = "Wire ID: " + std::to_string(WireID);
@@ -765,7 +827,7 @@ namespace nne
 				// Dialog message
 				std::string DialogMessage = WireConnections.empty() ? "Connections not set" : "";
 				for (auto& Pin : WireConnections)
-					DialogMessage += "Connection PIN id: " + std::to_string(Pin->getPinID()) + "\n";
+					DialogMessage += "Connection PIN ID: " + std::to_string(Pin->getPinID()) + "\n";
 
 				::MessageBoxA(NULL, DialogMessage.c_str(), DialogTitle.c_str(), MB_OK);
 			}
@@ -778,6 +840,9 @@ namespace nne
 		// And set it as the active wire
 		mLogicBoard.deselectEverything();
 		mLogicBoard.setSelectedComponent<TWireComponent>(mTempWire);
+
+		// Set wire name
+		mTempWire->getComponent<TWireComponent>().setWireName(WireName);
 
 		// Allow to draw the wire
 		mLogicBoard.getSelectedComponent<TWireComponent>()->toggleDraw();
@@ -880,6 +945,33 @@ namespace nne
 		// And adds it to the logic board
 		mLogicBoard.placeComponent<TChipComponent>(mTempChip);
 
+		mTempChip->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
+
+			if (mLogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::NONE)
+				return;
+
+			auto& SelectedPin = Sender->getComponent<TPinComponent>().getSelectedPin();
+
+			if (SelectedPin != TPin::NotFound)
+			{
+				// Message 
+				std::string Message =
+					"Pin ID:   " + std::to_string(SelectedPin.getPinID()) + "\n" +
+					"Pin Mode: " + std::to_string(static_cast<int>(SelectedPin.mPinMode)) + "\n" +
+					"Pin Name: " + SelectedPin.mPinName + "\n" +
+					"Pin Numb: " + std::to_string(SelectedPin.mPinNumber) + "\n" +
+					"Pin GNum: " + std::to_string(SelectedPin.mPinGroupNumber) + "\n" +
+					"Pin GrID: " + std::to_string(SelectedPin.mPinGroupID) + "\n" +
+					"-------------" + "\n";
+
+				for (auto& Pin : SelectedPin.getPinConnections())
+					Message += "Connection ID: " + std::to_string(Pin->getPinID()) + "\n";
+
+				::MessageBoxA(NULL, Message.c_str(), "PinSelected", MB_OK);
+			}
+			
+		});
+
 		// And set it as the active chip
 		mLogicBoard.deselectEverything();
 		mLogicBoard.setSelectedComponent<TChipComponent>(mTempChip);
@@ -887,6 +979,86 @@ namespace nne
 		// Change the insertion method
 		mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::CHIP);
 }
+
+	void TNewGameScene::removeWire(TWireComponent* Wire)
+	{
+		// Get the parent entity
+		auto ParentEntity = Wire->getParent();
+
+		// Get the pins connected to the wire
+		auto& PinList = Wire->getConnectedPins();
+
+		// Disconnect all the pin
+		/// OLD
+// 		for (auto Index = 0u; Index < PinList.size() - 1; ++Index)
+// 			TPinComponentUtility::detachPins(*PinList[Index], *PinList[Index + 1]);
+		
+		// If this wire has some other wires connected to it
+		if (Wire->hasConnectedWires())
+		{
+			// For all the pin in the wire to remove it
+			for (auto& LeftPin : Wire->getConnectedPins())
+				for (auto ConnectedWire : Wire->getConnectedWires())
+					for (auto& RightPin : ConnectedWire->getConnectedPins())
+							TPinComponentUtility::detachPins(*LeftPin, *RightPin);
+		}
+		// IF there isn't any wires attached just disconnect the wire
+		else
+		{
+			// Get the iterator to the first element
+			/*auto It = Wire->getConnectedPins().begin();
+
+			// Get the value of the left pin
+			auto LeftPin = *(It);
+			
+			// Get the value of the second pin
+			auto RightPin = *(++It);
+
+			TPinComponentUtility::detachPins(*LeftPin, *RightPin);*/
+		}
+
+		// If we have 2 pin connected to this wire
+		if (Wire->getConnectedPins().size() > 1)
+		{
+			// Get the iterator to the first element
+			auto It = Wire->getConnectedPins().begin();
+
+			// Get the value of the left pin
+			auto LeftPin = *(It);
+
+			// Get the value of the second pin
+			auto RightPin = *(++It);
+
+			TPinComponentUtility::detachPins(*LeftPin, *RightPin);
+		}
+		// If we have just 1 Pin connected to this wire
+		else
+		{
+			
+		}
+
+		// Disconnect the wire
+		Wire->disconnectWire();
+
+		// Remove the wire from the logic board
+		mLogicBoard.removeComponent(Wire);
+
+		// Remove the wire parent entity from the entity manager
+		mGraphicEntity.removeEntity(ParentEntity->getEntityID());
+
+		// Success message
+		::MessageBox(NULL, "The wire was successfully removed it!", "Removed!", MB_OK);
+	}
+
+	void TNewGameScene::removeBus(TBusComponent* Bus)
+	{
+
+	}
+
+	void TNewGameScene::removeChip(TChipComponent* Chip)
+	{
+
+	}
 
 	void TNewGameScene::removeTemporaryEntity()
 	{

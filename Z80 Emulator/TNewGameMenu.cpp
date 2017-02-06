@@ -283,6 +283,18 @@ namespace nne
 			InsertBusButton->setPadding({ 54u, 9u });
 			InsertBusButton->addImage(TCacheManager::getInstance().getResource<sf::Texture>("bus_btn"), { 21.f, 4.f });
 			LeftToolsPanel->addWidget(InsertBusButton.get());
+
+			// Delete item button
+			TImageButton::Ptr DeleteItem = std::make_shared<TImageButton>();
+			DeleteItem->setZIndex(3);
+			DeleteItem->setName("DELETE_BUTTON");
+			DeleteItem->setCaption("DELETE ITEM");
+			DeleteItem->setCharacterSize(14);
+			DeleteItem->setSize({ 300, 35 });
+			DeleteItem->setPosition({ 0.f, 125.f });
+			DeleteItem->setPadding({ 54u, 9u });
+			DeleteItem->addImage(TCacheManager::getInstance().getResource<sf::Texture>("delete_btn"), { 20.f, 5.f });
+			LeftToolsPanel->addWidget(DeleteItem.get());
 			#pragma endregion
 
 #pragma endregion
@@ -324,6 +336,7 @@ namespace nne
 
 			Manager.addWidget(InsertWireButton, 3);
 			Manager.addWidget(InsertBusButton, 3);
+			Manager.addWidget(DeleteItem, 3);
 
 			Manager.addWidget(Canvas, 1);
 		}

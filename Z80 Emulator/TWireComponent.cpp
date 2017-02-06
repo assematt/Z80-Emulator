@@ -34,6 +34,8 @@ namespace nne
 
 	const sf::Vector2f Unnecessary = { std::numeric_limits<float>::min(), std::numeric_limits<float>::max() };
 
+	std::vector<TWireComponent*> TWireComponent::mWireVectors;
+
 	TWireComponent::TWireComponent() :
 		mDrawableComponent(nullptr),
 		mFixedPoints(0u),
@@ -46,6 +48,15 @@ namespace nne
 		mMidPointPosTemp(InvalidVector<float>),
 		mWireColor(WireColorNormal)
 	{
+		mWireVectors.push_back(this);
+	}
+
+	TWireComponent::~TWireComponent()
+	{
+		auto It = std::find(mWireVectors.cbegin(), mWireVectors.cend(), this);
+
+		if (It != mWireVectors.cend())
+			mWireVectors.erase(It);
 	}
 
 	void TWireComponent::update(const sf::Time& ElapsedTime)
@@ -140,7 +151,7 @@ namespace nne
 		}
 
 		// If we arrive at this point maybe we have to deselect the chip
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::Mouse::isButtonPressed(sf::Mouse::Right))
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Mouse::isButtonPressed(sf::Mouse::Right))
 		{
 			if (LogicBoard.getSelectedComponent<TWireComponent>() == this)
 				LogicBoard.deselectComponent<TWireComponent>();
@@ -151,6 +162,16 @@ namespace nne
 	{
 		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
 		mDrawableComponent->getVertexArray().setPrimitiveType(sf::Quads);
+	}
+
+	void TWireComponent::setWireName(const std::string& Name)
+	{
+		mWireName = Name;
+	}
+
+	const std::string& TWireComponent::getWireName() const
+	{
+		return mWireName;
 	}
 
 	void TWireComponent::setThickness(const float& Thickness)
@@ -211,10 +232,54 @@ namespace nne
 		optimizeVertexArray();
 	}
 
+	void TWireComponent::connectPin(TPin& RightPin)
+	{
+		mConnectedPins.insert(&RightPin);
+	}
+
 	void TWireComponent::connectPins(TPin& LeftPin, TPin& RightPin)
 	{
-		mPins.push_back(&LeftPin);
-		mPins.push_back(&RightPin);
+		/// Old
+// 		mPins.push_back(&LeftPin);
+// 		mPins.push_back(&RightPin);
+		mConnectedPins.insert(&LeftPin);
+		mConnectedPins.insert(&RightPin);
+	}
+
+	void TWireComponent::disconnectPin(TPin& RightPin)
+	{
+		mConnectedPins.erase(&RightPin);
+	}
+
+	void TWireComponent::disconnectPins(TPin& LeftPin, TPin& RightPin)
+	{
+		// Remove the pins
+		mConnectedPins.erase(&LeftPin);
+		mConnectedPins.erase(&RightPin);
+	}
+
+	void TWireComponent::connectWire(TWireComponent* Wire)
+	{
+		// Add the wire connection
+		this->mConnectedWires.insert(Wire);
+		Wire->mConnectedWires.insert(this);
+	}
+
+	void TWireComponent::disconnectWire()
+	{
+		// Remove the wire connection
+		//this->mConnectedWires.erase(Wire);
+		//Wire->mConnectedWires.erase(this);
+
+		// Remove this wire from his connection
+		std::for_each(mConnectedWires.begin(), mConnectedWires.end(), [&](TWireComponent* Wire) {
+			// Remove the junction with this wire and render it
+			Wire->removeJunction(this);
+			Wire->renderWire();
+
+			// Remove this wire from the list of connected wire
+			Wire->mConnectedWires.erase(this);
+		});
 	}
 
 	void TWireComponent::adjustLine(const sf::Vector2f& Point1, const sf::Vector2f& Point2)
@@ -238,14 +303,34 @@ namespace nne
 		mLastPointPosTemp = Point2;
 	}
 
-	TWireComponent::TPinConnections& TWireComponent::getPinList()
+	TWireComponent::TPinConnections& TWireComponent::getConnectedPins()
 	{
-		return mPins;
+		return mConnectedPins;
 	}
 
-	const TWireComponent::TPinConnections& TWireComponent::getPinList() const
+	const TWireComponent::TPinConnections& TWireComponent::getConnectedPins() const
 	{
-		return mPins;
+		return mConnectedPins;
+	}
+
+	bool TWireComponent::hasConnectedPins() const
+	{
+		return !mConnectedPins.empty();
+	}
+
+	bool TWireComponent::hasConnectedWires() const
+	{
+		return !mConnectedWires.empty();
+	}
+
+	nne::TWireComponent::TWireConnections& TWireComponent::getConnectedWires()
+	{
+		return mConnectedWires;
+	}
+
+	const nne::TWireComponent::TWireConnections& TWireComponent::getConnectedWires() const
+	{
+		return mConnectedWires;
 	}
 
 	const std::vector<sf::Vector2f>& TWireComponent::getVerticesVector() const
@@ -253,7 +338,7 @@ namespace nne
 		return mVertices;
 	}
 
-	const std::vector<sf::Vector2f>& TWireComponent::getJunctionsVector() const
+	const std::vector<nne::TWireComponent::TJunction>& TWireComponent::getJunctionsVector() const
 	{
 		return mJunctions;
 	}
@@ -272,9 +357,9 @@ namespace nne
 		mFixedPoints == 0 ? placeInitialPoint(PointPos) : adjustLine(mLastPointPos, PointPos);
 	}
 
-	void TWireComponent::placeJunction(const sf::Vector2f& PointPos)
+	void TWireComponent::placeJunction(const sf::Vector2f& PointPos, TWireComponent* Wire)
 	{
-		mJunctions.push_back(PointPos);
+		mJunctions.push_back({PointPos, Wire });
 
 		// Transform the vertices in mVertices in quads in the vertex array
 		renderWire();
@@ -305,7 +390,7 @@ namespace nne
 			return;
 
 		for (auto Index = 0u; Index < mJunctions.size(); ++Index)
-			pointToJunction(mJunctions[Index] + sf::Vector2f(1.f, 0.f));
+			pointToJunction(mJunctions[Index].first + sf::Vector2f(1.f, 0.f));
 	}
 
 	void TWireComponent::removeUnnecessaryVertices()
@@ -484,6 +569,26 @@ namespace nne
 		return ReturnValue;
 	}
 
+	void TWireComponent::removeJunction(const sf::Vector2f& PointPos)
+	{
+		auto It = std::find_if(mJunctions.begin(), mJunctions.end(), [&] (const TJunction& Junction) {
+			return Junction.first == PointPos;
+		});
+
+		if (It != mJunctions.end())
+			mJunctions.erase(It);
+	}
+
+	void TWireComponent::removeJunction(TWireComponent* Wire)
+	{
+		auto It = std::find_if(mJunctions.begin(), mJunctions.end(), [&](const TJunction& Junction) {
+			return Junction.second == Wire;
+		});
+
+		if (It != mJunctions.end())
+			mJunctions.erase(It);
+	}
+
 	void TWireComponent::toggleDraw()
 	{
 		mEnableDraw = !mEnableDraw;
@@ -539,5 +644,35 @@ namespace nne
 	{
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getSegmentLocalBound(SegmentNumber));
 	}
+
+	TWireComponent* TWireComponent::getWireByID(const TComponentID& ID)
+	{
+		auto It = std::find_if(mWireVectors.cbegin(), mWireVectors.cend(), [&] (const TWireComponent* Wire) {
+			return Wire->getComponentID() == ID;
+		});
+
+		if (It != mWireVectors.cend())
+			return *It;
+
+		return nullptr;
+	}
+
+	TWireComponent * TWireComponent::getWireByName(const std::string& WireName)
+	{
+		auto It = std::find_if(mWireVectors.cbegin(), mWireVectors.cend(), [&](const TWireComponent* Wire) {
+			return Wire->mWireName == WireName;
+		});
+
+		if (It != mWireVectors.cend())
+			return *It;
+
+		return nullptr;
+	}
+
+	const std::vector<TWireComponent*> TWireComponent::getGlobalWireVector()
+	{
+		return mWireVectors;
+	}
+
 
 }

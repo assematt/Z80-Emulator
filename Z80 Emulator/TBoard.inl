@@ -178,7 +178,11 @@ typename std::enable_if<std::is_same<T, TChipComponent>::value>::type TBoard::se
 	if (mSelectedChip && mSelectedChip != ComponentToSelect)
 		mFormerSelectedChip = mSelectedChip;
 
+	// Cache the selected chip
 	mSelectedChip = ComponentToSelect;
+
+	// Save what kind of component we selected
+	mLastSelectedItem = "CHIP";
 
 	// Make sure to mark the old selected chip as not selected anymore
 	if (mFormerSelectedChip && mInsertionMethod == TInsertionMethod::NONE)
@@ -197,8 +201,11 @@ typename std::enable_if<std::is_same<T, TWireComponent>::value>::type TBoard::se
 	if (mSelectedWire && mSelectedWire != ComponentToSelect)
 		mFormerSelectedWire = mSelectedWire;
 
-	// Set the selected wire
+	// Cache the selected wire
 	mSelectedWire = ComponentToSelect;
+
+	// Save what kind of component we selected
+	mLastSelectedItem = "WIRE";
 
 	// Make sure to mark the old selected wire as not selected anymore
 	if (mFormerSelectedWire && mInsertionMethod == TInsertionMethod::NONE)
@@ -217,8 +224,11 @@ typename std::enable_if<std::is_same<T, TBusComponent>::value>::type TBoard::set
 	if (mSelectedBus && mSelectedBus != ComponentToSelect)
 		mFormerSelectedBus = mSelectedBus;
 
-	// Set the selected bus
+	// Cache the selected bus
 	mSelectedBus = ComponentToSelect;
+
+	// Save what kind of component we selected
+	mLastSelectedItem = "BUS";
 
 	// Make sure to mark the old selected bus as not selected anymore
 	if (mFormerSelectedBus && mInsertionMethod == TInsertionMethod::NONE)

@@ -32,7 +32,7 @@ namespace nne
 		void setTextureRect(const sf::IntRect& rectangle);
 		const sf::IntRect& getTextureRect() const;
 
-		/// Functio to set/get the sprite color
+		/// Functino to set/get the sprite color
 		void setColor(const sf::Color& Color);
 		const sf::Color& getColor() const;
 
@@ -66,7 +66,7 @@ namespace nne
 		sf::FloatRect computeComplexLocalBound() const;
 				
 	private:
-		std::shared_ptr<sf::Texture>		mTexture;
-		std::shared_ptr<sf::VertexArray>	mVertexArray;
+		sf::VertexArray		mVertexArray;
+		const sf::Texture*	mTexture;
 	};
 }

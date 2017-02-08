@@ -102,6 +102,7 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TLedComponent>();
 			TempPtr->addComponent<TChipComponent>();
+			TempPtr->addComponent<TPackageComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
 			TempPtr->addComponent<TLogicBoardComponent>();
@@ -135,6 +136,7 @@ namespace nne
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TPowerComponent>(Mode);
 			TempPtr->addComponent<TChipComponent>();
+			TempPtr->addComponent<TPackageComponent>();
 			TempPtr->addComponent<TEventComponent>();
 			TempPtr->addComponent<TStateComponent>();
 			TempPtr->addComponent<TLogicBoardComponent>();

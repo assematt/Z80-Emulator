@@ -26,6 +26,9 @@ namespace nne
 		///
 		virtual void init() override;
 
+		/// Get the type of power type
+		const Type& getPowerType() const;
+
 	private:
 
 		/// Add a pin to connect this component to the rest

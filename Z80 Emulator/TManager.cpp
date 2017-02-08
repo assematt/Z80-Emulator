@@ -2,9 +2,10 @@
 
 #include <SFML/Window/Mouse.hpp>
 
+#include "TWireComponent.h"
 #include "TEventComponent.h"
 #include "TStateComponent.h"
-#include "TWireComponent.h"
+#include "TPackageComponent.h"
 
 namespace nne
 {
@@ -81,6 +82,11 @@ namespace nne
 
 			// Get the bound of that object
 			auto& EntityBound = Entity.getComponent<TDrawableComponent>().getGlobalBounds();
+
+			if (Entity.hasComponent<TPackageComponent>())
+			{
+				EntityBound = Entity.getComponent<TPackageComponent>().getGlobalBound(true);
+			}
 			
 			// Establish if the mouse it's above the widget
 			auto MousePos = EventCanvas.mapPixelToCoords(sf::Mouse::getPosition(EventWindow) - sf::Vector2i(300, 50));

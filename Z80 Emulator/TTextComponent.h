@@ -79,6 +79,8 @@ namespace nne
 		/// Set the position of a single character in the text
 		void setCharacterPosition(const std::size_t& CharacterPos, const sf::Vector2f& Position);
 		void setCharacterPosition(const std::string& SubString, const sf::Vector2f& Position);
+
+		void clearCharacterPosition();
 		
 		/// Get the displayed text as a sf::String
 		const sf::String& getString() const;

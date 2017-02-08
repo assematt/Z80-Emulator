@@ -172,16 +172,16 @@ namespace nne
 		//////////////////////////////////////////////////////////////////////////
 
 		/// Get the vector of all the currently placed specified component
-		template <class T, const std::vector<T*>&>
-		typename std::enable_if<std::is_same<T, TChipComponent>::value>::type getComponentVector() const;
+		template <class T>
+		typename std::enable_if<std::is_same<T, TChipComponent>::value, const std::vector<T*>&>::type getComponentVector() const;
 
 		/// Get the vector of all the currently placed specified component
-		template <class T, const std::vector<T*>&>
-		typename std::enable_if<std::is_same<T, TWireComponent>::value>::type getComponentVector() const;
+		template <class T>
+		typename std::enable_if<std::is_same<T, TWireComponent>::value, const std::vector<T*>&>::type getComponentVector() const;
 
 		/// Get the vector of all the currently placed specified component
-		template <class T, const std::vector<T*>&>
-		typename std::enable_if<std::is_same<T, TBusComponent>::value>::type getComponentVector() const;
+		template <class T>
+		typename std::enable_if<std::is_same<T, TBusComponent>::value, const std::vector<T*>&>::type getComponentVector() const;
 
 		//////////////////////////////////////////////////////////////////////////
 

@@ -2,8 +2,10 @@
 
 #include "TLogicBoardComponent.h"
 #include "TPackageComponent.h"
+#include "TWireComponent.h"
 #include "TCacheManager.h"
 #include "TSceneManager.h"
+#include "TBoard.h"
 
 #define DEBUG_ONCE TRUE
 
@@ -13,7 +15,6 @@ namespace nne
 		mIsPlaced(false),
 		mIsValid(true)
 	{
-		mChipName = "chip_" + std::to_string(getComponentID());
 	}
 
 	void TChipComponent::init()
@@ -31,6 +32,8 @@ namespace nne
 		// Set the pin parent name
 		auto& PinList = mParent->getComponent<TPinComponent>().getPinList();
 
+		mChipName = "chip_" + std::to_string(mParent->getEntityID());
+
 		for (auto& Pin : PinList)
 			Pin.setPinParent(mChipName);
 	}
@@ -38,10 +41,10 @@ namespace nne
 	void TChipComponent::update(const sf::Time& ElapsedTime)
 	{			
 		// Only update the chip if we haven't placed it yet
-		if (!mIsPlaced)
-		{
-			mIsValid ? mDrawableComponent->setColor({ 4u, 85u, 6u, 175u }) : mDrawableComponent->setColor({ 84u, 4u, 4u, 175u });
-		}
+		if (mIsPlaced)
+			return;
+
+		mIsValid ? mDrawableComponent->setColor({ 4u, 85u, 6u, 175u }) : mDrawableComponent->setColor({ 84u, 4u, 4u, 175u });
 	}
 
 	void TChipComponent::refresh(const sf::Time& ElapsedTime)
@@ -69,10 +72,7 @@ namespace nne
 		// Update the pin parent name
 		auto& PinList = mParent->getComponent<TPinComponent>().getPinList();
 
-		// Update the displayed chip name if we have one
-		if (mParent->hasComponent<TPackageComponent>())
-			mParent->getComponent<TPackageComponent>().updateChipName();
-
+		// Update the pin parent name
 		for (auto& Pin : PinList)
 			Pin.setPinParent(mChipName);
 	}
@@ -115,12 +115,7 @@ namespace nne
 	{
 		mParent->getComponent<TPinComponent>().deselectPin();
 	}
-
-	const std::size_t& TChipComponent::getSelectedPinNumber() const
-	{
-		return mParent->getComponent<TPinComponent>().getSelectedPinNumber();
-	}
-
+	
 	const nne::tcomponents::TPin& TChipComponent::getSelectedPin() const
 	{		
 		return mParent->getComponent<TPinComponent>().getSelectedPin();
@@ -130,5 +125,10 @@ namespace nne
 	{
 		return mParent->getComponent<TPinComponent>().getSelectedPin();
 	}
-	
+
+	const nne::tcomponents::TPin& TChipComponent::getHoverPin() const
+	{
+		return mParent->getComponent<TPinComponent>().getHoverPin();
+	}
+
 }

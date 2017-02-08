@@ -234,25 +234,60 @@ namespace nne
 
 	void TWireComponent::connectPin(TPin& RightPin)
 	{
+		// Add the pin in the wire
 		mConnectedPins.insert(&RightPin);
+
+		// Connect this pin with all the other pin in the wire, if we have some
+		for (auto ConnectedWire : mConnectedWires)
+			for (auto LeftPin : ConnectedWire->getConnectedPins())
+			{
+				/// FUTURE FIX
+				/*for (auto ConnectedPin : LeftPin->getPinConnections())
+					TPinComponentUtility::connectPins(*LeftPin, *ConnectedPin);*/
+
+				TPinComponentUtility::connectPins(*LeftPin, RightPin);
+			}
 	}
 
 	void TWireComponent::connectPins(TPin& LeftPin, TPin& RightPin)
 	{
-		/// Old
-// 		mPins.push_back(&LeftPin);
-// 		mPins.push_back(&RightPin);
+		if (LeftPin == RightPin)
+			return;
+
+		// Add the 2 pins in the wire
 		mConnectedPins.insert(&LeftPin);
 		mConnectedPins.insert(&RightPin);
+				
+		// Connect the 2 pin with each other...
+		TPinComponentUtility::connectPins(LeftPin, RightPin);
+
+		// ... and the other pins connected to the wire
+		for (auto ConnectedWire : mConnectedWires)
+			for (auto OtherPin : ConnectedWire->getConnectedPins())
+			{
+				/// FUTURE FIX
+				/*for (auto ConnectedPin : OtherPin->getPinConnections())
+				{
+					TPinComponentUtility::connectPins(LeftPin, *ConnectedPin);
+					TPinComponentUtility::connectPins(RightPin, *ConnectedPin);
+				}*/
+
+				TPinComponentUtility::connectPins(LeftPin, *OtherPin);
+				TPinComponentUtility::connectPins(RightPin, *OtherPin);
+			}
 	}
 
 	void TWireComponent::disconnectPin(TPin& RightPin)
 	{
+		// Remove the pin from the list of pin connected to the wire 
 		mConnectedPins.erase(&RightPin);
 	}
 
 	void TWireComponent::disconnectPins(TPin& LeftPin, TPin& RightPin)
 	{
+		if (LeftPin == RightPin)
+			return;
+
 		// Remove the pins
 		mConnectedPins.erase(&LeftPin);
 		mConnectedPins.erase(&RightPin);
@@ -263,14 +298,22 @@ namespace nne
 		// Add the wire connection
 		this->mConnectedWires.insert(Wire);
 		Wire->mConnectedWires.insert(this);
+
+		// Connect all the pin in this wire with other pin in the wire
+		for (auto LeftPin : mConnectedPins)
+			for (auto ConnectedWire : mConnectedWires)
+				for (auto ConnectedPin : ConnectedWire->getConnectedPins())
+				{
+					/// FUTURE FIX
+					/*for (auto RightPin : ConnectedPin->getPinConnections())
+						TPinComponentUtility::connectPins(*LeftPin, *RightPin);*/
+
+					TPinComponentUtility::connectPins(*LeftPin, *ConnectedPin);
+				}
 	}
 
 	void TWireComponent::disconnectWire()
 	{
-		// Remove the wire connection
-		//this->mConnectedWires.erase(Wire);
-		//Wire->mConnectedWires.erase(this);
-
 		// Remove this wire from his connection
 		std::for_each(mConnectedWires.begin(), mConnectedWires.end(), [&](TWireComponent* Wire) {
 			// Remove the junction with this wire and render it

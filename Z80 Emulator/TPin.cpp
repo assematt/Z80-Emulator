@@ -81,7 +81,7 @@ namespace nne
 
 		bool TPin::operator==(const TPin& Right)
 		{
-			return mPinName == Right.mPinName && mParentName == Right.mParentName;
+			return mPinID == Right.mPinID;
 		}
 
 		bool TPin::operator!=(const TPin& Right)
@@ -126,16 +126,6 @@ namespace nne
 
 		void TPin::addConnections(TPin& RightPin)
 		{
-			/// OLD
-			/*
-
-			// Add the left pin to the right pin connections
-			RightPin.mPinConnections.push_back(this);
-			
-			// Add the right pin to the left pin connections
-			this->mPinConnections.push_back(&RightPin);
-			*/
-
 			// Add the left pin to the right pin connections
 			RightPin.mPinConnections.insert(this);
 
@@ -150,33 +140,26 @@ namespace nne
 		}
 
 		void TPin::removeConnection(TPin& RightPin)
-		{
-			/// OLD
-			/*
-
-			// Remove the right pin from the left pin (*this)
-			auto LeftIt = std::find_if(mPinConnections.begin(), mPinConnections.end(), [&](const TPin* Pin) {
-				return Pin->getPinID() == RightPin.getPinID();
-			});
-
-			if (LeftIt != mPinConnections.end())
-				mPinConnections.erase(LeftIt);
-
-			// Remove the right pin from the left pin (*this)
-			auto RightIt = std::find_if(RightPin.mPinConnections.begin(), RightPin.mPinConnections.end(), [&](const TPin* Pin) {
-				return Pin->getPinID() == this->getPinID();
-			});
-
-			if (RightIt != RightPin.mPinConnections.end())
-				RightPin.mPinConnections.erase(RightIt);
-			*/
-
+		{			
 			// Remove the left pin from the right pin connections
 			RightPin.mPinConnections.erase(this);
 
 			// Remove the right pin from the left pin connections
 			this->mPinConnections.erase(&RightPin);
+		}
 
+		void TPin::detachPin()
+		{
+
+			// Remove this wire from his connection
+			std::for_each(mPinConnections.begin(), mPinConnections.end(), [&](TPin* Pin) {
+
+				Pin->mPinConnections.erase(this);
+
+				//TPinComponentUtility::detachPins(*Pin, *this);
+			});
+
+			const bool Flag = true;
 		}
 
 		const TPin::TPinConnections& TPin::getPinConnections() const
@@ -303,6 +286,9 @@ namespace nne
 	//////////////////////////////////////////////////////////////////////////
 	void TPinComponentUtility::connectPins(tcomponents::TPin& LeftPin, tcomponents::TPin& RightPin)
 	{
+		if (LeftPin == RightPin)
+			return;
+
 		// Create the connection only if we don't have already connected the pin
 		LeftPin.addConnections(RightPin);
 
@@ -319,42 +305,67 @@ namespace nne
 	void TPinComponentUtility::connectPins(const TPinBus& LeftBus, const TPinBus& RightBus)
 	{
 		//
-
 		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
 			connectPins(*LeftPin, *RightPin);
 	}
 	//////////////////////////////////////////////////////////////////////////
 
+	void TPinComponentUtility::updatePinStatus(TPin& LeftPin, TPin& RightPin)
+	{
+		switch (LeftPin.mPinMode)
+		{
+			// If the PIN is a CLOCK type
+			case tcomponents::TPin::TMode::CLOCK:
+			{
+			} break;
+
+			// If the PIN is just an INPUT type
+			case tcomponents::TPin::TMode::INPUT:
+			{
+				// If the other PIN is of an OUTPUT or POWER type applies his status to this PIN
+				if ((RightPin.mPinMode == tcomponents::TPin::TMode::POWER) || (RightPin.mPinMode == tcomponents::TPin::TMode::OUTPUT))
+					LeftPin.changePinStatus(RightPin.getPinStatus(), false);
+			} break;
+
+			// If the PIN is both an INPUT and an OUTPUT type
+			case tcomponents::TPin::TMode::INPUT_OUTPUT:
+			{
+
+			} break;
+
+			// If the PIN is just an INPUT type
+			case tcomponents::TPin::TMode::OUTPUT:
+			{
+				// If the other pin it's an input change his status to match this one
+				if (RightPin.mPinMode == tcomponents::TPin::TMode::INPUT)
+					LeftPin.changePinStatus(RightPin.getPinStatus(), false);
+			} break;
+
+			// If the PIN is just an POWER type
+			case tcomponents::TPin::TMode::POWER:
+			{
+				// If the PIN is a power type then applies it's value to the other PIN no matter what
+				RightPin.changePinStatus(LeftPin.getPinStatus(), false);
+			} break;
+		}
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	void TPinComponentUtility::detachPins(tcomponents::TPin& LeftPin, tcomponents::TPin& RightPin)
 	{
-		/// OLD
-// 
-// 		auto& LeftConnections = LeftPin.mPinConnections;
-// 		auto& RightConnections = RightPin.mPinConnections;
-// 
-// 		// Find the right pin in the left pin connection and remove it
-// 		std::for_each(LeftConnections.begin(), LeftConnections.end(), [&](TPin* Pin) {
-// 			Pin->removeConnection(LeftPin);
-// 		});
-// 
-// 		// Find the left pin in the right pin connection and remove it
-// 		std::for_each(RightConnections.begin(), RightConnections.end(), [&](TPin* Pin) {
-// 			Pin->removeConnection(RightPin);
-// 		});
-
 		LeftPin.removeConnection(RightPin);
-	}
-
-	void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus)
-	{
-
 	}
 
 	void TPinComponentUtility::detachPins(tcomponents::TPin& LeftPin, std::initializer_list<tcomponents::TPin>& RightPins)
 	{
+		for (auto Pin : RightPins)
+			TPinComponentUtility::detachPins(LeftPin, Pin);
+	}
 
+	void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus)
+	{
+		for (TPinBus::first_type LeftPin = LeftBus.first, RightPin = RightBus.first; LeftPin != LeftBus.second; ++LeftPin, ++RightPin)
+			detachPins(*LeftPin, *RightPin);
 	}
 	//////////////////////////////////////////////////////////////////////////
 

@@ -36,6 +36,9 @@ namespace nne
 
 		sf::Vector2f transformCellCoords(const sf::Vector2i& GridCoords);
 
+
+		sf::Vector2f convertCoordinate(const sf::RenderTarget& Target, const sf::Vector2f& InitialCoor);
+
 		sf::Vector2i getColsRowsNumber();
 
 		sf::Vector2i getColsRowsNumber(const sf::Vector2f& Size);

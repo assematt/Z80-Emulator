@@ -9,37 +9,17 @@
 #include <vector>
 #include <memory>
 
-#include "IComponent.h"
-#include "TUtility.h"
 #include "TPin.h"
-//#include "TPinComponentUtility.h"
 #include "TValues.h"
 #include "TEntity.h"
+#include "TUtility.h"
+#include "IComponent.h"
 
 namespace nne
 {
 	using namespace tcomponents;
 
-	/*using TPinBusIndex = std::size_t;
-	using TPinList = std::vector<TPin>;
-	using TPinBus = std::pair<TPinList::iterator, TPinList::iterator>;*/
-	
-	// Connect a single Pin to another single pin or multiple pin
-	/*namespace TPinComponentUtility
-	{
-		void connectPins(TPin& LeftPin, TPin& RightPin);
-		void connectPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
-		void connectPins(const TPinBus& LeftBus, const TPinBus& RightBus);
-
-		void detachPins(TPin& LeftPin, TPin& RightPin);
-		void detachPins(TPin& LeftPin, std::initializer_list<TPin>& RightPins);
-		void detachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
-
-		/// Update the status of the connected PINs based on their type
-		void updatePinStatus(TPin& LeftPin, TPin& RightPin);
-	}*/
-
-	struct TPinComponent : nne::IComponent
+	class TPinComponent : public nne::IComponent
 	{
 	public:
 
@@ -66,8 +46,8 @@ namespace nne
 		void setupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount);
 
 		/// Subscript operator to get a pin
-		TPin& operator[] (const TPin::TPinNumber PinToSelect);
-		const TPin& operator[] (const TPin::TPinNumber PinToSelect) const;
+		TPin& operator[] (const TPin::TPinID& PinIDToSelect);
+		const TPin& operator[] (const TPin::TPinID& PinIDToSelect) const;
 
 		/// Get a pin by PIN number
 		TPin& getPin(const TPin::TPinNumber& PinToSelect);
@@ -93,19 +73,24 @@ namespace nne
 		TPinList& getPinList();
 		const TPinList& getPinList() const;
 
-		/// Return the selected PIN number
-		const std::size_t& getSelectedPinNumber() const;
-
 		/// Get the selected pin
 		tcomponents::TPin& getSelectedPin();
 		const tcomponents::TPin& getSelectedPin() const;
+
+		/// Get the hover pin
+		const tcomponents::TPin& getHoverPin() const;
 
 		/// Function to reset the state of the selected PIN
 		void deselectPin();
 
 		/// Get the local/global bound of a single PIN
 		sf::FloatRect getPinLocalBounds(const std::size_t& PinIndex);
+		sf::FloatRect getPinLocalBounds(const std::string& PinToSelect);
+		sf::FloatRect getPinLocalBounds(const TPin::TPinNumber& PinToSelect);
+
 		sf::FloatRect getPinGlobalBounds(const std::size_t& PinIndex);
+		sf::FloatRect getPinGlobalBounds(const std::string& PinToSelect);
+		sf::FloatRect getPinGlobalBounds(const TPin::TPinNumber& PinToSelect);
 
 		/// Convert the value of the pins to a single 8 bit value or 16 bit value
 		template <class T>
@@ -140,11 +125,14 @@ namespace nne
 		friend void TPinComponentUtility::detachPins(const TPinBus& LeftBus, const TPinBus& RightBus);
 
 	private:
-		TPinList	mPins;
-		std::size_t	mPreviousOverPin;
-		std::size_t	mOverPin;
-		std::size_t	mPreviousSelectedPin;
-		std::size_t	mSelectedPin;
+		TPinList		mPins;
+		std::size_t		mPreviousOverPin;
+		std::size_t		mOverPin;
+		std::size_t		mPreviousSelectedPin;
+		std::size_t		mSelectedPin;
+
+		TPin::TPinID	mSelectedPinID;
+		TPin::TPinID	mOverPinID;
 	};
 
 	template<class T>

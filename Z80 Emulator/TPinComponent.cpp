@@ -42,55 +42,30 @@ namespace nne
 		mPins = std::move(PinList);
 	}
 
-	TPin& TPinComponent::operator[](const TPin::TPinNumber PinToSelect)
+	TPin& TPinComponent::operator[](const TPin::TPinID& PinIDToSelect)
 	{
-		return mPins[PinToSelect];
-	}
-
-	const TPin& TPinComponent::operator[](const TPin::TPinNumber PinToSelect) const
-	{
-		return mPins[PinToSelect];
-	}
-
-
-	void TPinComponentUtility::updatePinStatus(TPin& LeftPin, TPin& RightPin)
-	{
-		switch (LeftPin.mPinMode)
+		// Look in all the pins of this component
+		for (auto& Pin : mPins)
 		{
-			// If the PIN is a CLOCK type
-			case tcomponents::TPin::TMode::CLOCK:
-			{
-			} break;
-
-			// If the PIN is just an INPUT type
-			case tcomponents::TPin::TMode::INPUT:
-			{
-				// If the other PIN is of an OUTPUT or POWER type applies his status to this PIN
-				if ((RightPin.mPinMode == tcomponents::TPin::TMode::POWER) || (RightPin.mPinMode == tcomponents::TPin::TMode::OUTPUT))
-					LeftPin.changePinStatus(RightPin.getPinStatus(), false);
-			} break;
-
-			// If the PIN is both an INPUT and an OUTPUT type
-			case tcomponents::TPin::TMode::INPUT_OUTPUT:
-			{
-
-			} break;
-
-			// If the PIN is just an INPUT type
-			case tcomponents::TPin::TMode::OUTPUT:
-			{
-				// If the other pin it's an input change his status to match this one
-				if (RightPin.mPinMode == tcomponents::TPin::TMode::INPUT)
-					LeftPin.changePinStatus(RightPin.getPinStatus(), false);
-			} break;
-
-			// If the PIN is just an POWER type
-			case tcomponents::TPin::TMode::POWER:
-			{
-				// If the PIN is a power type then applies it's value to the other PIN no matter what
-				RightPin.changePinStatus(LeftPin.getPinStatus(), false);
-			} break;
+			// And if the current iterated PIN it's the one we are looking for return it (and so exit the function)
+			if (Pin.getPinID() == PinIDToSelect)
+				return Pin;
 		}
+		
+		return TPin::NotFound;
+	}
+
+	const TPin& TPinComponent::operator[](const TPin::TPinID& PinIDToSelect) const
+	{
+		// Look in all the pins of this component
+		for (auto& Pin : mPins)
+		{
+			// And if the current iterated PIN it's the one we are looking for return it (and so exit the function)
+			if (Pin.getPinID() == PinIDToSelect)
+				return Pin;
+		}
+
+		return TPin::NotFound;
 	}
 
 	TPinBus TPinComponent::getPinBus(const TPin::TPinGroupID BusID, const TPinBusIndex BusBegin /*= 0*/, const TPinBusIndex BusEnd /*= 0*/)
@@ -124,20 +99,20 @@ namespace nne
 	{
 		return mPins;
 	}
-
-	const std::size_t& TPinComponent::getSelectedPinNumber() const
-	{
-		return mSelectedPin + 1;
-	}
-
+	
 	nne::tcomponents::TPin& TPinComponent::getSelectedPin()
 	{
-		return mParent->getComponent<TPinComponent>().getPin(mSelectedPin + 1);
+		return (*this)[mSelectedPinID];
 	}
 
 	const nne::tcomponents::TPin& TPinComponent::getSelectedPin() const
 	{
-		return mParent->getComponent<TPinComponent>().getPin(mSelectedPin + 1);
+		return (*this)[mSelectedPinID];
+	}
+
+	const nne::tcomponents::TPin& TPinComponent::getHoverPin() const
+	{
+		return (*this)[mOverPinID];
 	}
 
 	void TPinComponent::deselectPin()
@@ -152,7 +127,7 @@ namespace nne
 	{
 		auto& Vertices = mParent->getComponent<TDrawableComponent>().getVertexArray();
 
-		sf::Vector2f PinPosition = Vertices[PinIndex * 4 + 4 + 0].position;
+		sf::Vector2f PinPosition = Vertices[PinIndex * 4 + 4].position;
 
 		// Because the pin size can be negative due to the fact vertex array data is relative to the main we have to do some math to figure out the pin real size
 		sf::Vector2f PinSize = computePinSize(PinIndex);
@@ -160,9 +135,55 @@ namespace nne
 		return{ PinPosition, PinSize };
 	}
 
+	sf::FloatRect TPinComponent::getPinLocalBounds(const std::string& PinToSelect)
+	{
+		auto Index = 0u;
+		auto Size = mPins.size();
+
+		while (Index < Size && mPins[Index++].mPinName != PinToSelect);
+
+		// Return an empty sf::FloatRect if we don't find anything
+		if (Index == Size)
+			return{};
+
+		return getPinLocalBounds(Index - 1);
+	}
+
+	sf::FloatRect TPinComponent::getPinLocalBounds(const TPin::TPinNumber& PinToSelect)
+	{
+		auto Index = 0u;
+		auto Size = mPins.size();
+
+		while (Index < Size && mPins[Index++].mPinNumber != PinToSelect);
+
+		// Return an empty sf::FloatRect if we don't find anything
+		if (Index == Size)
+			return{};
+
+		return getPinLocalBounds(Index - 1);
+	}
+
 	sf::FloatRect TPinComponent::getPinGlobalBounds(const std::size_t& PinIndex)
 	{
-		return mParent->getComponent<TDrawableComponent>().getTransform().transformRect(getPinLocalBounds(PinIndex));
+		auto Pos = mParent->getComponent<TDrawableComponent>().getPosition();
+
+		auto PinBound = getPinLocalBounds(PinIndex);
+
+		PinBound.left += Pos.x;
+		PinBound.top += Pos.y;
+
+		//return mParent->getComponent<TDrawableComponent>().getTransform().transformRect(getPinLocalBounds(PinIndex));
+		return PinBound;
+	}
+
+	sf::FloatRect TPinComponent::getPinGlobalBounds(const std::string& PinToSelect)
+	{
+		return getPinLocalBounds(PinToSelect);
+	}
+
+	sf::FloatRect TPinComponent::getPinGlobalBounds(const TPin::TPinNumber& PinToSelect)
+	{
+		return getPinLocalBounds(PinToSelect);
 	}
 
 	void TPinComponent::createPin(const sf::Vector2f& Position, const sf::Vector2f& Size, sf::VertexArray& OutputVertices)
@@ -365,7 +386,45 @@ namespace nne
 		mOverPin = None;
 		
 		// Iterate through all the PINS
-		for (size_t Index = 0; Index < NumberOfPins; ++Index)
+		auto Index = 0u;
+		for (auto& Pin : mPins)
+		{
+			// Get the pin bound of the selected PIN
+			auto PinBound = getPinGlobalBounds(Index);
+
+			// If we clicked on the entity
+			if (checkMouseClickOnPin(PinBound, MousePos))
+			{
+				mPreviousSelectedPin = mSelectedPin;
+
+				mSelectedPin = Index;
+				mSelectedPinID = getPin(Index + 1).getPinID();
+
+				// Inform the logic board component that we selected this component
+				LogicBoard.setSelectedComponent<TChipComponent>(mParent->getComponentAsPtr<TChipComponent>());
+
+				return;
+			}
+			// If we are just hovering the entity
+			else if (checkMouseOverOnPin(PinBound, MousePos))
+			{
+				mOverPin = Index;
+				mOverPinID = getPin(Index + 1).getPinID();
+
+				return;
+			}
+
+			++Index;
+		}
+
+		// If we arrive at this point maybe we have to deselect the chip
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::WIRE)
+		{
+			if (LogicBoard.getSelectedComponent<TChipComponent>() == mParent->getComponentAsPtr<TChipComponent>())
+				LogicBoard.deselectComponent<TChipComponent>();
+		}		
+
+		/*for (size_t Index = 0; Index < NumberOfPins; ++Index)
 		{
 			// Get the pin bound of the selected PIN
 			auto PinBound = getPinGlobalBounds(Index);
@@ -374,7 +433,9 @@ namespace nne
 			if (checkMouseClickOnPin(PinBound, MousePos))
 			{
 				mPreviousSelectedPin = mSelectedPin;
+
 				mSelectedPin = Index;
+				mSelectedPinID = mPins[Index].getPinID();
 
 				// Inform the logic board component that we selected this component
 				//LogicBoard.setSelectedChip(&mParent->getComponent<TChipComponent>());
@@ -386,6 +447,7 @@ namespace nne
 			else if (checkMouseOverOnPin(PinBound, MousePos))
 			{
 				mOverPin = Index;
+				mOverPinID = mPins[Index].getPinID();
 
 				return;
 			}
@@ -396,6 +458,6 @@ namespace nne
 		{
 			if (LogicBoard.getSelectedComponent<TChipComponent>() == mParent->getComponentAsPtr<TChipComponent>())
 				LogicBoard.deselectComponent<TChipComponent>();
-		}
+		}*/
 	}
 }

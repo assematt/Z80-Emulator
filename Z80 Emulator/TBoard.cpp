@@ -5,8 +5,8 @@
 #include "TFactory.h"
 #include "TManager.h"
 #include "TEventComponent.h"
+#include "TPackageComponent.h"
 #include "TLogicBoardComponent.h"
-
 
 namespace nne
 {
@@ -89,6 +89,8 @@ namespace nne
 		deselectComponent<TChipComponent>(true);
 		deselectComponent<TWireComponent>(true);
 		deselectComponent<TBusComponent>(true);
+
+		mLastSelectedItem = "";
 	}
 
 	bool TBoard::checkCollisions(TChipComponent* Chip)
@@ -134,6 +136,7 @@ namespace nne
 
 			std::function<TEntity::EntityPtr()> FactoryFunction;
 			std::string	NewChipID;
+			TPackageComponent::TPackageType PackageType = TPackageComponent::TPackageType::DIP;
 
 			// Extract the name of the chip
 			std::string ChipName = Chip->getChildNode("name")->getContent();
@@ -166,18 +169,21 @@ namespace nne
 			{
 				FactoryFunction = TFactory::makeLed;
 				NewChipID = "LED_" + std::to_string(ChipCounter);
+				PackageType = TPackageComponent::TPackageType::LED;
 			}
 			// If we are creating a VCC
 			else if (ChipToCreate == "VCC")
 			{
 				FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
 				NewChipID = "VCC_" + std::to_string(ChipCounter);
+				PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 			}
 			// If we are creating a GND
 			else if (ChipToCreate == "GND")
 			{
 				FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
 				NewChipID = "GND_" + std::to_string(ChipCounter);
+				PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 			}
 
 			// Create a new graphic chip
@@ -186,9 +192,15 @@ namespace nne
 			// Get the newly added CHIP
 			auto NewChip = EntityManager.getEntityByKey(NewChipID);
 			NewChip->init();
+			
 			NewChip->getComponent<TLogicBoardComponent>().setBoard(Board);
 			NewChip->getComponent<TChipComponent>().setPlacedStatus(true);
 			NewChip->getComponent<TDrawableComponent>().setPosition(PositionX, PositionY);
+
+			// Set the type of the package used for the component
+			NewChip->getComponent<TPackageComponent>().setPackageType(PackageType);
+
+			// Set the chip name
 			NewChip->getComponent<TChipComponent>().setChipName(ChipName);
 
 			NewChip->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
@@ -292,8 +304,6 @@ namespace nne
 				auto& Pin = TPin::getPinByName(PinName, ParentEntity);
 
 				// Add the PIN in the connection vector
-				/// OLD
-				/*WireComponent.mPins.push_back(&Pin);*/
 				WireComponent.mConnectedPins.insert(&Pin);
 			}
 

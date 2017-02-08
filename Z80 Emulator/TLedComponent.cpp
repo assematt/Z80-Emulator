@@ -3,7 +3,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 
-#include "TDrawableComponent.h"
+#include "TPackageComponent.h"
 #include "TChipComponent.h"
 #include "TCacheManager.h"
 
@@ -21,28 +21,23 @@ namespace nne
 	{
 		// 
 		auto& IsPlaced = mParent->getComponent<TChipComponent>().isPlaced();
+		auto& Package = mParent->getComponent<TPackageComponent>();
 		
 		// Update the LED color only if the component it's placed
 		if (IsPlaced)
 		{
-			auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
-			mIsOn ? DrawableComponent.setColor({ mOnColor }) : DrawableComponent.setColor(mOffColor);
+			mIsOn ? Package.setPackageColor({ mOnColor }) : Package.setPackageColor(mOffColor);
 		}
 	}
 
 	void TLedComponent::refresh(const sf::Time& ElapsedTime)
 	{
-		// Get a ref to the PIN Component
-		auto& PinComponent = mParent->getComponent<TPinComponent>();
-
 		// Change the status based on the value of the anode and cathode
 		checkLedStatus();
 	}
 
 	void TLedComponent::init()
 	{
-		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
-
 		// Setup the LED Pins
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
@@ -50,41 +45,11 @@ namespace nne
 			{ tcomponents::TPin::TMode::INPUT, "ANODE", tcomponents::TPin::TStatus::LOW, 1 },	 // A1
 			{ tcomponents::TPin::TMode::OUTPUT, "CATHODE",  tcomponents::TPin::TStatus::LOW, 2 }, // A2
 		}, 2);
-				
-		renderLed();
 	}
 
 	const bool& TLedComponent::isOn() const
 	{
 		return mIsOn;
-	}
-
-	void TLedComponent::renderLed()
-	{
-		// Get a ref to the PIN, drawable component
-		auto& PinComponent = mParent->getComponent<TPinComponent>();
-		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
-
-		// Get a ref to the drawable component vertex array for cache purposes
-		auto& Vertices = DrawableComponent.getVertexArray();
-
-		// Define pin size
-		sf::Vector2f PinSize = { 10.f, 9.f };
-
-		// Define the LED size
-		DrawableComponent.setSize({ 35u, 35u });
-
-		// Get the size of the texture
-		auto LedBound = DrawableComponent.getLocalBounds();
-
-		// Create the anode PIN
-		PinComponent.createPin({ -PinSize.x, LedBound.height / 2.f - PinSize.y / 2.f }, PinSize, Vertices);
-
-		// Create the cathode PIN
-		PinComponent.createPin({ LedBound.width, LedBound.height / 2.f - PinSize.y / 2.f }, PinSize, Vertices);
-
-		// Set the origin to be at the center bottom
-		DrawableComponent.setOrigin({ 35.f / 2.f, 35.f / 2.f });
 	}
 	
 	void TLedComponent::checkLedStatus()

@@ -51,13 +51,13 @@ namespace nne
 
 		/// Function to reset the state of the selected PIN
 		void deselectPin();
-
-		/// Return the selected PIN number
-		const std::size_t& getSelectedPinNumber() const;
-
+		
 		/// Get the selected pin
 		tcomponents::TPin& getSelectedPin();
 		const tcomponents::TPin& getSelectedPin() const;
+
+		/// Get the hover pin
+		const tcomponents::TPin& getHoverPin() const;
 				
 	private:
 		bool				mIsPlaced;

@@ -124,6 +124,18 @@ namespace nne
 		return sf::Vector2f(GridCoords.x * mCellSize.x, GridCoords.y * mCellSize.y);
 	}
 
+	sf::Vector2f TGridComponent::convertCoordinate(const sf::RenderTarget& Target, const sf::Vector2f& InitialCoor)
+	{
+		// Convert the passed coordinate into the coordinate of the sf::RenderTarget passed
+		auto TargetCoor = Target.mapPixelToCoords(static_cast<sf::Vector2i>(InitialCoor));
+
+		// Convert those coordinate in cell coordinate
+		auto CellCoord = mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(TargetCoor));
+
+		// Return the transformed cell coord
+		return transformCellCoords(CellCoord);
+	}
+
 	sf::Vector2i TGridComponent::getColsRowsNumber(const sf::Vector2f& Size)
 	{
 		return sf::Vector2i(static_cast<std::size_t>(Size.x / mCellSize.x), static_cast<std::size_t>(Size.y / mCellSize.y));

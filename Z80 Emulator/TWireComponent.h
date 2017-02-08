@@ -27,8 +27,6 @@ namespace nne
 		static const sf::Color WireColorStatusHigh;
 		static const sf::Color WireColorStatusHighZ;
 		
-		/// OLD
-		//using TPinConnections = std::vector<TPin*>;
 		using TPinConnections = std::set<TPin*>;
 		using TWireConnections = std::set<TWireComponent*>;
 		using TJunction = std::pair<sf::Vector2f, TWireComponent*>;
@@ -182,6 +180,9 @@ namespace nne
 		/// Shift the vertex array left by a specified amount
 		void shiftVerticesLeft(std::size_t BeginIndex, std::size_t EndIndex, std::size_t Steps);
 
+		/// Connect pins
+		void connectWireAndPins(TWireComponent* Wire, TPin* Pin);
+
 	private:
 		bool						mEnableDraw;
 		bool						mIsSelected;
@@ -201,8 +202,6 @@ namespace nne
 
 		TDrawableComponent*			mDrawableComponent;
 		std::vector<sf::Vector2f>	mVertices;
-		/// OLD
-		//std::vector<sf::Vector2f>	mJunctions;
 		std::vector<TJunction>		mJunctions;
 
 		friend class TBoard;

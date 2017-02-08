@@ -87,6 +87,12 @@ typename std::enable_if<std::is_same<T, TChipComponent>::value>::type TBoard::re
 
 	if (It != mPlacedChips.end())
 		mPlacedChips.erase(It);
+
+	if (ComponentToRemove == mSelectedChip)
+	{
+		mSelectedChip = nullptr;
+		mLastSelectedItem = "";
+	}
 }
 
 /// Place a component in the logic board by passing directly the component
@@ -101,6 +107,12 @@ typename std::enable_if<std::is_same<T, TWireComponent>::value>::type TBoard::re
 
 	if (It != mPlacedWires.end())
 		mPlacedWires.erase(It);
+
+	if (ComponentToRemove == mSelectedWire)
+	{
+		mSelectedWire = nullptr;
+		mLastSelectedItem = "";
+	}
 }
 
 /// Place a component in the logic board by passing directly the component
@@ -115,6 +127,12 @@ typename std::enable_if<std::is_same<T, TBusComponent>::value>::type TBoard::rem
 
 	if (It != mPlacedBusses.end())
 		mPlacedBusses.erase(It);
+
+	if (ComponentToRemove == mSelectedBus)
+	{
+		mSelectedBus = nullptr;
+		mLastSelectedItem = "";
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -350,22 +368,22 @@ typename std::enable_if<std::is_same<T, TBusComponent>::value>::type TBoard::des
 //////////////////////////////////////////////////////////////////////////
 
 /// Get the vector of all the currently placed specified component
-template <class T, const std::vector<T*>&>
-typename std::enable_if<std::is_same<T, TChipComponent>::value>::type TBoard::getComponentVector() const
+template <class T>
+typename std::enable_if<std::is_same<T, TChipComponent>::value, const std::vector<T*>&>::type TBoard::getComponentVector() const
 {
 	return mPlacedChips;
 }
 
 /// Get the vector of all the currently placed specified component
-template <class T, const std::vector<T*>&>
-typename std::enable_if<std::is_same<T, TWireComponent>::value>::type TBoard::getComponentVector() const
+template <class T>
+typename std::enable_if<std::is_same<T, TWireComponent>::value, const std::vector<T*>&>::type TBoard::getComponentVector() const
 {
 	return mPlacedWires;
 }
 
 /// Get the vector of all the currently placed specified component
-template <class T, const std::vector<T*>&>
-typename std::enable_if<std::is_same<T, TBusComponent>::value>::type TBoard::getComponentVector() const
+template <class T>
+typename std::enable_if<std::is_same<T, TBusComponent>::value, const std::vector<T*>&>::type TBoard::getComponentVector() const
 {
 	return mPlacedBusses;
 }

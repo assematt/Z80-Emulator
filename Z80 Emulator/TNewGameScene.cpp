@@ -1,17 +1,20 @@
 #include "TNewGameScene.h"
 
+#include <functional>
+
 #include "TEntity.h"
-#include "TLogicBoardComponent.h"
-#include "TWireComponent.h"
-#include "TGridComponent.h"
-#include "TNewGameMenu.h"
+#include "TCodeEditor.h"
 #include "TStaticText.h"
+#include "TNewGameMenu.h"
+#include "TDebugWindow.h"
 #include "TZ80Component.h"
 #include "TPinComponent.h"
-#include "TEventComponent.h"
 #include "TDialogWindow.h"
-#include "TDebugWindow.h"
-#include "TCodeEditor.h"
+#include "TWireComponent.h"
+#include "TGridComponent.h"
+#include "TEventComponent.h"
+#include "TPackageComponent.h"
+#include "TLogicBoardComponent.h"
 
 namespace nne
 {
@@ -120,7 +123,7 @@ namespace nne
 		});
 		
 		// Set-up some GUI event for the button that create components
-		mGuiManager.getWidget("INSERT_CPU_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+		mGuiManager.getWidget("INSERT_CPU_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 
 			// Look for a z80 entity in the entities vector
 			auto Z80Temp = mGraphicEntity.getEntityByKey("Z80");
@@ -142,7 +145,7 @@ namespace nne
 			}
 
 		});
-		mGuiManager.getWidget("INSERT_RAM_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+		mGuiManager.getWidget("INSERT_RAM_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			// Look for a z80 entity in the entities vector
 			auto RamTemp = mGraphicEntity.getEntityByKey("RAM");
 
@@ -162,16 +165,16 @@ namespace nne
 				mGuiManager.getWidget<tgui::TDialogWindow>("TEMP_DIALOG_WINDOW")->show(*mRenderWindow, tgui::TReferencePoint::CENTER);
 			}
 		});
-		mGuiManager.getWidget("INSERT_NAND_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+		mGuiManager.getWidget("INSERT_NAND_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addChip("NAND");
 		});
-		mGuiManager.getWidget("INSERT_LED_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+		mGuiManager.getWidget("INSERT_LED_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addChip("LED");
 		});
-		mGuiManager.getWidget("INSERT_POWER_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+		mGuiManager.getWidget("INSERT_POWER_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addChip("VCC");
 		});
-		mGuiManager.getWidget("INSERT_GROUND_BUTTON")->attachEvent(tgui::events::onClick, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
+		mGuiManager.getWidget("INSERT_GROUND_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			addChip("GND");
 		});
 
@@ -227,8 +230,7 @@ namespace nne
 	{
 		// Get the mouse coordinate and transform them to make them stick to the grid		
 		auto MousePosAdj = mRenderCanvas->mapPixelToCoords(static_cast<sf::Vector2i>(MousePos));
-		auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(MousePosAdj));
-		auto CellPos = mGridComponent->transformCellCoords(GridCoord);
+		auto CellPos = mGridComponent->convertCoordinate(*mRenderCanvas, MousePos);
 
 		auto& InsertionMethod = mLogicBoard.getInsertionMethod();
 
@@ -256,7 +258,40 @@ namespace nne
 				auto CurrentWire = mLogicBoard.getSelectedComponent<TWireComponent>();
 
 				if (CurrentWire)
-					CurrentWire->placePointTemp(CellPos);
+				{
+					auto& ChipVector = mLogicBoard.getComponentVector<TChipComponent>();
+					sf::FloatRect PinBound = {};
+					auto Hovering = false;
+
+					for (auto Chip : ChipVector)
+					{
+						auto& PinComponent = Chip->getParent()->getComponent<TPinComponent>();
+						auto PinNumber = PinComponent.getPinList().size();
+						for (auto Index = 0u; Index < PinNumber && !Hovering; ++Index)
+						{
+							PinBound = PinComponent.getPinGlobalBounds(Index);
+							if (PinBound.contains(MousePosAdj))
+								Hovering = true;
+						}
+					}
+
+					// If we are hovering over a pin out the initial point at the center of the hovered pin
+					if (Hovering)
+					{
+						// Compute the where to position the first wire point in an horizontally oriented PIN
+						sf::Vector2f WireTempPos = { PinBound.left + PinBound.width / 2.f, PinBound.top + PinBound.height / 2.f };
+
+						// Adjust his coordinate if it's placed vertically
+						if (PinBound.width < PinBound.height)
+							WireTempPos -= { 1.f, 1.f };
+
+						CurrentWire->placePointTemp(WireTempPos);
+					}
+					else
+					{
+						CurrentWire->placePointTemp(CellPos);
+					}
+				}
 			}break;
 
 			// If we are using the bus tool
@@ -284,9 +319,7 @@ namespace nne
 	void TNewGameScene::handleLeftMouseUpEvent(const sf::Vector2f& MousePos)
 	{
 		// Get the mouse coordinate and transform them to make them stick to the grid		
-		auto MousePosAdj = mRenderCanvas->mapPixelToCoords(static_cast<sf::Vector2i>(MousePos));
-		auto GridCoord = mGridComponent->mouseCoordsToWindowCellCoords(static_cast<sf::Vector2i>(MousePosAdj));
-		auto CellPos = mGridComponent->transformCellCoords(GridCoord);
+		auto CellPos = mGridComponent->convertCoordinate(*mRenderCanvas, MousePos);
 
 		auto& InsertionMethod = mLogicBoard.getInsertionMethod();
 
@@ -313,7 +346,8 @@ namespace nne
 			{
 				// Get the WireComponent of the entity we are inserting
 				auto& InsertingWire = mTempWire->getComponent<TWireComponent>();
-
+				
+				// Confirm the point added so far in the wire sf::VertexArray as definitive
 				InsertingWire.confirmPoints();
 
 				// get a pointer to the selected chip
@@ -347,27 +381,21 @@ namespace nne
 					mLogicBoard.setSelectedComponent<TWireComponent>(SelectedWire);
 					mLogicBoard.setSelectedComponent<TWireComponent>(&InsertingWire);
 				}
+				
 				// If we are trying to draw a wire between another wire and a chip
 				else if (SelectedWire && (SelectedWire == &InsertingWire) && FormerSelectedWire && CurrentSelectedChip && !FormerSelectedChip)
 				{
 					// Stop the drawing mode
 					InsertingWire.toggleDraw();
-					
-					/// OLD
-// 					for (auto Pin : FormerSelectedWire->getPinList())
-// 					{
-// 						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-// 						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-// 					}
 
-					// Connect the wire
+					// Add the PIN connection from the chip and wire (and perform the eventual connectPins(...) function between this pin
+					// And other pins connected to the wire)
 					InsertingWire.connectPin(CurrentSelectedChip->getSelectedPin());
-					InsertingWire.connectWire(FormerSelectedWire);
 
-					// Connect the pin
-					for (auto& Pin : FormerSelectedWire->getConnectedPins())
-						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-					
+					// Connect the wire (and perform the eventual connectPins(...) function between this pin
+					// And other pins connected to the wire)
+					InsertingWire.connectWire(FormerSelectedWire);
+										
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
 
@@ -377,29 +405,23 @@ namespace nne
 					// Start the drawing of a new wire
 					addWire();
 				}
+
 				// If we have drawn a wire between a chip and another wire
 				else if (CurrentSelectedChip && SelectedWire && (SelectedWire != &InsertingWire))
 				{
 					// Stop the drawing mode
 					InsertingWire.toggleDraw();
 
+					// Add a junction
 					InsertingWire.placeJunction(CellPos, SelectedWire);
-
-					// Connect the pins
-					/// OLD
-// 					for (auto Pin : SelectedWire->getPinList())
-// 					{
-// 						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-// 						InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
-// 					}
-
-					// Connect the wire
+										
+					// Add the PIN connection from the chip and wire (and perform the eventual connectPins(...) function between this pin
+					// And other pins connected to the wire)
 					InsertingWire.connectPin(CurrentSelectedChip->getSelectedPin());
-					InsertingWire.connectWire(SelectedWire);
 
-					// Connect the pin
-					for (auto& Pin : SelectedWire->getConnectedPins())
-						TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), *Pin);
+					// Connect the wire (and perform the eventual connectPins(...) function between this pin
+					// And other pins connected to the wire)
+					InsertingWire.connectWire(SelectedWire);
 
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
@@ -416,9 +438,8 @@ namespace nne
 				{
 					// Stop the drawing mode
 					InsertingWire.toggleDraw();
-
-					// Connect the pins
-					TPinComponentUtility::connectPins(CurrentSelectedChip->getSelectedPin(), FormerSelectedChip->getSelectedPin());
+					
+					// Add the 2 pin from the chip to the wire (who will perform the connectPins(...) function between the 2 pin)
 					InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), FormerSelectedChip->getSelectedPin());
 
 					// Reset the chip's pin selected status
@@ -474,26 +495,14 @@ namespace nne
 
 				if (LastSelectedComponent.second == "CHIP" && LastSelectedComponent.first)
 				{
-					auto& ChipComponent = *dynamic_cast<TChipComponent*>(LastSelectedComponent.first);
-
-					std::string Message = "Chip name: " + ChipComponent.getName();
-
-					::MessageBoxA(NULL, Message.c_str(), "Chip", MB_OK);
-
-					removeChip(&ChipComponent);
+					removeChip(dynamic_cast<TChipComponent*>(LastSelectedComponent.first));
 				}
 				else if (LastSelectedComponent.second == "WIRE" && LastSelectedComponent.first)
 				{
-					std::string Message = "Wire id: " + std::to_string(LastSelectedComponent.first->getComponentID());
-
-					::MessageBoxA(NULL, Message.c_str(), "Wire", MB_OK);
-
 					removeWire(dynamic_cast<TWireComponent*>(LastSelectedComponent.first));
 				}
 				else if (LastSelectedComponent.second == "BUS" && LastSelectedComponent.first)
 				{
-					std::string Message = "Bus id: " + std::to_string(LastSelectedComponent.first->getComponentID());
-
 					removeBus(dynamic_cast<TBusComponent*>(LastSelectedComponent.first));
 				}
 			} break;
@@ -892,6 +901,7 @@ namespace nne
 
 		std::function<TEntity::EntityPtr()> FactoryFunction;
 		std::string	NewChipID;
+		TPackageComponent::TPackageType PackageType = TPackageComponent::TPackageType::DIP;
 
 		// If we are creating a z80 chip and we didn't do it before
 		if (ChipToAdd == "Z80")
@@ -916,18 +926,21 @@ namespace nne
 		{
 			FactoryFunction = TFactory::makeLed;
 			NewChipID = "LED_" + std::to_string(mChipCounter++);
+			PackageType = TPackageComponent::TPackageType::LED;
 		}
 		// If we are creating a VCC
 		else if (ChipToAdd == "VCC")
 		{
 			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
 			NewChipID = "VCC_" + std::to_string(mChipCounter++);
+			PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 		}
 		// If we are creating a GND
 		else if (ChipToAdd == "GND")
 		{
 			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
 			NewChipID = "GND_" + std::to_string(mChipCounter++);
+			PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 		}
 
 		// Create a new graphic chip
@@ -937,8 +950,16 @@ namespace nne
 		mTempChip = mGraphicEntity.getEntityByKey(NewChipID);
 		mTempChip->init();
 		mTempChip->getComponent<TChipComponent>().setPlacedStatus(false);
+
+		// Set the type of the package used for the component
+		mTempChip->getComponent<TPackageComponent>().setPackageType(PackageType);
+
+		// Set the chip name
 		mTempChip->getComponent<TChipComponent>().setChipName(NewChipID);
-		
+
+		if (PackageType == TPackageComponent::TPackageType::DIP)
+			mTempChip->getComponent<TPackageComponent>().updateChipName();
+				
 		// Set the used board
 		mTempChip->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
 
@@ -989,10 +1010,7 @@ namespace nne
 		auto& PinList = Wire->getConnectedPins();
 
 		// Disconnect all the pin
-		/// OLD
-// 		for (auto Index = 0u; Index < PinList.size() - 1; ++Index)
-// 			TPinComponentUtility::detachPins(*PinList[Index], *PinList[Index + 1]);
-		
+
 		// If this wire has some other wires connected to it
 		if (Wire->hasConnectedWires())
 		{
@@ -1000,21 +1018,13 @@ namespace nne
 			for (auto& LeftPin : Wire->getConnectedPins())
 				for (auto ConnectedWire : Wire->getConnectedWires())
 					for (auto& RightPin : ConnectedWire->getConnectedPins())
-							TPinComponentUtility::detachPins(*LeftPin, *RightPin);
-		}
-		// IF there isn't any wires attached just disconnect the wire
-		else
-		{
-			// Get the iterator to the first element
-			/*auto It = Wire->getConnectedPins().begin();
-
-			// Get the value of the left pin
-			auto LeftPin = *(It);
-			
-			// Get the value of the second pin
-			auto RightPin = *(++It);
-
-			TPinComponentUtility::detachPins(*LeftPin, *RightPin);*/
+					{
+						/// FUTURE FIX
+						/*for (auto ConnectedPin : RightPin->getPinConnections())
+							TPinComponentUtility::detachPins(*LeftPin, *ConnectedPin);*/
+						
+						TPinComponentUtility::detachPins(*LeftPin, *RightPin);
+					}
 		}
 
 		// If we have 2 pin connected to this wire
@@ -1031,15 +1041,9 @@ namespace nne
 
 			TPinComponentUtility::detachPins(*LeftPin, *RightPin);
 		}
-		// If we have just 1 Pin connected to this wire
-		else
-		{
-			
-		}
-
-		// Disconnect the wire
+		
 		Wire->disconnectWire();
-
+				
 		// Remove the wire from the logic board
 		mLogicBoard.removeComponent(Wire);
 
@@ -1057,7 +1061,23 @@ namespace nne
 
 	void TNewGameScene::removeChip(TChipComponent* Chip)
 	{
+		// Get the parent entity
+		auto ParentEntity = Chip->getParent();
 
+		// Get a ref to the TPinComponent
+		auto& PinComponent = ParentEntity->getComponent<TPinComponent>();
+
+		// Detach all the pins
+		for (auto& Pin : PinComponent.getPinList())
+			Pin.detachPin();
+
+		// Remove the wire from the logic board
+		mLogicBoard.removeComponent(Chip);
+
+		// Remove the wire parent entity from the entity manager
+		mGraphicEntity.removeEntity(ParentEntity->getEntityID());
+
+		::MessageBoxA(NULL, "Chip removed!", "Bye bye!", MB_OK);
 	}
 
 	void TNewGameScene::removeTemporaryEntity()
@@ -1198,12 +1218,14 @@ namespace nne
 		auto YStaticText = mGuiManager.getWidget<tgui::TStaticText>("YVALUE_TEXT"); 
 		auto ZStaticText = mGuiManager.getWidget<tgui::TStaticText>("ZINDEX_TEXT");
 
-		auto MousePos = mRenderCanvas->mapCoordsToPixel(getMousePosition());
-		MousePos -= {300, 50};
+		// Convert the mouse coordinate
+		auto CellPos = mGridComponent->convertCoordinate(*mRenderCanvas, getMousePosition());
+
+		// Normalize the zoom level
 		auto ZoomLevel = static_cast<sf::Uint32>(mRenderCanvas->getZoomFactor() * 100);
 
-		XStaticText->setCaption("X:" + std::to_string(static_cast<sf::Int32>(MousePos.x)));
-		YStaticText->setCaption("Y:" + std::to_string(static_cast<sf::Int32>(MousePos.y)));
+		XStaticText->setCaption("X:" + std::to_string(static_cast<sf::Int32>(CellPos.x)));
+		YStaticText->setCaption("Y:" + std::to_string(static_cast<sf::Int32>(CellPos.y)));
 		ZStaticText->setCaption("Z:" + std::to_string(ZoomLevel) + "%");
 	}
 

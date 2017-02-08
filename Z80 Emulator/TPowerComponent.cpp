@@ -32,33 +32,28 @@ namespace nne
 	void TPowerComponent::init()
 	{
 		// Get a ref to the drawable and pin component
-		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 
+		// Set the pin type according to the type of the power connector
 		if (mPowerType == Type::GROUND)
 		{
-			// Set the texture
-			DrawableComponent.setTexture(TCacheManager::getInstance().getResource<sf::Texture>("ground"));
-
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
 				{ tcomponents::TPin::TMode::POWER, "GND", tcomponents::TPin::TStatus::LOW, 1 }, // GND
 			}, 1);
-
 		}
 		else if (mPowerType == Type::POWER)
 		{
-			// Set the texture
-			DrawableComponent.setTexture(TCacheManager::getInstance().getResource<sf::Texture>("power"));
-
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
 				{ tcomponents::TPin::TMode::POWER, "VCC", tcomponents::TPin::TStatus::HIGH, 1 }, // GND
 			}, 1);
 		}
+	}
 
-		// Add a connection PIN
-		addConnectionPin();
+	const TPowerComponent::Type& TPowerComponent::getPowerType() const
+	{
+		return mPowerType;
 	}
 
 	void TPowerComponent::addConnectionPin()

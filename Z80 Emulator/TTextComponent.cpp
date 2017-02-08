@@ -55,7 +55,10 @@ namespace nne
 		mStrikeThroughFillColor(255, 255, 255),
 		mStrikeThroughOutlineColor(0, 0, 0),
 		mUnderlineFillColor(255, 255, 255),
-		mUnderlineOutlineColor(0, 0, 0)
+		mUnderlineOutlineColor(0, 0, 0),
+		mCharactersFillColor({}),
+		mCharactersOutlineColor({}),
+		mCharactersPositions({})
 	{
 	}
 
@@ -73,7 +76,10 @@ namespace nne
 		mStrikeThroughFillColor(255, 255, 255),
 		mStrikeThroughOutlineColor(0, 0, 0),
 		mUnderlineFillColor(255, 255, 255),
-		mUnderlineOutlineColor(0, 0, 0)
+		mUnderlineOutlineColor(0, 0, 0),
+		mCharactersFillColor({}),
+		mCharactersOutlineColor({}),
+		mCharactersPositions({})
 	{
 	}
 
@@ -347,6 +353,13 @@ namespace nne
 		{
 			mGeometryNeedupdate = true;
 		}
+	}
+
+	void TTextComponent::clearCharacterPosition()
+	{
+		mCharactersPositions.clear();
+
+		mGeometryNeedupdate = true;
 	}
 
 	const sf::String& TTextComponent::getString() const

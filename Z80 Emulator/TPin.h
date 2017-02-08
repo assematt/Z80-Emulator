@@ -44,8 +44,6 @@ namespace nne
 			using TPinName = std::string;
 			using TPinNumber = TU8BitValue;
 			using TPinGroupID = std::size_t;
-			/// OLD
-			//using TPinConnections = std::vector<TPin*>;
 			using TPinConnections = std::unordered_set<TPin*>;
 			
 			enum TStatus : TU8BitValue
@@ -113,6 +111,9 @@ namespace nne
 
 			/// Remove a connection between this pin and another PIN
 			void removeConnection(TPin& RightPin);
+
+			/// Detach this pin by removing it from all the connected pin
+			void detachPin();
 
 			/// Return the vector with all the connections
 			const TPinConnections& getPinConnections() const;

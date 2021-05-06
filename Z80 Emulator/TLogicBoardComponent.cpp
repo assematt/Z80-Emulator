@@ -38,11 +38,11 @@ namespace nne
 		return mPlacedBoard ? true : false;
 	}
 
-	void TLogicBoardComponent::update(const sf::Time& ElapsedTime)
+	void TLogicBoardComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 	}
 
-	void TLogicBoardComponent::refresh(const sf::Time& ElapsedTime)
+	void TLogicBoardComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 	}
 

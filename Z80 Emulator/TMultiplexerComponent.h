@@ -1,17 +1,16 @@
 #pragma once
 
-
-#include "IComponent.h"
-#include "TPinComponent.h"
-#include "TEntity.h"
 #include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
+#include "TPinComponent.h"
+#include INCLUDE_ENTITY_CLASS
 #include <assert.h>
 
 namespace nne
 {
 	namespace tcomponents
 	{
-		struct TMultiplexerComponent : nne::IComponent
+		class TMultiplexerComponent : BASE_COMPONENT_CLASS
 		{
 		public:
 			tcomponents::TPin& selectInput(const TU8BitValue& SelectedInput);
@@ -19,9 +18,9 @@ namespace nne
 
 			void init() override;
 
-			void update(const sf::Time& ElapsedTime) override;
+			void update(REFRESH_UPDATE_PARAMETER) override;
 
-			void refresh(const sf::Time& ElapsedTime) override {}
+			void refresh(REFRESH_UPDATE_PARAMETER) override {}
 
 		private:
 			TPinComponent*	mPinComponent;

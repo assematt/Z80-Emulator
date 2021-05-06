@@ -7,7 +7,7 @@ namespace nne
 {
 
 #ifdef _DEBUG
-#define WINDOW_PROPERTY() sf::VideoMode(1600, 900), mAppName.c_str(), sf::Style::Close
+#define WINDOW_PROPERTY() sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Close
 #else
 #define WINDOW_PROPERTY() sf::VideoMode(1920, 1080), mAppName.c_str(), sf::Style::Fullscreen
 #endif // _DEBUG

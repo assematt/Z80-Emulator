@@ -16,9 +16,13 @@ namespace nne
 		{
 		}
 
-		void TRamComponent::update(const sf::Time& ElapsedTime)
+		void TRamComponent::update(REFRESH_UPDATE_PARAMETER)
 		{
+#if ENTITY_SYSTEM == NNE
 			if (!mParent->getComponent<TPackageComponent>().isPoweredOn())
+#else
+			if (!mParent->getComponent<TPackageComponent>()->isPoweredOn())
+#endif
 				return;
 
 			refreshMemory();
@@ -57,11 +61,19 @@ namespace nne
 		void TRamComponent::init()
 		{
 			// Cache the memory component
+#if ENTITY_SYSTEM == NNE
 			mMemoryComponent = mParent->getComponentAsPtr<TMemoryComponent>();
+#else
+			mMemoryComponent = &(*mParent->getComponent<TMemoryComponent>());
+#endif			
 			mMemoryComponent->resize(mMemorySize);
 
-			// Get a ref to the pin component
+			// Get a ref to the pin component			
+#if ENTITY_SYSTEM == NNE
 			auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+#else
+			auto& PinComponent = mParent->getComponent<TPinComponent>();
+#endif
 
 			// Setup the RAM pins
 			PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{
@@ -111,9 +123,13 @@ namespace nne
 			mOutputEnable = &(PinComponent->getPin(22));
 		}
 
-		void TRamComponent::refresh(const sf::Time& ElapsedTime)
+		void TRamComponent::refresh(REFRESH_UPDATE_PARAMETER)
 		{
+#if ENTITY_SYSTEM == NNE
 			if (!mParent->getComponent<TPackageComponent>().isPoweredOn())
+#else
+			if (!mParent->getComponent<TPackageComponent>()->isPoweredOn())
+#endif
 				return;
 
 			refreshMemory();
@@ -132,8 +148,12 @@ namespace nne
 			// If we arrive at this point we are sure we are performing a read/write operation
 
 			// Get a ref to the pin component
+#if ENTITY_SYSTEM == NNE
 			auto& PinComponent = *mParent->getComponentAsPtr<TPinComponent>();
-
+#else
+			auto& PinComponent = *mParent->getComponent<TPinComponent>();
+#endif
+			
 			// Get a ref to the memory component
 			auto& MemoryComponent = *mMemoryComponent;
 

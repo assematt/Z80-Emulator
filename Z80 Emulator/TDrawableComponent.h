@@ -7,22 +7,23 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <memory>
 
-#include "IComponent.h"
-#include "TEntity.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
+#include INCLUDE_ENTITY_CLASS
 #include "TResource.h"
 
 namespace nne
 {
-	class TDrawableComponent : public nne::IComponent, public sf::Drawable, public sf::Transformable
+	class TDrawableComponent : BASE_COMPONENT_CLASS, public sf::Drawable, public sf::Transformable
 	{
 	public:
 		TDrawableComponent();
 
 		void init() override;
 
-		void update(const sf::Time& ElapsedTime) override {}
+		void update(REFRESH_UPDATE_PARAMETER) override {}
 
-		void refresh(const sf::Time& ElapsedTime) override {}
+		void refresh(REFRESH_UPDATE_PARAMETER) override {}
 		
 		/// Function to set/get the sprite texture
 		void setTexture(const sf::Texture& Texture, bool UpdateBounds = true);

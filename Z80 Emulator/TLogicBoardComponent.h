@@ -3,28 +3,29 @@
 #include <memory>
 #include <vector>
 
-#include "IComponent.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
 #include "TDrawableComponent.h"
 #include "TChipComponent.h"
 #include "TWireComponent.h"
 #include "TBusComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
 	class TBoard;
 
-	class TLogicBoardComponent : public IComponent
+	class TLogicBoardComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
 		// Default constructor
 		TLogicBoardComponent();
 
-		virtual void update(const sf::Time& ElapsedTime) override;
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
 
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 
 		virtual void init() override;

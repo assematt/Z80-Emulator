@@ -6,16 +6,17 @@
 #include <memory>
 #include <array>
 
-#include "IComponent.h"
-#include "TPinComponent.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
+#include "TPin.h"
 #include "TDrawableComponent.h"
 #include "TTextComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
 
-	class TChipComponent : public IComponent
+	class TChipComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 		enum class TPackage
@@ -29,9 +30,9 @@ namespace nne
 
 		void init() override;
 
-		void update(const sf::Time& ElapsedTime) override;
+		void update(REFRESH_UPDATE_PARAMETER) override;
 
-		void refresh(const sf::Time& ElapsedTime) override;
+		void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		/// Toggle the ability to draw the chip
 		void setPlacedStatus(const bool& IsPlaced = true);

@@ -204,9 +204,9 @@ namespace nne
 			Target.draw(mCodeSourceText, States);
 		}
 
-		void TCodeEditor::update(const sf::Time& ElapsedTime)
+		void TCodeEditor::update(const sf::Time& ElaspedTime)
 		{
-			// Don't update the this widget if we haven't connected it to a z80 component and we aren't currently executing a INSTRUCTION_FETCH mcycle
+			// Don't update the this widget if we haven't connected it to a z80 component and we aren't currently executing a INSTRUCTION_FETCH m-cycle
 			if (!mSourceCode || !mPCRegister || !mZ80Component->isRunning() || mZ80Component->getCurrentCycleMode() != TZ80Component::TMachineCycleMode::INSTRUCTION_FETCH)
 				return;
 

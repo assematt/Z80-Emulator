@@ -1,6 +1,6 @@
 #include "TPin.h"
 
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 #include "TPinComponent.h"
 
 namespace nne
@@ -58,7 +58,6 @@ namespace nne
 			mPinNumber(Move.mPinNumber),
 			mPinGroupID(Move.mPinGroupID),
 			mPinGroupNumber(Move.mPinGroupNumber),
-			mPinID(generateID()),
 			mParentName(Move.mParentName)
 		{
 			mPinID = Move.mPinID;
@@ -97,6 +96,43 @@ namespace nne
 		bool TPin::operator!=(const TStatus& Right)
 		{
 			return !(*this == Right);
+		}
+
+		TPin& TPin::operator=(const TPin& Right)
+		{
+			mPinMode = Right.mPinMode;
+			mPinName = Right.mPinName;
+			mPinStatus = Right.mPinStatus;
+			mPinNumber = Right.mPinNumber;
+			mPinGroupID = Right.mPinGroupID;
+			mPinGroupNumber = Right.mPinGroupNumber;
+			mPinID = Right.mPinID;
+			mParentName = Right.mParentName;
+
+			mPinVectors.push_back(this);
+
+			return *this;
+		}
+
+		TPin& TPin::operator=(TPin&& Right)
+		{
+			mPinMode = Right.mPinMode;
+			mPinName = Right.mPinName;
+			mPinStatus = Right.mPinStatus;
+			mPinNumber = Right.mPinNumber;
+			mPinGroupID = Right.mPinGroupID;
+			mPinGroupNumber = Right.mPinGroupNumber;
+			mPinID = generateID();
+			mParentName = Right.mParentName;
+
+			auto PinDoDelete = std::find(mPinVectors.begin(), mPinVectors.end(), this);
+
+			if (PinDoDelete != mPinVectors.end())
+				mPinVectors.erase(PinDoDelete);
+
+			mPinVectors.push_back(this);
+
+			return *this;
 		}
 
 		TPin::operator TStatus()

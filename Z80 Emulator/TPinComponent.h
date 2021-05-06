@@ -11,15 +11,15 @@
 
 #include "TPin.h"
 #include "TValues.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 #include "TUtility.h"
-#include "IComponent.h"
+#include INCLUDE_COMPONENT_CLASS
 
 namespace nne
 {
 	using namespace tcomponents;
 
-	class TPinComponent : public nne::IComponent
+	class TPinComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
@@ -38,9 +38,9 @@ namespace nne
 
 		void init() override;
 
-		void update(const sf::Time& ElapsedTime) override;
+		void update(REFRESH_UPDATE_PARAMETER) override;
 
-		void refresh(const sf::Time& ElapsedTime) override;
+		void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		/// Setup the pins configuration
 		void setupPins(const std::initializer_list<TPin>& PinList, std::size_t PinCount);

@@ -1,6 +1,8 @@
 #include "TZ80Component.h"
 
 #include "TPackageComponent.h"
+#include "TMemoryComponent.h"
+#include "TPinComponent.h"
 
 namespace nne
 {
@@ -32,7 +34,11 @@ namespace nne
 			// Reset the R/W Memory portion if we have one connected
 			if (mRam)
 			{
+#if ENTITY_SYSTEM == NNE
 				for (auto& Memory : mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory())
+#else
+				for (auto& Memory : mRam->getComponent<TMemoryComponent>()->getInternalMemory())
+#endif
 				{
 					Memory = 0;
 				}
@@ -44,7 +50,11 @@ namespace nne
 			// Add the right Components to make a CPU
 
 			// Setup the CPU Pins
+#if ENTITY_SYSTEM == NNE
 			auto& PinComponent = *mParent->getComponentAsPtr<TPinComponent>();
+#else
+			auto& PinComponent = *mParent->getComponent<TPinComponent>();
+#endif
 			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
 				
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
@@ -107,10 +117,14 @@ namespace nne
 			reset();
 		}
 		
-		void TZ80Component::refresh(const sf::Time& ElapsedTime)
+		void TZ80Component::refresh(REFRESH_UPDATE_PARAMETER)
 		{
 			// Before check if the z80 is still active
+#if ENTITY_SYSTEM == NNE
 			if (!mIsRunning || !mParent->getComponent<TPackageComponent>().isPoweredOn())
+#else
+			if (!mIsRunning || !mParent->getComponent<TPackageComponent>()->isPoweredOn())
+#endif
 				return;
 
 			if (mIsHalted)
@@ -134,15 +148,19 @@ namespace nne
 
 		}
 	
-		void TZ80Component::update(const sf::Time& ElapsedTime)
+		void TZ80Component::update(REFRESH_UPDATE_PARAMETER)
 		{
 			// Before check if the z80 is still active
+#if ENTITY_SYSTEM == NNE
 			if (!mIsRunning || !mParent->getComponent<TPackageComponent>().isPoweredOn())
+#else
+			if (!mIsRunning || !mParent->getComponent<TPackageComponent>()->isPoweredOn())
+#endif
 				return;
 	
 			// Show the debug window
-			if (mRam)
-				mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
+// 			if (mRam)
+// 				mDebugger.showDebugWindow(mRegisters, &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory(), mDataBus, mAddressBus, mClock);
 					
 			//mClock.wait();
 		}
@@ -158,8 +176,11 @@ namespace nne
 			if (!mRam)
 				return false;
 
+#if ENTITY_SYSTEM == NNE
 			auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
-
+#else
+			auto& Memory = mRam->getComponent<TMemoryComponent>()->getInternalMemory();
+#endif
 			// Load the instruction set
 	
 			// Read the file		
@@ -231,7 +252,7 @@ namespace nne
 			return mProgramSize;
 		}
 
-		bool TZ80Component::connectRam(std::shared_ptr<TEntity>& Ram)
+		bool TZ80Component::connectRam(ENTITY_PTR& Ram)
 		{
 			// Check the the passed argument points to something
 			if (!Ram)
@@ -241,8 +262,13 @@ namespace nne
 			mRam = Ram;
 	
 			// Get a ref to the PinComponent of the z80 and ram
+#if ENTITY_SYSTEM == NNE
 			auto CpuPinComponent = mParent->getComponentAsPtr<TPinComponent>();
 			auto RamPinComponent = Ram->getComponentAsPtr<TPinComponent>();
+#else
+			auto& CpuPinComponent = mParent->getComponent<TPinComponent>();
+			auto& RamPinComponent = Ram->getComponent<TPinComponent>();
+#endif
 	
 			// Connects the Z80 Address bus to the Ram AddressBus
 			auto& LeftBus = CpuPinComponent->getPinBus(CPUPinGroup::AddressBus, 0, 14);
@@ -263,6 +289,7 @@ namespace nne
 			return true;
 		}
 		
+
 		void TZ80Component::pauseExecution()
 		{
 			mIsRunning = false;
@@ -307,7 +334,11 @@ namespace nne
 				return static_cast<TOpCodesMainInstruction>(TOpCodesMainInstruction::NOP);
 	
 			// Get a ref to the PinComponent
+#if ENTITY_SYSTEM == NNE
 			auto Pins = mParent->getComponentAsPtr<TPinComponent>();
+#else
+			auto& Pins = mParent->getComponent<TPinComponent>();
+#endif
 	
 			// Activates MREQ and RD pin
 			Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true);
@@ -317,8 +348,12 @@ namespace nne
 			auto& PC = mRegisters.programCounter();
 			pushDataToAddressBus(Address > 0 ? Address : PC);
 	
-			// refresh the memory logic			
+			// refresh the memory logic
+#if ENTITY_SYSTEM == NNE
 			mRam->getComponentAsPtr<TRamComponent>()->refreshMemory();
+#else
+			mRam->getComponent<TRamComponent>()->refreshMemory();
+#endif
 	
 			// Get the instruction from the bus
 			mCurrentInstruction = getDataFromDataBus();
@@ -337,7 +372,12 @@ namespace nne
 
 			// Get a ref to the RAM internal memory for better access if we setted one other wise exit the function
 			if (mRam && mRam->hasComponent<TMemoryComponent>())
+#if ENTITY_SYSTEM == NNE
 				Memory = &mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
+#else
+				Memory = &mRam->getComponent<TMemoryComponent>()->getInternalMemory();
+#endif
+				
 			
 			///auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
 
@@ -4880,8 +4920,12 @@ namespace nne
 	
 		TU8BitValue TZ80Component::getDataFromDataBus()
 		{
+#if ENTITY_SYSTEM == NNE
 			mDataBus = mParent->getComponentAsPtr<TPinComponent>()->pinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
-	
+#else
+			mDataBus = mParent->getComponent<TPinComponent>()->pinsToValue<TU8BitValue>(CPUPinGroup::DataBus);
+#endif
+				
 			return mDataBus;
 		}
 	
@@ -4902,21 +4946,33 @@ namespace nne
 		void TZ80Component::pushDataToDataBus(const TU8BitValue & Value)
 		{
 			mDataBus = Value;
-	
+
+#if ENTITY_SYSTEM == NNE
 			mParent->getComponentAsPtr<TPinComponent>()->valueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
+#else
+			mParent->getComponent<TPinComponent>()->valueToPins<TU8BitValue>(mDataBus, CPUPinGroup::DataBus);
+#endif
 		}
 		
 		void TZ80Component::pushDataToAddressBus(const TU16BitValue& Value)
 		{
 			mAddressBus = Value;
-	
+
+#if ENTITY_SYSTEM == NNE
 			mParent->getComponentAsPtr<TPinComponent>()->valueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
+#else
+			mParent->getComponent<TPinComponent>()->valueToPins<TU16BitValue>(mAddressBus, CPUPinGroup::AddressBus);
+#endif
+			
 		}
 	
 		TU16BitValue TZ80Component::getDataFromAddressBus()
 		{
+#if ENTITY_SYSTEM == NNE
 			mAddressBus = mParent->getComponentAsPtr<TPinComponent>()->pinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
-	
+#else
+			mAddressBus = mParent->getComponent<TPinComponent>()->pinsToValue<TU16BitValue>(CPUPinGroup::AddressBus);
+#endif	
 			return mAddressBus;
 		}
 	
@@ -4926,8 +4982,11 @@ namespace nne
 			auto& StackPointer = mRegisters.stackPointer();
 
 			// Get a ref to the RAM internal memory for better aces
+#if ENTITY_SYSTEM == NNE
 			auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
-		
+#else
+			auto& Memory = mRam->getComponent<TMemoryComponent>()->getInternalMemory();
+#endif			
 			// Get a reference to the register
 			const T16BitRegister& RegisterReference = mRegisters.getRegister<T16BitRegister>(Register);
 		
@@ -4943,8 +5002,12 @@ namespace nne
 			// Get the SP reference
 			auto& StackPointer = mRegisters.stackPointer();
 
-			// Get a ref to the RAM internal memory for better aces
+			// Get a ref to the RAM internal memory for better access
+#if ENTITY_SYSTEM == NNE
 			auto& Memory = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory();
+#else
+			auto& Memory = mRam->getComponent<TMemoryComponent>()->getInternalMemory();
+#endif			
 		
 			// Get a reference to the register
 			T16BitRegister& RegisterReference = mRegisters.getRegister<T16BitRegister>(Register);
@@ -4999,8 +5062,11 @@ namespace nne
 					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
 
 					// Get a ref to the PinComponent
+#if ENTITY_SYSTEM == NNE
 					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
-
+#else
+					auto& Pins = mParent->getComponent<TPinComponent>();
+#endif					
 					// Activates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
 					Pins->getPin(21).changePinStatus(tcomponents::TPin::LOW, true); // RD
@@ -5016,8 +5082,11 @@ namespace nne
 					mCurrentInstruction = getDataFromDataBus();
 
 					// Get a ref to the PinComponent
+#if ENTITY_SYSTEM == NNE
 					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
-
+#else
+					auto& Pins = mParent->getComponent<TPinComponent>();
+#endif	
 					// Deactivates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ
 					Pins->getPin(21).changePinStatus(tcomponents::TPin::HIGH, true); // RD
@@ -5060,7 +5129,11 @@ namespace nne
 					// The RD line also goes active to indicate that the memory read data should be enabled onto the CPU data bus.
 
 					// Get a ref to the PinComponent
+#if ENTITY_SYSTEM == NNE
 					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
+#else
+					auto& Pins = mParent->getComponent<TPinComponent>();
+#endif	
 
 					// Activates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::LOW, true); // MREQ
@@ -5077,7 +5150,11 @@ namespace nne
 					mLowMemoryRWValue = getDataFromDataBus();
 
 					// Get a ref to the PinComponent
+#if ENTITY_SYSTEM == NNE
 					auto Pins = mParent->getComponentAsPtr<TPinComponent>();
+#else
+					auto& Pins = mParent->getComponent<TPinComponent>();
+#endif	
 
 					// Deactivates MREQ and RD pin
 					Pins->getPin(19).changePinStatus(tcomponents::TPin::HIGH, true); // MREQ

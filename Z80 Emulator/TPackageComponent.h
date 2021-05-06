@@ -2,13 +2,14 @@
 
 #include <SFML/Graphics/Color.hpp>
 
-#include "IComponent.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
 #include "TTextComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
-	class TPackageComponent : public IComponent
+	class TPackageComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
@@ -23,10 +24,10 @@ namespace nne
 		TPackageComponent();
 
 		///
-		virtual void update(const sf::Time& ElapsedTime) override;
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
 		///
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		///
 		virtual void init() override;

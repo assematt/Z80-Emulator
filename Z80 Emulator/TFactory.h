@@ -4,31 +4,40 @@
 #include <string>
 #include <memory>
 
+#include "TValues.h"
 #include "TPowerComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
+#include <ECS/_TManager.h>
 
 namespace nne
 {
 	namespace TFactory
 	{
-			
-		std::shared_ptr<TEntity> makeWire();
+		ENTITY_PTR makeWire(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makeBus();
+		ENTITY_PTR makeBus(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makeLogicBoard();
+		ENTITY_PTR makeLogicBoard(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makeZ80();
+		ENTITY_PTR makeZ80(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makeRam();
+		ENTITY_PTR makeRam(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makeLed();
+		ENTITY_PTR makeLed(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makeNandChip();
+		ENTITY_PTR makeNandChip(FACTORY_ARGUMENT);
 
-		std::shared_ptr<TEntity> makePowerConnector(const TPowerComponent::Type& Mode);
+#if ENTITY_SYSTEM == NNE
+		ENTITY_PTR makePowerConnector(const TPowerComponent::Type& Mode);
+#else
+		ENTITY_PTR makePowerConnector(FACTORY_ARGUMENT, const TPowerComponent::Type& Mode);
+#endif
 
-		std::shared_ptr<TEntity> makeGuiWidget();
+		ENTITY_PTR makeGuiWidget(FACTORY_ARGUMENT);
+
+#if ENTITY_SYSTEM == USE_ECS
+		void fillManagerWithSystems(ecs::_TManager& Manager);
+#endif
 
 	};
 }

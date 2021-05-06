@@ -1,33 +1,62 @@
 
 //////////////////////////////////////////////////////////////////////////
-
+#if ENTITY_SYSTEM == NNE
 /// Mark a component as selected in the logic board by passing the entity that owns the component
 template <class T>
-void nne::TBoard::setSelectedComponent(const TEntity::EntityPtr& Entity)
+void nne::TBoard::setSelectedComponent(const ENTITY_PTR& Entity)
 {
 	setSelectedComponent(Entity->getComponentAsPtr<T>());
 }
 
 /// Check if a component is placed in the logic board by passing the entity that owns the component
 template <class T>
-bool nne::TBoard::hasComponent(const TEntity::EntityPtr& Entity)
+void nne::TBoard::hasComponent(const ENTITY_PTR& Entity)
 {
 	return hasComponent(Entity->getComponentAsPtr<T>());
 }
 
 /// Remove a component in the logic board by passing the entity that owns the component
 template <class T>
-void nne::TBoard::removeComponent(const TEntity::EntityPtr& Entity)
+void nne::TBoard::removeComponent(const ENTITY_PTR& Entity)
 {
 	removeComponent(Entity->getComponentAsPtr<T>());
 }
 
 /// Place a component in the logic board by passing the entity that owns the component
 template <class T>
-void nne::TBoard::placeComponent(const TEntity::EntityPtr& Entity)
+void nne::TBoard::placeComponent(const ENTITY_PTR& Entity)
 {
 	placeComponent(Entity->getComponentAsPtr<T>());
 }
+#else
+/// Mark a component as selected in the logic board by passing the entity that owns the component
+template <class T>
+void nne::TBoard::setSelectedComponent(const ENTITY_PTR& Entity)
+{
+	setSelectedComponent(&(*Entity->getComponent<T>()));
+}
+
+/// Check if a component is placed in the logic board by passing the entity that owns the component
+template <class T>
+void nne::TBoard::hasComponent(const ENTITY_PTR& Entity)
+{
+	return hasComponent(&(*Entity->getComponent<T>()));
+}
+
+/// Remove a component in the logic board by passing the entity that owns the component
+template <class T>
+void nne::TBoard::removeComponent(const ENTITY_PTR& Entity)
+{
+	removeComponent(&(*Entity->getComponent<T>()));
+}
+
+/// Place a component in the logic board by passing the entity that owns the component
+template <class T>
+void nne::TBoard::placeComponent(const ENTITY_PTR& Entity)
+{
+	placeComponent(&(*Entity->getComponent<T>()));
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 

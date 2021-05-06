@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IComponent.h"
 #include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
 #include <memory>
 
 namespace nne
@@ -9,7 +9,7 @@ namespace nne
 	namespace tcomponents
 	{
 
-		class TMemoryComponent : public nne::IComponent
+		class TMemoryComponent : BASE_COMPONENT_CLASS
 		{
 		public:
 			TMemoryComponent() = default;
@@ -17,9 +17,9 @@ namespace nne
 
 			void init() override;
 
-			void update(const sf::Time& ElapsedTime) override;
+			void update(REFRESH_UPDATE_PARAMETER) override;
 
-			void refresh(const sf::Time& ElapsedTime) override {}
+			void refresh(REFRESH_UPDATE_PARAMETER) override {}
 
 			TU8BitValue& operator[] (const std::size_t Index);
 			const TU8BitValue& operator[] (const std::size_t Index) const;

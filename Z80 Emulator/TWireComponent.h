@@ -8,14 +8,14 @@
 
 #include "TDrawableComponent.h"
 #include "TPinComponent.h"
-#include "IComponent.h"
-#include "TEntity.h"
+#include INCLUDE_COMPONENT_CLASS
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
 	class TBoard;
 
-	class TWireComponent : public IComponent
+	class TWireComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
@@ -34,13 +34,10 @@ namespace nne
 		/// constructor
 		TWireComponent();
 		~TWireComponent();
+			
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
-		/// Static wire entity creation
-		static TEntity::EntityPtr createWireEntity() {};
-
-		virtual void update(const sf::Time& ElapsedTime) override;
-
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		virtual void init() override;
 
@@ -131,7 +128,12 @@ namespace nne
 	/// STATIC FUNCTION
 	public:
 		/// Get a wire by ID or by name
+#if ENTITY_SYSTEM == NNE
 		static TWireComponent* getWireByID(const TComponentID& ID);
+#else
+		static TWireComponent* getWireByID(const ecs::_IComponent::ID& ID);
+#endif
+		
 		static TWireComponent* getWireByName(const std::string& WireName);
 
 		/// Get the wire vector

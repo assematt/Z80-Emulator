@@ -21,33 +21,56 @@ namespace nne
 
 	}
 
-	void TPackageComponent::update(const sf::Time& ElapsedTime)
+	void TPackageComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 		// Update the package color only if the component it's placed
+#if ENTITY_SYSTEM == NNE
 		if (mParent->getComponent<TChipComponent>().isPlaced())
 			mParent->getComponent<TDrawableComponent>().setColor(mPackageColor);
+#else
+		if (mParent->getComponent<TChipComponent>()->isPlaced())
+			mParent->getComponent<TDrawableComponent>()->setColor(mPackageColor);
+#endif
 	}
 
-	void TPackageComponent::refresh(const sf::Time& ElapsedTime)
+	void TPackageComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		// Skip the refresh function if we didn't place the chip yet
+#if ENTITY_SYSTEM == NNE
 		if (!mParent->getComponent<TChipComponent>().isPlaced())
 			return;
+#else
+		if (!mParent->getComponent<TChipComponent>()->isPlaced())
+			return;
+#endif
 
 		// Check if the package it's powered on if the chip is placed
 		checkPowerStatus();
 
 		// Get mouse info
+#if ENTITY_SYSTEM == NNE
 		auto& MousePos = mParent->getComponent<tcomponents::TEventComponent>().getMousePosition();
+#else
+		auto& MousePos = mParent->getComponent<tcomponents::TEventComponent>()->getMousePosition();
+#endif
 
 		// Check if we clicked on the chip
 		if ((sf::Mouse::isButtonPressed(sf::Mouse::Left) || sf::Mouse::isButtonPressed(sf::Mouse::Right)) && getGlobalBound().contains(MousePos))
 		{
 			// Set this chip component as the chip selected in the board
+#if ENTITY_SYSTEM == NNE
 			mParent->getComponent<TLogicBoardComponent>().getBoard().setSelectedComponent(mParent->getComponentAsPtr<TChipComponent>());
+#else
+			mParent->getComponent<TLogicBoardComponent>()->getBoard().setSelectedComponent(&(*mParent->getComponent<TChipComponent>()));
+#endif
 
 			// Debug message
+#if ENTITY_SYSTEM == NNE
 			std::string DebugMessage = "We clicked on the chip: " + mParent->getComponent<TChipComponent>().getName();
+#else
+			std::string DebugMessage = "We clicked on the chip: " + mParent->getComponent<TChipComponent>()->getName();
+#endif
+			
 			::MessageBoxA(NULL, DebugMessage.c_str(), "Clicked!", MB_OK);
 		}
 	}
@@ -102,7 +125,11 @@ namespace nne
 				mChipSize = { 185.f, 38.f + (mPinSize.y * HalfPinNumber) + (14 * (HalfPinNumber - 1)) };
 
 				// Create a base drawable component shape with the chip size
+#if ENTITY_SYSTEM == NNE
 				mParent->getComponent<TDrawableComponent>().setSize(static_cast<sf::Vector2u>(mChipSize));
+#else
+				mParent->getComponent<TDrawableComponent>()->setSize(static_cast<sf::Vector2u>(mChipSize));
+#endif
 
 				// Save the local chip bound without the pins
 				mChipBound = { { 0.f, 0.f }, mChipSize };
@@ -128,7 +155,11 @@ namespace nne
 				mChipSize = { 47.f, 47.f }/*{ 35.f, 35.f }*/;
 
 				// Create a base drawable component shape with the chip size
+#if ENTITY_SYSTEM == NNE
 				mParent->getComponent<TDrawableComponent>().setSize(static_cast<sf::Vector2u>(mChipSize));
+#else
+				mParent->getComponent<TDrawableComponent>()->setSize(static_cast<sf::Vector2u>(mChipSize));
+#endif
 
 				// Save the local chip bound without the pins
 				mChipBound = { { 0.f, 0.f }, mChipSize };
@@ -153,18 +184,24 @@ namespace nne
 			case TPackageType::POWER_CONNECTOR:
 			{
 				// Load the texture based on the power type
+#if ENTITY_SYSTEM == NNE
 				auto PowerTypeIsGround = mParent->getComponent<TPowerComponent>().getPowerType() == TPowerComponent::Type::GROUND ? true : false;
+				auto DrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+#else
+				auto PowerTypeIsGround = mParent->getComponent<TPowerComponent>()->getPowerType() == TPowerComponent::Type::GROUND ? true : false;
 				auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
+#endif
+
 				std::string PowerTypeResource = PowerTypeIsGround ? "ground" : "power";
 
 				// Load the texture
-				DrawableComponent.setTexture(TCacheManager::getInstance().getResource<sf::Texture>(PowerTypeResource));
+				DrawableComponent->setTexture(TCacheManager::getInstance().getResource<sf::Texture>(PowerTypeResource));
 
 				// Pin size
 				mPinSize = { 9.f, 15.f };
 
 				// Chip size
-				mChipSize = static_cast<sf::Vector2f>(DrawableComponent.getSize());
+				mChipSize = static_cast<sf::Vector2f>(DrawableComponent->getSize());
 
 				// Save the local chip bound without the pins
 				mChipBound = { { 0.f, 0.f }, mChipSize };
@@ -181,42 +218,56 @@ namespace nne
 	void TPackageComponent::renderDipChip()
 	{
 		// Get a ref to the PIN, drawable and text component
+#if ENTITY_SYSTEM == NNE
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+		auto DrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+#else
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
+#endif
 
 		// Get the number of pins
-		std::size_t NumberOfPins = PinComponent.getPinList().size();
+		std::size_t NumberOfPins = PinComponent->getPinList().size();
 
 		// Set the chip color
-		DrawableComponent.setColor({ 30, 30, 30 });
+		DrawableComponent->setColor({ 30, 30, 30 });
 
 		// Compute the chip size and the pin size
 		computeChipSize(TPackageType::DIP, NumberOfPins);
 
 		// Add the pin to the drawable component
-		renderPins(DrawableComponent.getPosition());
+		renderPins(DrawableComponent->getPosition());
 
 		// Add the pins labels to the drawable component
-		renderPinLabels(DrawableComponent.getPosition());
+		renderPinLabels(DrawableComponent->getPosition());
 
 		// Add the chip name to the drawable component
+#if ENTITY_SYSTEM == NNE
 		renderChipName(mParent->getComponent<TChipComponent>().getName());
+#else
+		renderChipName(mParent->getComponent<TChipComponent>()->getName());
+#endif
 	}
 
 	void TPackageComponent::renderLed()
 	{
 		// Get a ref to the PIN, drawable component
+#if ENTITY_SYSTEM == NNE
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+		auto DrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+#else
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
+#endif
 
 		// Get a ref to the drawable component vertex array for cache purposes
-		auto& Vertices = DrawableComponent.getVertexArray();
+		auto& Vertices = DrawableComponent->getVertexArray();
 
 		// Compute the chip size and the pin size
-		computeChipSize(TPackageType::LED, PinComponent.getPinList().size());
+		computeChipSize(TPackageType::LED, PinComponent->getPinList().size());
 
 		// Add the pin to the drawable component
-		renderPins(DrawableComponent.getPosition());
+		renderPins(DrawableComponent->getPosition());
 		
 		// Add the pins labels to the drawable component
 		//renderPinLabels(DrawableComponent.getPosition());
@@ -227,19 +278,25 @@ namespace nne
 
 	void TPackageComponent::renderPowerConnector()
 	{
-		// Get a ref to the drawable and pin component
+		// Get a ref to the drawable and pin component		
+#if ENTITY_SYSTEM == NNE
+		auto DrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+		auto PowerType = mParent->getComponentAsPtr<TPowerComponent>()->getPowerType();
+#else
 		auto& DrawableComponent = mParent->getComponent<TDrawableComponent>();
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
-		auto& PowerType = mParent->getComponent<TPowerComponent>().getPowerType();
+		auto& PowerType = mParent->getComponent<TPowerComponent>()->getPowerType();
+#endif
 
 		// Get a ref to the drawable component vertex array for cache purposes
-		auto& Vertices = DrawableComponent.getVertexArray();
+		auto& Vertices = DrawableComponent->getVertexArray();
 
 		// Compute the chip size and the pin size
-		computeChipSize(TPackageType::POWER_CONNECTOR, PinComponent.getPinList().size());
+		computeChipSize(TPackageType::POWER_CONNECTOR, PinComponent->getPinList().size());
 
 		// Add the pin to the drawable component
-		renderPins(DrawableComponent.getPosition());
+		renderPins(DrawableComponent->getPosition());
 
 		// Add the pins labels to the drawable component
 		//renderPinLabels(DrawableComponent.getPosition());
@@ -251,11 +308,15 @@ namespace nne
 	void TPackageComponent::checkPowerStatus()
 	{
 		// Get a ref to the PIN Component
+#if ENTITY_SYSTEM == NNE
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+#else
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
+#endif
 
 		// Get the anode and the cathode
-		auto& VCC = PinComponent.getPin("VCC");
-		auto& GND = PinComponent.getPin("GND");
+		auto& VCC = PinComponent->getPin("VCC");
+		auto& GND = PinComponent->getPin("GND");
 
 		// If both pin are connected to something
 		if (VCC.hasConnections() && GND.hasConnections())
@@ -267,14 +328,22 @@ namespace nne
 
 	void TPackageComponent::renderPins(const sf::Vector2f& ChipPosition)
 	{
+#if ENTITY_SYSTEM == NNE
+		// Get a ref to the TPinComponent
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+
+		// Get a ref to the drawable component vertex array for cache purposes
+		auto& Vertices = mParent->getComponentAsPtr<TDrawableComponent>()->getVertexArray();
+#else
 		// Get a ref to the TPinComponent
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 
 		// Get a ref to the drawable component vertex array for cache purposes
-		auto& Vertices = mParent->getComponent<TDrawableComponent>().getVertexArray();
+		auto& Vertices = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif
 
 		// Get the number of pins
-		std::size_t NumberOfPins = PinComponent.getPinList().size();
+		std::size_t NumberOfPins = PinComponent->getPinList().size();
 
 		for (std::size_t PinCounter = 0; PinCounter < NumberOfPins; ++PinCounter)
 		{
@@ -298,28 +367,37 @@ namespace nne
 				} break;
 				case TPackageType::POWER_CONNECTOR:
 				{
+#if ENTITY_SYSTEM == NNE
 					if (mParent->getComponent<TPowerComponent>().getPowerType() == TPowerComponent::Type::GROUND)
+#else
+					if (mParent->getComponent<TPowerComponent>()->getPowerType() == TPowerComponent::Type::GROUND)
+#endif
 						PinPosition = { mChipSize.x / 2.f - mPinSize.x / 2.f, -mPinSize.y }; // Create the GND PIN
 					else
 						PinPosition = { mChipSize.x / 2.f - mPinSize.x / 2.f, mChipSize.y }; // Create the VCC PIN
 				} break;
 			}
 
-			PinComponent.createPin(PinPosition /*+ ChipPosition*/, mPinSize, Vertices);
+			PinComponent->createPin(PinPosition /*+ ChipPosition*/, mPinSize, Vertices);
 		}
 	}
 
 	void TPackageComponent::renderPinLabels(const sf::Vector2f& ChipPosition)
 	{
 		// Get a ref to the TPinComponent
+#if ENTITY_SYSTEM == NNE
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+		auto Labels = mParent->getComponentAsPtr<TTextComponent>();
+#else
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		auto& Labels = mParent->getComponent<TTextComponent>();
+#endif
 
 		// Clear
-		Labels.clearCharacterPosition();
+		Labels->clearCharacterPosition();
 
 		// Get the number of pins
-		std::size_t NumberOfPins = PinComponent.getPinList().size();
+		std::size_t NumberOfPins = PinComponent->getPinList().size();
 
 		// Chip total string
 		std::string ChipTotalString = "";
@@ -327,7 +405,7 @@ namespace nne
 		for (std::size_t PinCounter = 0; PinCounter < NumberOfPins; ++PinCounter)
 		{
 			// Pin global bound
-			auto PinBound = PinComponent.getPinLocalBounds(PinCounter);
+			auto PinBound = PinComponent->getPinLocalBounds(PinCounter);
 			
 			// Pin label position
 			sf::Vector2f LabelPosition = { PinBound.left, PinBound.top };
@@ -336,14 +414,14 @@ namespace nne
 			sf::Vector2f LabelOffset = PinCounter < NumberOfPins / 2 ? sf::Vector2f(17.f, 0.f) : sf::Vector2f(-13.f, 0.f);
 			
 			// Create the pin label			
-			auto& PinName = PinComponent.getPin(PinCounter + 1).mPinName;
+			auto& PinName = PinComponent->getPin(PinCounter + 1).mPinName;
 
 			// Compute the length of the Label
-			float LabelLength = PinCounter < NumberOfPins / 2 ? 0.f : getStringLength(Labels, sf::String(PinName + " "));
+			float LabelLength = PinCounter < NumberOfPins / 2 ? 0.f : getStringLength(*Labels, sf::String(PinName + " "));
 
 			ChipTotalString += PinName + "  ";
-			Labels.setString(ChipTotalString);
-			Labels.setCharacterPosition(PinName + " ", { LabelPosition.x - LabelLength + LabelOffset.x, LabelPosition.y - 3.f + LabelOffset.y });
+			Labels->setString(ChipTotalString);
+			Labels->setCharacterPosition(PinName + " ", { LabelPosition.x - LabelLength + LabelOffset.x, LabelPosition.y - 3.f + LabelOffset.y });
 		}
 	}
 
@@ -366,7 +444,11 @@ namespace nne
 	void TPackageComponent::updateChipName()
 	{
 		// 
+#if ENTITY_SYSTEM == NNE
 		renderChipName(mParent->getComponent<TChipComponent>().getName());
+#else
+		renderChipName(mParent->getComponent<TChipComponent>()->getName());
+#endif
 	}
 
 	const sf::FloatRect& TPackageComponent::getLocalBound(const bool& IncludePinsBound /*= false*/) const
@@ -376,33 +458,46 @@ namespace nne
 
 	sf::FloatRect TPackageComponent::getGlobalBound(const bool& IncludePinsBound /*= false*/) const
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponent<TDrawableComponent>().getTransform().transformRect(getLocalBound(IncludePinsBound));
+#else
+		return mParent->getComponent<TDrawableComponent>()->getTransform().transformRect(getLocalBound(IncludePinsBound));
+#endif
 	}
 
 	void TPackageComponent::renderChipName(const std::string& ChipName)
 	{
+#if ENTITY_SYSTEM == NNE
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+		auto Labels = mParent->getComponentAsPtr<TTextComponent>();
+#else
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 		auto& Labels = mParent->getComponent<TTextComponent>();
+#endif
 
 		// Get the length 
-		auto ChipNameWidth = getStringLength(Labels, ChipName);
+		auto ChipNameWidth = getStringLength(*Labels, ChipName);
 
 		// Chip width
 		auto ChipWidth = mChipBound.width;
 
-		auto CharHeight = Labels.getFont()->getGlyph('A', Labels.getCharacterSize(), Labels.getStyle() == TTextComponent::Bold).textureRect.height / 2.f;
+		auto CharHeight = Labels->getFont()->getGlyph('A', Labels->getCharacterSize(), Labels->getStyle() == TTextComponent::Bold).textureRect.height / 2.f;
 
 		// Compute where the chip name label should be positioned
 		sf::Vector2f ChipNamePos = { std::roundf(ChipWidth / 2.f - ChipNameWidth / 2.f - mPinSize.x), std::roundf(mChipSize.y / 2.f - CharHeight - 3.f) };
 		
 		// Render pin labels
+#if ENTITY_SYSTEM == NNE
 		renderPinLabels(mParent->getComponent<TDrawableComponent>().getPosition());
+#else
+		renderPinLabels(mParent->getComponent<TDrawableComponent>()->getPosition());
+#endif
 
 		// Chip total string
-		std::string ChipTotalString = Labels.getString().toAnsiString();
+		std::string ChipTotalString = Labels->getString().toAnsiString();
 		
-		Labels.setString(ChipTotalString + ChipName + "  ");
-		Labels.setCharacterPosition(ChipName + " ", ChipNamePos);
+		Labels->setString(ChipTotalString + ChipName + "  ");
+		Labels->setCharacterPosition(ChipName + " ", ChipNamePos);
 	}
 
 	void TPackageComponent::setPackageType(const TPackageType& PackageType)

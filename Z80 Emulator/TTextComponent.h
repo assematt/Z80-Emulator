@@ -12,13 +12,14 @@
 #include <string>
 #include <vector>
 
-#include "IComponent.h"
-#include "TEntity.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
+#include INCLUDE_ENTITY_CLASS
 #include "TDrawableComponent.h"
 
 namespace nne
 {
-	class TTextComponent : public IComponent
+	class TTextComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
@@ -136,9 +137,9 @@ namespace nne
 		/// Get the texture used by the text component using another character sizee
 		const sf::Texture* getTexture(const std::size_t& CharacterSize);
 
-		virtual void update(const sf::Time& ElapsedTime) override;
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		virtual void init() override;
 

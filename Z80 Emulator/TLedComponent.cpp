@@ -4,6 +4,7 @@
 #include <SFML/Graphics/CircleShape.hpp>
 
 #include "TPackageComponent.h"
+#include "TPinComponent.h"
 #include "TChipComponent.h"
 #include "TCacheManager.h"
 
@@ -17,9 +18,10 @@ namespace nne
 	{
 	}
 
-	void TLedComponent::update(const sf::Time& ElapsedTime)
+	void TLedComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 		// 
+#if ENTITY_SYSTEM == NNE
 		auto& IsPlaced = mParent->getComponent<TChipComponent>().isPlaced();
 		auto& Package = mParent->getComponent<TPackageComponent>();
 		
@@ -28,9 +30,19 @@ namespace nne
 		{
 			mIsOn ? Package.setPackageColor({ mOnColor }) : Package.setPackageColor(mOffColor);
 		}
+#else
+		auto& IsPlaced = mParent->getComponent<TChipComponent>()->isPlaced();
+		auto& Package = mParent->getComponent<TPackageComponent>();
+
+		// Update the LED color only if the component it's placed
+		if (IsPlaced)
+		{
+			mIsOn ? Package->setPackageColor({ mOnColor }) : Package->setPackageColor(mOffColor);
+		}
+#endif
 	}
 
-	void TLedComponent::refresh(const sf::Time& ElapsedTime)
+	void TLedComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		// Change the status based on the value of the anode and cathode
 		checkLedStatus();
@@ -39,8 +51,13 @@ namespace nne
 	void TLedComponent::init()
 	{
 		// Setup the LED Pins
+#if ENTITY_SYSTEM == NNE
+		auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+#else
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
-		PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
+#endif
+
+		PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{
 			//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
 			{ tcomponents::TPin::TMode::INPUT, "ANODE", tcomponents::TPin::TStatus::LOW, 1 },	 // A1
 			{ tcomponents::TPin::TMode::OUTPUT, "CATHODE",  tcomponents::TPin::TStatus::LOW, 2 }, // A2
@@ -54,12 +71,21 @@ namespace nne
 	
 	void TLedComponent::checkLedStatus()
 	{
+#if ENTITY_SYSTEM == NNE
 		// Get a ref to the PIN Component
 		auto& PinComponent = mParent->getComponent<TPinComponent>();
 
 		// Get the anode and the cathode
 		auto& Anode = PinComponent.getPin(1);
 		auto& Cathode = PinComponent.getPin(2);
+#else
+		// Get a ref to the PIN Component
+		auto& PinComponent = mParent->getComponent<TPinComponent>();
+
+		// Get the anode and the cathode
+		auto& Anode = PinComponent->getPin(1);
+		auto& Cathode = PinComponent->getPin(2);
+#endif
 
 		// By default we assume the led is off
 		mIsOn = false;

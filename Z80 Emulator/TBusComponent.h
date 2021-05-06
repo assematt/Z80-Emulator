@@ -4,17 +4,17 @@
 #include <vector>
 
 #include "TPinComponent.h"
-#include "IComponent.h"
+#include INCLUDE_COMPONENT_CLASS
 #include "TDrawableComponent.h"
 #include "TWireComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
 
 	using namespace tcomponents;
 
-	class TBusComponent : public IComponent
+	class TBusComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
@@ -30,9 +30,9 @@ namespace nne
 		TBusComponent();
 		virtual ~TBusComponent() = default;
 
-		virtual void update(const sf::Time& ElapsedTime) override;
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		virtual void init() override;
 

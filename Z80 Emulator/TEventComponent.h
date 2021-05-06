@@ -2,8 +2,9 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "IComponent.h"
-#include "TEntity.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
+#include INCLUDE_ENTITY_CLASS
 #include "TWidget.h"
 
 namespace nne
@@ -42,14 +43,18 @@ namespace nne
 			};
 
 			/// Typedef for the events
+#if ENTITY_SYSTEM == NNE
 			using TEvent = std::function<void(const TEntity* Sender, const sf::Event& EventData)>;
-
+#else
+			using TEvent = std::function<void(const ecs::_TEntity* Sender, const sf::Event& EventData)>;
+#endif
+			
 			/// Typedef for event list/slot
 			using TEventList = std::unordered_map<List, TEvent>;
 			using TEventSlot = TEventList::iterator;
 		}
 
-		class TEventComponent : public nne::IComponent
+		class TEventComponent : BASE_COMPONENT_CLASS
 		{
 		public:			
 
@@ -57,16 +62,20 @@ namespace nne
 
 			void init() override;
 
-			void update(const sf::Time& ElapsedTime) override;
+			void update(REFRESH_UPDATE_PARAMETER) override;
 
-			void refresh(const sf::Time& ElapsedTime) override;
+			void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 			/// Connect/Detach events
 			const events::TEventSlot& attachEvent(const events::List& EventType, const events::TEvent& EventToAttach);
 			void detachEvent(const events::List& EventType);
 
 			/// Fire an event
+#if ENTITY_SYSTEM == NNE
 			void fireEvent(const events::List& EventToFire, const TEntity* Sender, const sf::Event& EventData);
+#else
+			void fireEvent(const events::List& EventToFire, const ecs::_TEntity* Sender, const sf::Event& EventData);
+#endif
 
 			void setMousePosition(const sf::Vector2f& NewPos);
 			void setMousePosition(const float& X, const float& Y);

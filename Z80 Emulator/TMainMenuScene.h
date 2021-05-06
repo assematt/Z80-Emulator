@@ -16,9 +16,9 @@ namespace nne
 	protected:
 		virtual ID eventLoop() override;
 
-		virtual void refresh(sf::Time ElapsedTime) override;
+		virtual void refresh(const sf::Time& ElapsedTime) override;
 
-		virtual void update(sf::Time ElapsedTime) override;
+		virtual void update(const sf::Time& ElapsedTime) override;
 
 		virtual void draw() override;
 

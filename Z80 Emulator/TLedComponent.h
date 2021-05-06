@@ -1,22 +1,24 @@
 #pragma once
 
 #include <SFML/Graphics/Color.hpp>
-#include "IComponent.h"
-#include "TEntity.h"
+
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
-	class TLedComponent : public IComponent
+	class TLedComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 
 		TLedComponent();
 
 		///
-		virtual void update(const sf::Time& ElapsedTime) override;
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
 		///
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		///
 		virtual void init() override;

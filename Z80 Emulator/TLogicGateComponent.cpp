@@ -30,8 +30,13 @@ namespace nne
 		void TLogicGateComponent::init()
 		{
 			// Setup the CPU Pins
-			auto& PinComponent = *mParent->getComponentAsPtr<TPinComponent>();
-			PinComponent.setupPins(std::initializer_list<tcomponents::TPin>{
+#if ENTITY_SYSTEM == NNE
+			auto PinComponent = mParent->getComponentAsPtr<TPinComponent>();
+#else
+			auto& PinComponent = mParent->getComponent<TPinComponent>();
+#endif
+
+			PinComponent->setupPins(std::initializer_list<tcomponents::TPin>{
 
 				//PinMode, PinName, PinStatus, PinNumber, PinGroupID, PinGroupNumber
 
@@ -58,50 +63,87 @@ namespace nne
 			}, 14);
 		}
 
-		void TLogicGateComponent::update(const sf::Time& ElapsedTime)
+		void TLogicGateComponent::update(REFRESH_UPDATE_PARAMETER)
 		{
 			
 		}
 
-		void TLogicGateComponent::refresh(const sf::Time& ElapsedTime)
+		void TLogicGateComponent::refresh(REFRESH_UPDATE_PARAMETER)
 		{
 			// Skip the cycle if the chip isn't powered ON
+#if ENTITY_SYSTEM == NNE
 			if (!mParent->getComponent<TPackageComponent>().isPoweredOn())
 				return;
+#else
+			if (!mParent->getComponent<TPackageComponent>()->isPoweredOn())
+				return;
+#endif
 
 			// Get a ref of the TPinComponent
+#if ENTITY_SYSTEM == NNE
 			auto& PinComponent = mParent->getComponent<TPinComponent>();
+#else
+			auto& PinComponent = mParent->getComponent<TPinComponent>();
+#endif
 
 			// Execute operation on the first set if both the input are connected to something
 			{
+#if ENTITY_SYSTEM == NNE
 				const auto& Input1 = PinComponent.getPin(1);
 				const auto& Input2 = PinComponent.getPin(2);
 				if (Input1.hasConnections() && Input2.hasConnections())
 					PinComponent.getPin(3).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#else
+				const auto& Input1 = PinComponent->getPin(1);
+				const auto& Input2 = PinComponent->getPin(2);
+				if (Input1.hasConnections() && Input2.hasConnections())
+					PinComponent->getPin(3).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#endif
 			}
 
 			// Execute operation on the second set
 			{
+#if ENTITY_SYSTEM == NNE
 				const auto& Input1 = PinComponent.getPin(4);
 				const auto& Input2 = PinComponent.getPin(5);
 				if (Input1.hasConnections() && Input2.hasConnections())
 					PinComponent.getPin(6).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#else
+				const auto& Input1 = PinComponent->getPin(4);
+				const auto& Input2 = PinComponent->getPin(5);
+				if (Input1.hasConnections() && Input2.hasConnections())
+					PinComponent->getPin(6).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#endif
 			}
 
 			// Execute operation on the third set
 			{
+#if ENTITY_SYSTEM == NNE
 				const auto& Input1 = PinComponent.getPin(9);
 				const auto& Input2 = PinComponent.getPin(10);
 				if (Input1.hasConnections() && Input2.hasConnections())
 					PinComponent.getPin(8).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#else
+				const auto& Input1 = PinComponent->getPin(9);
+				const auto& Input2 = PinComponent->getPin(10);
+				if (Input1.hasConnections() && Input2.hasConnections())
+					PinComponent->getPin(8).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#endif
 			}
 
 			// Execute operation on the fourth set
 			{
+#if ENTITY_SYSTEM == NNE
 				const auto& Input1 = PinComponent.getPin(12);
 				const auto& Input2 = PinComponent.getPin(13);
 				if (Input1.hasConnections() && Input2.hasConnections())
 					PinComponent.getPin(11).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#else
+				const auto& Input1 = PinComponent->getPin(12);
+				const auto& Input2 = PinComponent->getPin(13);
+				if (Input1.hasConnections() && Input2.hasConnections())
+					PinComponent->getPin(11).changePinStatus(performInstruction(Input1, Input2, mOperationMode));
+#endif
 			}
 		}
 

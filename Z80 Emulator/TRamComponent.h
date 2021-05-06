@@ -4,10 +4,10 @@
 #include <array>
 
 #include "TValues.h"
-#include "IComponent.h"
+#include INCLUDE_COMPONENT_CLASS
 #include "TPinComponent.h"
 #include "TMemoryComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
@@ -23,7 +23,7 @@ namespace nne
 		}
 
 		// 84256 RAM 
-		class TRamComponent : public nne::IComponent
+		class TRamComponent : BASE_COMPONENT_CLASS
 		{
 		public:
 
@@ -34,9 +34,9 @@ namespace nne
 
 			void init();
 
-			void refresh(const sf::Time& ElapsedTime);
+			void refresh(REFRESH_UPDATE_PARAMETER);
 
-			void update(const sf::Time& ElapsedTime);
+			void update(REFRESH_UPDATE_PARAMETER);
 
 			void refreshMemory();
 

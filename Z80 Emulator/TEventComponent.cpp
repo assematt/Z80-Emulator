@@ -14,11 +14,11 @@ namespace nne
 		{
 		}
 
-		void TEventComponent::update(const sf::Time& ElapsedTime)
+		void TEventComponent::update(REFRESH_UPDATE_PARAMETER)
 		{
 		}
 
-		void TEventComponent::refresh(const sf::Time& ElapsedTime)
+		void TEventComponent::refresh(REFRESH_UPDATE_PARAMETER)
 		{
 		}
 
@@ -36,7 +36,11 @@ namespace nne
 			mEventsList.erase(EventType);
 		}
 
+#if ENTITY_SYSTEM == NNE
 		void TEventComponent::fireEvent(const events::List& EventToFire, const TEntity* Sender, const sf::Event& EventData)
+#else
+		void TEventComponent::fireEvent(const events::List& EventToFire, const ecs::_TEntity* Sender, const sf::Event& EventData)
+#endif
 		{
 			auto It = mEventsList.find(EventToFire);
 

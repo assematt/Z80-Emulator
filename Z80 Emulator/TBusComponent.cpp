@@ -46,7 +46,7 @@ namespace nne
 
 	}
 
-	void TBusComponent::update(const sf::Time& ElapsedTime)
+	void TBusComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 		// If we didn't enable the drawing return early
 		if (mEnableDraw)
@@ -81,7 +81,7 @@ namespace nne
 		}
 	}
 
-	void TBusComponent::refresh(const sf::Time& ElapsedTime)
+	void TBusComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		// If we didn't enable the drawing return early
 		if (mEnableDraw)
@@ -95,17 +95,25 @@ namespace nne
 		setHoveredStatus(false);
 
 		// Get a ref to the logic board component
-		//auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+#if ENTITY_SYSTEM == NNE
 		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>().getBoard();
-
-		// Get a ref to the sf::RenderWindow
-		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
-
+#else
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>()->getBoard();
+#endif
+		
 		// Get mouse info
+#if ENTITY_SYSTEM == NNE
 		auto MousePositionAdj = mParent->getComponent<tcomponents::TEventComponent>().getMousePosition();
+#else
+		auto MousePositionAdj = mParent->getComponent<tcomponents::TEventComponent>()->getMousePosition();
+#endif
 
 		// Execute the BUS check only if we clicked or we are hovering the chip
+#if ENTITY_SYSTEM == NNE
 		auto ComponentState = mParent->getComponent<tcomponents::TStateComponent>().getState();
+#else
+		auto ComponentState = mParent->getComponent<tcomponents::TStateComponent>()->getState();
+#endif
 
 		// Iterates through all the quads
 		for (auto Index = 0u; Index < VerticesNumber; Index += 4)
@@ -118,7 +126,6 @@ namespace nne
 			if (checkMouseClickOnWire(Quad, MousePositionAdj))
 			{
 				// Inform the logic board component that we selected this wire
-				//LogicBoard.setSelectedBus(this);
 				LogicBoard.setSelectedComponent<TBusComponent>(this);
 
 				// Change the selection status of this wire
@@ -142,7 +149,11 @@ namespace nne
 
 	void TBusComponent::init()
 	{
+#if ENTITY_SYSTEM == NNE
 		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+#else
+		mDrawableComponent = &(*mParent->getComponent<TDrawableComponent>());
+#endif
 		mDrawableComponent->getVertexArray().setPrimitiveType(sf::Quads);
 	}
 
@@ -430,27 +441,39 @@ namespace nne
 
 	void TBusComponent::connectEntryWire(TPin& PinToConnect)
 	{
-		LOG_VALUE("We are connecting an entry wire number #" + std::to_string(PinToConnect.mPinNumber));
+		//LOG_VALUE("We are connecting an entry wire number #" + std::to_string(PinToConnect.mPinNumber));
 	}
 
 	void TBusComponent::connectExitWire(TPin& PinToConnect)
 	{
-		LOG_VALUE("We are connecting an exit wire number #" + std::to_string(PinToConnect.mPinNumber));
+		//LOG_VALUE("We are connecting an exit wire number #" + std::to_string(PinToConnect.mPinNumber));
 	}
 
 	sf::FloatRect TBusComponent::getLocalBound()
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getLocalBounds();
+#else
+		return mParent->getComponent<TDrawableComponent>()->getLocalBounds();
+#endif
 	}
 
 	sf::FloatRect TBusComponent::getGlobalBound()
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getGlobalBounds();
+#else
+		return mParent->getComponent<TDrawableComponent>()->getGlobalBounds();
+#endif
 	}
 
 	sf::FloatRect TBusComponent::getSegmentLocalBound(const std::size_t SegmentNumber)
 	{
+#if ENTITY_SYSTEM == NNE
 		auto& VertexArray = mParent->getComponentAsPtr<TDrawableComponent>()->getVertexArray();
+#else
+		auto& VertexArray = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif
 
 		return sf::FloatRect(VertexArray[SegmentNumber * 4 + 0].position.x, VertexArray[SegmentNumber * 4 + 0].position.y,
 			VertexArray[SegmentNumber * 4 + 3].position.x, VertexArray[SegmentNumber * 4 + 3].position.y);
@@ -458,7 +481,11 @@ namespace nne
 
 	sf::FloatRect TBusComponent::getSegmentGlobalBound(const std::size_t SegmentNumber)
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getSegmentLocalBound(SegmentNumber));
+#else
+		return mParent->getComponent<TDrawableComponent>()->getTransform().transformRect(getSegmentLocalBound(SegmentNumber));
+#endif
 	}
 
 }

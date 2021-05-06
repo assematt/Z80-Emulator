@@ -3,13 +3,14 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/View.hpp>
 
-#include "IComponent.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
 #include "TDrawableComponent.h"
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 
 namespace nne
 {
-	class TGridComponent : public nne::IComponent
+	class TGridComponent : BASE_COMPONENT_CLASS
 	{
 	public:
 		TGridComponent();
@@ -24,9 +25,9 @@ namespace nne
 		
 		void setView(const sf::View& AttachedView);
 
-		virtual void update(const sf::Time& ElapsedTime) override;
+		virtual void update(REFRESH_UPDATE_PARAMETER) override;
 
-		virtual void refresh(const sf::Time& ElapsedTime) override;
+		virtual void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 		virtual void init() override;
 

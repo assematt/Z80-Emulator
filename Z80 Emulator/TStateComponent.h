@@ -2,8 +2,8 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "IComponent.h"
-#include "TEntity.h"
+#include INCLUDE_COMPONENT_CLASS
+#include INCLUDE_ENTITY_CLASS
 #include "TWidget.h"
 
 namespace nne
@@ -11,7 +11,7 @@ namespace nne
 	namespace tcomponents
 	{
 	
-		class TStateComponent : public nne::IComponent
+		class TStateComponent : BASE_COMPONENT_CLASS
 		{
 		public:
 
@@ -28,9 +28,9 @@ namespace nne
 			
 			void init() override {}
 
-			void update(const sf::Time& ElapsedTime) override {}
+			void update(REFRESH_UPDATE_PARAMETER) override {}
 
-			void refresh(const sf::Time& ElapsedTime) override {}
+			void refresh(REFRESH_UPDATE_PARAMETER) override {}
 
 			/// Change component internal state
 			void changeState(const TState& NewState)

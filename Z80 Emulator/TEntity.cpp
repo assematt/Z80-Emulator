@@ -37,7 +37,7 @@ namespace nne
 	}
 
 	void TEntity::refresh(const sf::Time& ElapsedTime)
-{
+	{
 		for (auto& Component : mComponents)
 		{
 			Component->refresh(ElapsedTime);

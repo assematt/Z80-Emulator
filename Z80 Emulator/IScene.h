@@ -45,9 +45,9 @@ namespace nne
 	protected:
 		virtual ID eventLoop() = 0;
 
-		virtual void refresh(sf::Time ElapsedTime) = 0;
+		virtual void refresh(const sf::Time& ElapsedTime) = 0;
 
-		virtual void update(sf::Time ElapsedTime) = 0;
+		virtual void update(const sf::Time& ElapsedTime) = 0;
 
 		virtual void draw() = 0;
 

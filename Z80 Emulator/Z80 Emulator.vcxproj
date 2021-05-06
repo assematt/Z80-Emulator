@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug Static|Win32">
       <Configuration>Debug Static</Configuration>
@@ -37,58 +37,58 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E42E2888-82CC-4810-8050-CF84E708A4E5}</ProjectGuid>
     <RootNamespace>Z80Emulator</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -123,24 +123,25 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">
-    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
-    <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Static\Release;$(LibraryPath)</LibraryPath>
+    <SourcePath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <LibraryPath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Static\Release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
-    <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug;$(LibraryPath)</LibraryPath>
+    <SourcePath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <LibraryPath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <ReferencePath>$(ReferencePath)</ReferencePath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Build\src;$(SourcePath)</SourcePath>
-    <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Release;$(LibraryPath)</LibraryPath>
+    <SourcePath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Build\src;$(SourcePath)</SourcePath>
+    <LibraryPath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">
-    <SourcePath>E:\Desktop Programming\Progetti\Z80 Emulator\Z80 Emulator\Z80 Emulator\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
-    <LibraryPath>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Static\Debug;$(LibraryPath)</LibraryPath>
+    <SourcePath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\src;C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\src;$(SourcePath)</SourcePath>
+    <LibraryPath>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Static\Debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -148,24 +149,24 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Programmazione\Desktop Programming\Progetti\ECS Library\ECS Library\include;E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-main-d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\Programmazione\Desktop Programming\Progetti\ECS Library\Debug;E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-main-d.lib;opengl32.lib;ECS Library.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-audio-d-2.dll" "$(TargetDir)"
-Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-graphics-d-2.dll" "$(TargetDir)"
-Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-network-d-2.dll" "$(TargetDir)"
-Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-system-d-2.dll" "$(TargetDir)"
-Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Dynamic\Debug\sfml-window-d-2.dll" "$(TargetDir)"</Command>
+      <Command>Copy /Y "E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug\sfml-audio-d-2.dll" "$(TargetDir)"
+Copy /Y "E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug\sfml-graphics-d-2.dll" "$(TargetDir)"
+Copy /Y "E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug\sfml-network-d-2.dll" "$(TargetDir)"
+Copy /Y "E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug\sfml-system-d-2.dll" "$(TargetDir)"
+Copy /Y "E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Debug\sfml-window-d-2.dll" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">
@@ -173,12 +174,12 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Programmazione\Desktop Programming\Progetti\ECS Library\ECS Library\include;E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SFML_STATIC;PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Static\Debug;E:\Desktop Programming\Progetti\ECS Library\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;sfml-system-s-d.lib;sfml-main-d.lib;opengl32.lib;freetype.lib;jpeg.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -203,14 +204,14 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Programmazione\Desktop Programming\Progetti\ECS Library\ECS Library\include;E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-audio.lib;sfml-network.lib;sfml-system.lib;sfml-main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\Desktop Programming\Progetti\ECS Library\Release;E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\lib\Dynamic\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-audio.lib;sfml-network.lib;sfml-system.lib;sfml-main.lib;ECS Library.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -231,14 +232,14 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Development\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Programmazione\Desktop Programming\Progetti\ECS Library\ECS Library\include;E:\Programmazione\Desktop Programming\Libraries\SFML 2.4.2 - Source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SFML_STATIC;PROGRAM_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>E:\Desktop Programming\Progetti\ECS Library\ECS Library\include;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-audio-s.lib;sfml-network-s.lib;sfml-system-s.lib;sfml-main.lib;opengl32.lib;winmm.lib;jpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -363,7 +364,6 @@ Copy /Y "C:\Users\Matteo Assenza\Documents\Programmazione\Library\SFML 2.4\Devel
     <ClInclude Include="_GenericVector.h" />
     <ClInclude Include="TFactory.h" />
     <ClInclude Include="TGameApp.h" />
-    <ClInclude Include="TLogicEntity.h" />
     <ClInclude Include="TLogicGateComponent.h" />
     <ClInclude Include="TClock.h" />
     <ClInclude Include="TComponentArray.h" />

@@ -314,9 +314,6 @@
     <ClInclude Include="TEntity.h">
       <Filter>Header Files\include\component_system</Filter>
     </ClInclude>
-    <ClInclude Include="TLogicEntity.h">
-      <Filter>Header Files\include\component_system</Filter>
-    </ClInclude>
     <ClInclude Include="TFactory.h">
       <Filter>Header Files\include\internals</Filter>
     </ClInclude>

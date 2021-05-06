@@ -125,7 +125,11 @@ namespace nne
 
 	sf::FloatRect TPinComponent::getPinLocalBounds(const std::size_t& PinIndex)
 	{
+#if ENTITY_SYSTEM == NNE
 		auto& Vertices = mParent->getComponent<TDrawableComponent>().getVertexArray();
+#else
+		auto& Vertices = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif
 
 		sf::Vector2f PinPosition = Vertices[PinIndex * 4 + 4].position;
 
@@ -165,7 +169,11 @@ namespace nne
 
 	sf::FloatRect TPinComponent::getPinGlobalBounds(const std::size_t& PinIndex)
 	{
+#if ENTITY_SYSTEM == NNE
 		auto Pos = mParent->getComponent<TDrawableComponent>().getPosition();
+#else
+		auto Pos = mParent->getComponent<TDrawableComponent>()->getPosition();
+#endif
 
 		auto PinBound = getPinLocalBounds(PinIndex);
 
@@ -196,7 +204,11 @@ namespace nne
 
 	sf::Vector2f TPinComponent::computePinSize(const std::size_t& PinIndex)
 	{
+#if ENTITY_SYSTEM == NNE
 		auto& Vertices = mParent->getComponent<TDrawableComponent>().getVertexArray();
+#else
+		auto& Vertices = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif
 
 		auto Width = std::abs(Vertices[PinIndex * 4 + 4 + 3].position.x - Vertices[PinIndex * 4 + 4 + 0].position.x);
 		auto Height = std::abs(Vertices[PinIndex * 4 + 4 + 2].position.y - Vertices[PinIndex * 4 + 4 + 0].position.y);
@@ -268,16 +280,28 @@ namespace nne
 
 	const sf::Color& TPinComponent::getPinColor(const std::size_t& PinIndex) const
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponent<TDrawableComponent>().getVertexArray()[PinIndex * 4 + 4].color;
+#else
+		return mParent->getComponent<TDrawableComponent>()->getVertexArray()[PinIndex * 4 + 4].color;
+#endif		
 	}
 
 	void TPinComponent::setPinsColor(const sf::Color& Color)
 	{
-		// Get a ref to vertex array
+		// Get a ref to vertex array		
+#if ENTITY_SYSTEM == NNE
 		auto& Vertices = mParent->getComponent<TDrawableComponent>().getVertexArray();
+#else
+		auto& Vertices = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif		
 
 		// Get the number of pins
+#if ENTITY_SYSTEM == NNE
 		std::size_t NumberOfPins = mParent->getComponent<TPinComponent>().getPinList().size();
+#else
+		std::size_t NumberOfPins = mParent->getComponent<TPinComponent>()->getPinList().size();
+#endif	
 
 		// Iterate through all the pins vertices
 		for (size_t Index = 0; Index < NumberOfPins; ++Index)
@@ -292,7 +316,11 @@ namespace nne
 	void TPinComponent::setPinColor(const sf::Color& Color, const std::size_t& PinIndex)
 	{
 		// Get a ref to vertex array
+#if ENTITY_SYSTEM == NNE
 		auto& Vertices = mParent->getComponent<TDrawableComponent>().getVertexArray();
+#else
+		auto& Vertices = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif	
 
 		// Change the pin color
 		Vertices[PinIndex * 4 + 4 + 0].color = Color;
@@ -306,10 +334,14 @@ namespace nne
 
 	}
 
-	void TPinComponent::update(const sf::Time& ElapsedTime)
+	void TPinComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
-		// Execute the update cycle only if we placed the chip the pin color only we placed the chip
+		// Execute the update cycle only if we placed the chip the pin color only we placed the chip		
+#if ENTITY_SYSTEM == NNE
 		if (!mParent->getComponent<TChipComponent>().isPlaced())
+#else
+		if (!mParent->getComponent<TChipComponent>()->isPlaced())
+#endif	
 			return;
 
 		// Get a ref to the pin component
@@ -363,21 +395,32 @@ namespace nne
 		}
 	}
 
-	void TPinComponent::refresh(const sf::Time& ElapsedTime)
+	void TPinComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		// Execute the refresh cycle only if we placed the chip the pin color only we placed the chip
+#if ENTITY_SYSTEM == NNE
 		if (!mParent->getComponent<TChipComponent>().isPlaced())
+#else
+		if (!mParent->getComponent<TChipComponent>()->isPlaced())
+#endif	
 			return;
 
 		// Get a ref to the logic board component
-		//auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>();
+#if ENTITY_SYSTEM == NNE
 		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>().getBoard();
-
+#else
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>()->getBoard();
+#endif
+		
 		// Get the number of pins
 		std::size_t NumberOfPins = mPins.size();
 
 		// Get mouse info
+#if ENTITY_SYSTEM == NNE
 		auto MousePos = mParent->getComponent<tcomponents::TEventComponent>().getMousePosition();
+#else
+		auto MousePos = mParent->getComponent<tcomponents::TEventComponent>()->getMousePosition();
+#endif
 
 		// Swap the status of the selected and over pin
 		mPreviousOverPin = mOverPin;
@@ -401,8 +444,11 @@ namespace nne
 				mSelectedPinID = getPin(Index + 1).getPinID();
 
 				// Inform the logic board component that we selected this component
+#if ENTITY_SYSTEM == NNE
 				LogicBoard.setSelectedComponent<TChipComponent>(mParent->getComponentAsPtr<TChipComponent>());
-
+#else
+				LogicBoard.setSelectedComponent<TChipComponent>(&(*mParent->getComponent<TChipComponent>()));
+#endif
 				return;
 			}
 			// If we are just hovering the entity
@@ -420,44 +466,14 @@ namespace nne
 		// If we arrive at this point maybe we have to deselect the chip
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::WIRE)
 		{
-			if (LogicBoard.getSelectedComponent<TChipComponent>() == mParent->getComponentAsPtr<TChipComponent>())
-				LogicBoard.deselectComponent<TChipComponent>();
-		}		
-
-		/*for (size_t Index = 0; Index < NumberOfPins; ++Index)
-		{
-			// Get the pin bound of the selected PIN
-			auto PinBound = getPinGlobalBounds(Index);
 			
-			// If we clicked on the entity
-			if (checkMouseClickOnPin(PinBound, MousePos))
-			{
-				mPreviousSelectedPin = mSelectedPin;
-
-				mSelectedPin = Index;
-				mSelectedPinID = mPins[Index].getPinID();
-
-				// Inform the logic board component that we selected this component
-				//LogicBoard.setSelectedChip(&mParent->getComponent<TChipComponent>());
-				LogicBoard.setSelectedComponent<TChipComponent>(mParent->getComponentAsPtr<TChipComponent>());
-
-				return;
-			}
-			// If we are just hovering the entity
-			else if (checkMouseOverOnPin(PinBound, MousePos))
-			{
-				mOverPin = Index;
-				mOverPinID = mPins[Index].getPinID();
-
-				return;
-			}
-		}
-	
-		// If we arrive at this point maybe we have to deselect the chip
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && LogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::WIRE)
-		{
+#if ENTITY_SYSTEM == NNE
 			if (LogicBoard.getSelectedComponent<TChipComponent>() == mParent->getComponentAsPtr<TChipComponent>())
+#else
+			if (LogicBoard.getSelectedComponent<TChipComponent>() == (&(*mParent->getComponent<TChipComponent>())))
+#endif
 				LogicBoard.deselectComponent<TChipComponent>();
-		}*/
+		}
+
 	}
 }

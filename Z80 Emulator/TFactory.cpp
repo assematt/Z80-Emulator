@@ -16,15 +16,20 @@
 #include "TMemoryComponent.h"
 #include "TGridComponent.h"
 #include "TStateComponent.h"
+#include "TMultiplexerComponent.h"
+
+#include <ECS/_TManager.h>
 
 namespace nne
 {
 	namespace TFactory
 	{
-		
-		std::shared_ptr<nne::TEntity> makeWire()
+		using namespace nne::tcomponents;
+
+
+		ENTITY_PTR makeWire(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TWireComponent>();
@@ -35,9 +40,9 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeBus()
+		ENTITY_PTR makeBus(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TBusComponent>();
@@ -48,9 +53,9 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeLogicBoard()
+		ENTITY_PTR makeLogicBoard(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TGridComponent>();
@@ -58,13 +63,17 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeZ80()
+		ENTITY_PTR makeZ80(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TPinComponent>();
+#if ENTITY_SYSTEM == NNE
 			TempPtr->addComponent<tcomponents::TZ80Component>();
+#else
+			TempPtr->addComponent<TZ80Component>();
+#endif
 			TempPtr->addComponent<TTextComponent>();
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TPackageComponent>();
@@ -75,9 +84,9 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeRam()
+		ENTITY_PTR makeRam(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TPinComponent>();
@@ -93,9 +102,9 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeLed()
+		ENTITY_PTR makeLed(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TPinComponent>();
@@ -110,9 +119,9 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeNandChip()
+		ENTITY_PTR makeNandChip(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TPinComponent>();
@@ -127,14 +136,22 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makePowerConnector(const TPowerComponent::Type& Mode)
+#if ENTITY_SYSTEM == NNE
+		ENTITY_PTR makePowerConnector(const TPowerComponent::Type& Mode)
+#else
+		ENTITY_PTR makePowerConnector(FACTORY_ARGUMENT, const TPowerComponent::Type& Mode)
+#endif
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 			TempPtr->addComponent<TPinComponent>();
 			TempPtr->addComponent<TTextComponent>();
+#if ENTITY_SYSTEM == NNE
 			TempPtr->addComponent<TPowerComponent>(Mode);
+#else
+			TempPtr->addComponent<TPowerComponent>();
+#endif
 			TempPtr->addComponent<TChipComponent>();
 			TempPtr->addComponent<TPackageComponent>();
 			TempPtr->addComponent<TEventComponent>();
@@ -144,14 +161,38 @@ namespace nne
 			return std::move(TempPtr);
 		}
 
-		std::shared_ptr<nne::TEntity> makeGuiWidget()
+		ENTITY_PTR makeGuiWidget(FACTORY_ARGUMENT)
 		{
-			std::shared_ptr<nne::TEntity> TempPtr = std::make_shared<nne::TEntity>();
+			ENTITY_PTR TempPtr = CORRECT_MAKE_SHARED;
 
 			TempPtr->addComponent<TDrawableComponent>();
 
 			return std::move(TempPtr);
 		}
+
+#if ENTITY_SYSTEM == USE_ECS
+		void fillManagerWithSystems(ecs::_TManager& Manager)
+		{
+			Manager.addSystem<TEventComponent>();
+			Manager.addSystem<TLogicGateComponent>();
+			Manager.addSystem<TMemoryComponent>();
+			Manager.addSystem<TMultiplexerComponent>();
+			Manager.addSystem<TRamComponent>();
+			Manager.addSystem<TStateComponent>();
+			Manager.addSystem<TZ80Component>();
+			Manager.addSystem<TBusComponent>();
+			Manager.addSystem<TChipComponent>();
+			Manager.addSystem<TDrawableComponent>();
+			Manager.addSystem<TGridComponent>();
+			Manager.addSystem<TLedComponent>();
+			Manager.addSystem<TLogicBoardComponent>();
+			Manager.addSystem<TPackageComponent>();
+			Manager.addSystem<TPinComponent>();
+			Manager.addSystem<TPowerComponent>();
+			Manager.addSystem<TTextComponent>();
+			Manager.addSystem<TWireComponent>();
+		}
+#endif
 
 	}
 }

@@ -85,6 +85,10 @@ namespace nne
 			bool operator ==(const TStatus& Right);
 			bool operator !=(const TStatus& Right);
 
+			/// Assign operator (copy and move)
+			TPin& operator=(const TPin& Right);
+			TPin& operator=(TPin&& Right);
+
 			/// TStatus cast operator
 			operator TStatus();
 			operator const TStatus() const;

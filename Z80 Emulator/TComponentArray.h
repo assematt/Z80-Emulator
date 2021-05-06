@@ -1,6 +1,7 @@
 #pragma once
 
-#include "TEntity.h"
+#include "TValues.h"
+#include INCLUDE_ENTITY_CLASS
 #include "TUtility.h"
 #include "IDGenerator.h"
 

@@ -13,12 +13,13 @@
 #include "TAlu.h"
 #include "TDebugger.h"
 
-#include "IComponent.h"
+#include "TValues.h"
+#include INCLUDE_COMPONENT_CLASS
 #include "TPinComponent.h"
 #include "TRamComponent.h"
+//#include INCLUDE_ENTITY_CLASS
 #include "TEntity.h"
 #include "TClock.h"
-#include "TValues.h"
 
 
 namespace nne
@@ -35,7 +36,7 @@ namespace nne
 			const tcomponents::TPin::TPinGroupID Others = 3;
 		}
 
-		class TZ80Component : public nne::IComponent
+		class TZ80Component : BASE_COMPONENT_CLASS
 		{
 		public:
 			enum class TInterruptMode : TU8BitValue
@@ -53,16 +54,15 @@ namespace nne
 			};
 
 			TZ80Component();
-			~TZ80Component() = default;
 
 			void reset();
 
 			void init();
 
 			/// Use the refresh instruction as an M1 cycle
-			void refresh(const sf::Time& ElapsedTime);
+			void refresh(REFRESH_UPDATE_PARAMETER);
 
-			void update(const sf::Time& ElapsedTime);
+			void update(REFRESH_UPDATE_PARAMETER);
 
 			/// Get the TRegisterContainer 
 			const TRegisterContainer& getRegisterCointainer() const;
@@ -75,7 +75,7 @@ namespace nne
 			const sf::Uint16& getProgramSize() const;
 
 			/// Connect a RAM to the z80 for easier program execution
-			bool connectRam(std::shared_ptr<TEntity>& Ram);
+			bool connectRam(ENTITY_PTR& Ram);
 
 			/// Pause the program execution
 			void pauseExecution();
@@ -100,6 +100,8 @@ namespace nne
 
 			/// Execute instruction
 			TU16BitValue executeInstruction(const TOpCodesMainInstruction& OpCode);
+
+			TZ80Component& operator=(const TZ80Component& Right) { return *this; };
 
 		private:
 
@@ -144,16 +146,16 @@ namespace nne
 			void memoryWriteMCycle();
 
 		private:
-			bool mIsRunning;
-			bool mIsHalted;
-			bool mMaskableInterrupt;
+			bool				mIsRunning;
+			bool				mIsHalted;
+			bool				mMaskableInterrupt;
 
-			TInterruptMode mInterruptMode;
+			TInterruptMode		mInterruptMode;
 
 			// Current instruction
-			int			mLowMemoryRWValue;
-			int			mHighMemoryRWValue;
-			TU8BitValue mCurrentInstruction;
+			int					mLowMemoryRWValue;
+			int					mHighMemoryRWValue;
+			TU8BitValue			mCurrentInstruction;
 
 			// Clock and T states
 			nne::TClock			mClock;
@@ -161,20 +163,24 @@ namespace nne
 			TMachineCycleMode	mMachineCycleMode;
 
 			// Cache the value of the address and data bus
-			TU8BitValue		mDataBus;
-			TU16BitValue	mAddressBus;
+			TU8BitValue			mDataBus;
+			TU16BitValue		mAddressBus;
 
 			// EXTERNAL ROM COMPONENT
 			TSourceCode			mProgramSource;
 			sf::Uint16			mProgramSize;
-			TEntity::EntityPtr	mRam;
+#if ENTITY_SYSTEM == NNE
+			ENTITY_PTR			mRam;
+#else
+			ecs::_TEntity::Ptr	mRam;
+#endif
 
 			// Internal CPU ALU
-			TAlu mAlu;
-			TRegisterContainer mRegisters;
+			TAlu				mAlu;
+			TRegisterContainer	mRegisters;
 
 			// Debugger window
-			TDebugger				mDebugger;
+			TDebugger			mDebugger;
 
 			//friend class TCodeEditor;
 		};
@@ -188,7 +194,11 @@ namespace nne
 		template <class T>
 		void TZ80Component::loadRegisterFromMemory(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
 		{
+#if ENTITY_SYSTEM == NNE
 			mRegisters.getRegister<T>(Register) = mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory()[MemoryLocation];
+#else
+			mRegisters.getRegister<T>(Register) = mRam->getComponent<TMemoryComponent>()->getInternalMemory()[MemoryLocation];
+#endif
 		}
 
 		template <class T, class S /*= T*/>
@@ -199,8 +209,12 @@ namespace nne
 
 		template <class T>
 		void TZ80Component::loadMemoryFromRegister(const TRegisterType& Register, const TMemoryAddress& MemoryLocation)
-		{
+		{			
+#if ENTITY_SYSTEM == NNE
 			mRam->getComponentAsPtr<TMemoryComponent>()->getInternalMemory()[MemoryLocation] = mRegisters.getRegister<T>(Register);
+#else
+			mRam->getComponent<TMemoryComponent>()->getInternalMemory()[MemoryLocation] = mRegisters.getRegister<T>(Register);
+#endif
 		}
 	}
 }

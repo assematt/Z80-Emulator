@@ -54,12 +54,12 @@ namespace nne
 		mNeedsUpdate = true;
 	}
 
-	void TGridComponent::update(const sf::Time& ElapsedTime)
+	void TGridComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 		//throw std::logic_error("The method or operation is not implemented.");
 	}
 
-	void TGridComponent::refresh(const sf::Time& ElapsedTime)
+	void TGridComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		// If we don't need to update the vertex array 
 		if (!mNeedsUpdate)
@@ -91,7 +91,11 @@ namespace nne
 	void TGridComponent::init()
 	{
 		// Get the pointer to the entity drawable component and set some properties to his vertex array
+#if ENTITY_SYSTEM == NNE
 		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+#else
+		mDrawableComponent = &(*mParent->getComponent<TDrawableComponent>());
+#endif
 		mDrawableComponent->getVertexArray().setPrimitiveType(sf::Points);
 	}
 

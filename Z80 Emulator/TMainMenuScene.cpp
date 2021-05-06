@@ -10,15 +10,6 @@ namespace nne
 		MainMenu->setSize(mRenderWindow->getSize());
 		MainMenu->init(&mGuiManager);
 		mGuiManager.addWidget(MainMenu);
-
-		//mGuiManager.addWidget<tgui::TMainMenu>("MAIN_MENU", 0);
-		//mGuiManager.addWidget<tgui::TMainMenu>(std::string("MAIN_MENU"), 0u);
-		//auto MainMenu = mGuiManager.getWidget<tgui::TMainMenu>("MAIN_MENU");
-		//MainMenu->init(&mGuiManager);
-		//MainMenu->setSize(mRenderWindow->getSize());
-
-		//Menu->setSize(mRenderWindow->getSize());
-		//std::dynamic_pointer_cast<tgui::TMainMenu>(Menu)->init(&mGuiManager);
 	}
 
 	nne::IScene::ID TMainMenuScene::eventLoop()
@@ -42,11 +33,11 @@ namespace nne
 		return NewSceneID;
 	}
 
-	void TMainMenuScene::refresh(sf::Time ElapsedTime)
+	void TMainMenuScene::refresh(const sf::Time& ElapsedTime)
 	{		
 	}
 
-	void TMainMenuScene::update(sf::Time ElapsedTime)
+	void TMainMenuScene::update(const sf::Time& ElapsedTime)
 	{
 		mGuiManager.update(ElapsedTime);
 	}

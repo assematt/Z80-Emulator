@@ -27,9 +27,9 @@ namespace nne
 
 		void updateDebugInfo();
 
-		virtual void refresh(sf::Time ElapsedTime) override;
+		virtual void refresh(const sf::Time& ElapsedTime) override;
 
-		virtual void update(sf::Time ElapsedTime) override;
+		virtual void update(const sf::Time& ElapsedTime) override;
 
 		virtual void draw() override;
 
@@ -74,7 +74,7 @@ namespace nne
 		std::string formatZ80Flags(const tcomponents::TZ80Component& Z80);
 
 	private:
-		TManager				mGraphicEntity;
+		MANAGER_CLASS			mGraphicEntity;
 		sf::Event				mAppEvent;
 		sf::Uint32				mZoomSteps;
 		tgui::TGuiManager		mGuiManager;
@@ -90,9 +90,9 @@ namespace nne
 		std::size_t				mEntityCounter;
 
 		/// Variable the old a shared_ptr to the last added wires/bus/chips
-		TEntity::EntityPtr		mTempChip;
-		TEntity::EntityPtr		mTempWire;
-		TEntity::EntityPtr		mTempBus;
+		ENTITY_PTR		mTempChip;
+		ENTITY_PTR		mTempWire;
+		ENTITY_PTR		mTempBus;
 
 		/// Variable to establish if we are drawing from a bus to a chip or viceversa
 		bool mDrawingFromBusToChip;

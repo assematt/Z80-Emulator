@@ -44,7 +44,11 @@ namespace nne
 		return Result;
 	}
 
+#if ENTITY_SYSTEM == NNE
 	bool TBoard::loadBoard(const std::string& Path, TBoard& Board, TManager& EntityManager, IScene* Scene)
+#else
+	bool TBoard::loadBoard(const std::string& Path, TBoard& Board, ecs::_TManager& EntityManager, IScene* Scene)
+#endif
 	{
 		std::string WhatReading = "";
 
@@ -69,7 +73,11 @@ namespace nne
 		return Result;
 	}
 
+#if ENTITY_SYSTEM == NNE
 	std::pair<IComponent*, std::string> TBoard::getLastSelectedItem(const sf::Vector2f& MousePos) const
+#else
+	std::pair<ecs::_IComponent::Ptr, std::string> TBoard::getLastSelectedItem(const sf::Vector2f& MousePos) const
+#endif
 	{
 		// If we last selected a chip
 		if (mLastSelectedItem == "CHIP" && mSelectedChip)
@@ -123,7 +131,11 @@ namespace nne
 		return mInsertionMethod;
 	}
 
+#if ENTITY_SYSTEM == NNE
 	void TBoard::loadChips(const xml::TXMLNode::TChildren ChipVector, TBoard& Board, TManager& EntityManager, IScene* Scene)
+#else
+	void TBoard::loadChips(const xml::TXMLNode::TChildren ChipVector, TBoard& Board, ecs::_TManager& EntityManager, IScene* Scene)
+#endif
 	{
 		// Wire counter
 		auto ChipCounter = 0u;
@@ -134,7 +146,10 @@ namespace nne
 			// Increment the chip counter
 			++ChipCounter;
 
-			std::function<TEntity::EntityPtr()> FactoryFunction;
+#if ENTITY_SYSTEM == NNE
+			std::function<ENTITY_PTR()> FactoryFunction;
+#endif
+			ENTITY_PTR	EntityToAdd;
 			std::string	NewChipID;
 			TPackageComponent::TPackageType PackageType = TPackageComponent::TPackageType::DIP;
 
@@ -149,66 +164,114 @@ namespace nne
 			// If we are creating a z80 chip and we didn't do it before
 			if (ChipToCreate == "Z80")
 			{
-				FactoryFunction = TFactory::makeZ80;
 				NewChipID = "Z80";
+#if ENTITY_SYSTEM == NNE
+				FactoryFunction = TFactory::makeZ80;
+#else
+				EntityToAdd = TFactory::makeZ80(EntityManager, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 			}
 			// If we are creating a RAM chip
 			else if (ChipToCreate == "RAM")
 			{
-				FactoryFunction = TFactory::makeRam;
 				NewChipID = "RAM";
+#if ENTITY_SYSTEM == NNE
+				FactoryFunction = TFactory::makeRam;
+#else
+				EntityToAdd = TFactory::makeRam(EntityManager, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 			}
 			// If we are creating a NAND chip
 			else if (ChipToCreate == "NAND")
 			{
-				FactoryFunction = TFactory::makeNandChip;
 				NewChipID = "NAND_" + std::to_string(ChipCounter);
+#if ENTITY_SYSTEM == NNE
+				FactoryFunction = TFactory::makeNandChip;
+#else
+				EntityToAdd = TFactory::makeNandChip(EntityManager, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 			}
 			// If we are creating a LED
 			else if (ChipToCreate == "LED")
 			{
-				FactoryFunction = TFactory::makeLed;
 				NewChipID = "LED_" + std::to_string(ChipCounter);
+#if ENTITY_SYSTEM == NNE
+				FactoryFunction = TFactory::makeLed;
+#else
+				EntityToAdd = TFactory::makeLed(EntityManager, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 				PackageType = TPackageComponent::TPackageType::LED;
 			}
 			// If we are creating a VCC
 			else if (ChipToCreate == "VCC")
 			{
-				FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
 				NewChipID = "VCC_" + std::to_string(ChipCounter);
+#if ENTITY_SYSTEM == NNE
+				FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
+#else
+				EntityToAdd = TFactory::makePowerConnector(EntityManager, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID), TPowerComponent::Type::POWER);
+#endif
 				PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 			}
 			// If we are creating a GND
 			else if (ChipToCreate == "GND")
 			{
-				FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
 				NewChipID = "GND_" + std::to_string(ChipCounter);
+#if ENTITY_SYSTEM == NNE
+				FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
+#else
+				EntityToAdd = TFactory::makePowerConnector(EntityManager, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID), TPowerComponent::Type::GROUND);
+#endif
 				PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 			}
 
 			// Create a new graphic chip
+#if ENTITY_SYSTEM == NNE
 			EntityManager.addEntity(FactoryFunction(), NewChipID, Scene);
 
 			// Get the newly added CHIP
 			auto NewChip = EntityManager.getEntityByKey(NewChipID);
+#else
+			auto NewChip = EntityManager.addEntity(EntityToAdd);
+#endif
 			NewChip->init();
 			
+#if ENTITY_SYSTEM == NNE
 			NewChip->getComponent<TLogicBoardComponent>().setBoard(Board);
 			NewChip->getComponent<TChipComponent>().setPlacedStatus(true);
 			NewChip->getComponent<TDrawableComponent>().setPosition(PositionX, PositionY);
+#else
+			NewChip->getComponent<TLogicBoardComponent>()->setBoard(Board);
+			NewChip->getComponent<TChipComponent>()->setPlacedStatus(true);
+			NewChip->getComponent<TDrawableComponent>()->setPosition(PositionX, PositionY);
+#endif
 
 			// Set the type of the package used for the component
+#if ENTITY_SYSTEM == NNE
 			NewChip->getComponent<TPackageComponent>().setPackageType(PackageType);
+#else
+			NewChip->getComponent<TPackageComponent>()->setPackageType(PackageType);
+#endif
 
 			// Set the chip name
+#if ENTITY_SYSTEM == NNE
 			NewChip->getComponent<TChipComponent>().setChipName(ChipName);
 
 			NewChip->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
+#else
+			NewChip->getComponent<TChipComponent>()->setChipName(ChipName);
+
+			NewChip->getComponent<TEventComponent>()->attachEvent(tcomponents::events::onMouseUp, [&](const ecs::_TEntity* Sender, const sf::Event& EventData) {
+#endif
 
 				if (Board.getInsertionMethod() != TBoard::TInsertionMethod::NONE)
 					return;
 
+#if ENTITY_SYSTEM == NNE
 				auto& SelectedPin = Sender->getComponent<TPinComponent>().getSelectedPin();
+#else
+				auto& SelectedPin = Sender->getComponent<TPinComponent>()->getSelectedPin();
+#endif
 
 				if (SelectedPin != TPin::NotFound)
 				{
@@ -235,7 +298,11 @@ namespace nne
 		}
 	}
 
+#if ENTITY_SYSTEM == NNE
 	void TBoard::loadWires(const xml::TXMLNode::TChildren WireVector, TBoard& Board, TManager& EntityManager, IScene* Scene)
+#else
+	void TBoard::loadWires(const xml::TXMLNode::TChildren WireVector, TBoard& Board, ecs::_TManager& EntityManager, IScene* Scene)
+#endif	
 	{
 		// Wire counter
 		auto WireCounter = 0u;
@@ -247,23 +314,40 @@ namespace nne
 			++WireCounter;
 
 			// Create a wire entity and add it to the manger
+#if ENTITY_SYSTEM == NNE
 			EntityManager.addEntity(TFactory::makeWire(), "Wire_" + std::to_string(WireCounter), Scene);
 
 			// Retrieve the newly added entity
 			auto TempWire = EntityManager.getEntityByKey("Wire_" + std::to_string(WireCounter));
+#else
+			auto TempWire = EntityManager.addEntity("Wire_" + std::to_string(WireCounter));
+#endif
 
 			// Init the newly added wire
 			TempWire->init();
+#if ENTITY_SYSTEM == NNE
 			TempWire->getComponent<TLogicBoardComponent>().setBoard(Board);
 			TempWire->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
+#else
+			TempWire->getComponent<TLogicBoardComponent>()->setBoard(Board);
+			TempWire->getComponent<TEventComponent>()->attachEvent(tcomponents::events::onMouseUp, [&](const ecs::_TEntity* Sender, const sf::Event& EventData) {
+#endif
 
 				if (Board.getInsertionMethod() == TBoard::TInsertionMethod::NONE)
 				{
+#if ENTITY_SYSTEM == NNE
 					// Get the wire ID
 					auto WireID = Sender->getEntityID();
 
 					// Get the wire connections
 					auto WireConnections = Sender->getComponent<TWireComponent>().getConnectedPins();
+#else
+					// Get the wire ID
+					auto WireID = Sender->getID();
+
+					// Get the wire connections
+					auto WireConnections = Sender->getComponent<TWireComponent>()->getConnectedPins();
+#endif
 
 					// Dialog title
 					std::string DialogTitle = "Entity ID: " + std::to_string(WireID);
@@ -279,10 +363,14 @@ namespace nne
 			});
 
 			// Get the wire component
+#if ENTITY_SYSTEM == NNE
+			auto WireComponent = TempWire->getComponentAsPtr<TWireComponent>();
+#else
 			auto& WireComponent = TempWire->getComponent<TWireComponent>();
+#endif
 
 			// Set the wire name
-			WireComponent.setWireName(Wire->getChildNode("name")->getContent());
+			WireComponent->setWireName(Wire->getChildNode("name")->getContent());
 
 			// Load the vertices
 			auto VerticesVector = Wire->getChildrenNodes("point", 0);
@@ -292,7 +380,7 @@ namespace nne
 				float PositionY = WireVertex->getChildNode("y")->getContent<float>();
 
 				// Add the vertices in the vertices vector
-				WireComponent.mVertices.push_back({ PositionX, PositionY });
+				WireComponent->mVertices.push_back({ PositionX, PositionY });
 			}
 
 			// Load the pin connections
@@ -304,11 +392,11 @@ namespace nne
 				auto& Pin = TPin::getPinByName(PinName, ParentEntity);
 
 				// Add the PIN in the connection vector
-				WireComponent.mConnectedPins.insert(&Pin);
+				WireComponent->mConnectedPins.insert(&Pin);
 			}
 
 			// Render the wire
-			WireComponent.renderWire();
+			WireComponent->renderWire();
 
 			// And adds it to the logic board
 			placeComponent<TWireComponent>(TempWire);
@@ -356,7 +444,11 @@ namespace nne
 		}
 	}
 
+#if ENTITY_SYSTEM == NNE
 	void TBoard::loadPins(const xml::TXMLNode::TChildren PinVector, TBoard& Board, TManager& EntityManager, IScene* Scene)
+#else
+	void TBoard::loadPins(const xml::TXMLNode::TChildren PinVector, TBoard& Board, ecs::_TManager& EntityManager, IScene* Scene)
+#endif
 	{
 		// Add the wires to the entity manager
 		for (auto PinNode : PinVector)
@@ -400,7 +492,11 @@ namespace nne
 
 			// Add the chip format
 			auto PositionNode = ChipNode->addChildNode("position");
+#if ENTITY_SYSTEM == NNE
 			auto Position = Chip->getParent()->getComponent<TDrawableComponent>().getPosition();
+#else
+			auto Position = Chip->getParent().getComponent<TDrawableComponent>()->getPosition();
+#endif
 
 			// Set the X and Y position
 			PositionNode->addChildNode("x", std::to_string(Position.x));

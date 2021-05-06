@@ -179,9 +179,15 @@ namespace nne
 		// If this entity has a Text component draws it on top 
 		if (mParent->hasComponent<TTextComponent>())
 		{
+#if ENTITY_SYSTEM == NNE
 			States.texture = mParent->getComponentAsPtr<TTextComponent>()->getTexture();
 
 			Target.draw(mParent->getComponentAsPtr<TTextComponent>()->getVertexArray(), States);
+#else
+			States.texture = mParent->getComponent<TTextComponent>()->getTexture();
+
+			Target.draw(mParent->getComponent<TTextComponent>()->getVertexArray(), States);
+#endif			
 		}
 	}
 

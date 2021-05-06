@@ -59,7 +59,7 @@ namespace nne
 			mWireVectors.erase(It);
 	}
 
-	void TWireComponent::update(const sf::Time& ElapsedTime)
+	void TWireComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 		// If we didn't enable the drawing return early
 		if (mEnableDraw)
@@ -95,7 +95,7 @@ namespace nne
 
 	}
 
-	void TWireComponent::refresh(const sf::Time& ElapsedTime)
+	void TWireComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		// If we didn't enable the drawing return early
 		if (mEnableDraw)
@@ -109,16 +109,25 @@ namespace nne
 		setHoveredStatus(false);
 
 		// Get a ref to the logic board component
+#if ENTITY_SYSTEM == NNE
 		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>().getBoard();
-
-		// Get a ref to the sf::RenderWindow
-		auto& RenderWindow = mParent->getParentScene()->getRenderWindow();
-
+#else
+		auto& LogicBoard = mParent->getComponent<TLogicBoardComponent>()->getBoard();
+#endif
+		
+#if ENTITY_SYSTEM == NNE
 		// Get mouse info
 		auto MousePositionAdj = mParent->getComponent<tcomponents::TEventComponent>().getMousePosition();
 
 		// Execute the WIRE check only if we clicked or we are hovering the chip
 		auto ComponentState = mParent->getComponent<tcomponents::TStateComponent>().getState();
+#else
+		// Get mouse info
+		auto MousePositionAdj = mParent->getComponent<tcomponents::TEventComponent>()->getMousePosition();
+
+		// Execute the WIRE check only if we clicked or we are hovering the chip
+		auto ComponentState = mParent->getComponent<tcomponents::TStateComponent>()->getState();
+#endif
 
 		// Iterates through all the quads
 		for (auto Index = 0u; Index < VerticesNumber; Index += 4)
@@ -160,7 +169,11 @@ namespace nne
 
 	void TWireComponent::init()
 	{
+#if ENTITY_SYSTEM == NNE
 		mDrawableComponent = mParent->getComponentAsPtr<TDrawableComponent>();
+#else
+		mDrawableComponent = &(*mParent->getComponent<TDrawableComponent>());
+#endif
 		mDrawableComponent->getVertexArray().setPrimitiveType(sf::Quads);
 	}
 
@@ -667,17 +680,29 @@ namespace nne
 
 	sf::FloatRect TWireComponent::getLocalBound()
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getLocalBounds();
+#else
+		return mParent->getComponent<TDrawableComponent>()->getLocalBounds();
+#endif
 	}
 
 	sf::FloatRect TWireComponent::getGlobalBound()
-	{
+	{		
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getGlobalBounds();
+#else
+		return mParent->getComponent<TDrawableComponent>()->getGlobalBounds();
+#endif
 	}
 
 	sf::FloatRect TWireComponent::getSegmentLocalBound(const std::size_t SegmentNumber)
-	{
+	{		
+#if ENTITY_SYSTEM == NNE
 		auto& VertexArray = mParent->getComponentAsPtr<TDrawableComponent>()->getVertexArray();
+#else
+		auto& VertexArray = mParent->getComponent<TDrawableComponent>()->getVertexArray();
+#endif
 
 		return sf::FloatRect(VertexArray[SegmentNumber * 4 + 0].position.x, VertexArray[SegmentNumber * 4 + 0].position.y,
 			VertexArray[SegmentNumber * 4 + 3].position.x, VertexArray[SegmentNumber * 4 + 3].position.y);
@@ -685,13 +710,25 @@ namespace nne
 
 	sf::FloatRect TWireComponent::getSegmentGlobalBound(const std::size_t SegmentNumber)
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getSegmentLocalBound(SegmentNumber));
+#else
+		return mParent->getComponent<TDrawableComponent>()->getTransform().transformRect(getSegmentLocalBound(SegmentNumber));
+#endif
 	}
 
+#if ENTITY_SYSTEM == NNE
 	TWireComponent* TWireComponent::getWireByID(const TComponentID& ID)
+#else
+	TWireComponent* TWireComponent::getWireByID(const ecs::_IComponent::ID& ID)
+#endif
 	{
 		auto It = std::find_if(mWireVectors.cbegin(), mWireVectors.cend(), [&] (const TWireComponent* Wire) {
+#if ENTITY_SYSTEM == NNE
 			return Wire->getComponentID() == ID;
+#else
+			return Wire->getID() == ID;
+#endif			
 		});
 
 		if (It != mWireVectors.cend())

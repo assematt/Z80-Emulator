@@ -46,7 +46,7 @@ namespace nne
 		
 		// If we couldn't find the entity return an empty pointer
 		if (EntityPos == NotFound)
-			return std::shared_ptr<TEntity>(nullptr);
+			return TEntity::EntityPtr(nullptr);
 
 		return mEntityVector[EntityPos];
 	}
@@ -113,10 +113,12 @@ namespace nne
 				StateComponent.changeState(tcomponents::TStateComponent::CLICKED);
 
 				// Fire the click event
+#if ENTITY_SYSTEM == NNE
 				EventComponent.fireEvent(tcomponents::events::onClick, &Entity, Event);
 
 				// Mouse down event
 				EventComponent.fireEvent(tcomponents::events::onMouseDown, &Entity, Event);
+#endif
 			}
 			// Handle mouse up event
 			else if (Event.type == sf::Event::MouseButtonReleased)
@@ -125,28 +127,38 @@ namespace nne
 				StateComponent.changeState(tcomponents::TStateComponent::CLICKED);
 
 				// Mouse down event
+#if ENTITY_SYSTEM == NNE
 				EventComponent.fireEvent(tcomponents::events::onMouseUp, &Entity, Event);
+#endif				
 			}
 			// Handle the mouse wheel event
 			else if (Event.type == sf::Event::MouseWheelScrolled)
 			{
 				// Mouse wheel event
+#if ENTITY_SYSTEM == NNE
 				EventComponent.fireEvent(tcomponents::events::onMouseWheel, &Entity, Event);
+#endif
 
 				// If the delta it's more than 0 we scrolled the wheel up, otherwise we scrolled down and call the appropriate event's
+#if ENTITY_SYSTEM == NNE
 				Event.mouseWheelScroll.delta > 0.f ? EventComponent.fireEvent(tcomponents::events::onMouseWheelUp, &Entity, Event) : EventComponent.fireEvent(tcomponents::events::onMouseWheelDown, &Entity, Event);
+#endif
 			}
 			// Handle key press event
 			else if (Event.type == sf::Event::KeyPressed)
 			{
 				// Key press event
+#if ENTITY_SYSTEM == NNE
 				EventComponent.fireEvent(tcomponents::events::onKeyPress, &Entity, Event);
+#endif
 			}
 			// Mouse move event
 			else
 			{
-				// Mouse mouve event
+				// Mouse mouse event
+#if ENTITY_SYSTEM == NNE
 				EventComponent.fireEvent(tcomponents::events::onMouseMove, &Entity, Event);
+#endif
 			}
 		}
 	}

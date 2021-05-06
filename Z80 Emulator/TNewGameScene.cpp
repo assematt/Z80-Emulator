@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "TEntity.h"
+#include INCLUDE_ENTITY_CLASS
 #include "TCodeEditor.h"
 #include "TStaticText.h"
 #include "TNewGameMenu.h"
@@ -15,6 +15,8 @@
 #include "TEventComponent.h"
 #include "TPackageComponent.h"
 #include "TLogicBoardComponent.h"
+
+#include <ECS/_TManager.h>
 
 namespace nne
 {
@@ -30,12 +32,21 @@ namespace nne
 	}
 
 	void TNewGameScene::init()
-	{
+	{		
 		// Get the size of the renderWIndow
 		auto WindowSize = mRenderWindow->getSize();
 
+#if ENTITY_SYSTEM == USE_ECS
+		// Add all the component systems
+		TFactory::fillManagerWithSystems(mGraphicEntity);
+#endif
+
 		// Create some graphic entity
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.addEntity(TFactory::makeLogicBoard(), "LogicBoard", this);
+#else
+		mGraphicEntity.addEntity(TFactory::makeLogicBoard(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>("LogicBoard")));
+#endif
 		mGraphicEntity.initEntities();
 
 		// Init the GUI
@@ -48,7 +59,11 @@ namespace nne
 		mRenderCanvas = mGuiManager.getWidget<tgui::TRenderCanvas>("RENDER_CANVAS").get();
 
 		// Get the grid component and set some property
+#if ENTITY_SYSTEM == NNE
 		mGridComponent = mGraphicEntity.getEntityByKey("LogicBoard")->getComponentAsPtr<TGridComponent>();
+#else
+		mGridComponent = &(*mGraphicEntity.getEntity("LogicBoard")->getComponent<TGridComponent>());
+#endif
 		mGridComponent->setCellSize({ 23.f, 23.f });
 		mGridComponent->setSize(static_cast<sf::Vector2f>(mRenderCanvas->getSize()));
 
@@ -126,7 +141,11 @@ namespace nne
 		mGuiManager.getWidget("INSERT_CPU_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 
 			// Look for a z80 entity in the entities vector
+#if ENTITY_SYSTEM == NNE
 			auto Z80Temp = mGraphicEntity.getEntityByKey("Z80");
+#else
+			auto Z80Temp = mGraphicEntity.getEntity("Z80");
+#endif
 
 			// If we don't find it add it to the entity vector
 			if (!Z80Temp)
@@ -134,7 +153,11 @@ namespace nne
 				addChip("Z80");
 			}
 			// Otherwise if it already exit and we already have placed one display and error message
+#if ENTITY_SYSTEM == NNE
 			else if (Z80Temp->getComponent<TChipComponent>().isPlaced())
+#else
+			else if (Z80Temp->getComponent<TChipComponent>()->isPlaced())
+#endif
 			{
 				tgui::TDialogWindow::Ptr TempWindow = std::make_shared<tgui::TDialogWindow>(mGuiManager);
 				TempWindow->setName("TEMP_DIALOG_WINDOW");
@@ -147,7 +170,11 @@ namespace nne
 		});
 		mGuiManager.getWidget("INSERT_RAM_BUTTON")->attachEvent(tgui::events::onMouseUp, [&](const tgui::TWidget* Sender, const sf::Event& EventData) {
 			// Look for a z80 entity in the entities vector
+#if ENTITY_SYSTEM == NNE
 			auto RamTemp = mGraphicEntity.getEntityByKey("RAM");
+#else
+			auto RamTemp = mGraphicEntity.getEntity("RAM");
+#endif
 
 			// If we don't find it add it to the entity vector
 			if (!RamTemp)
@@ -155,7 +182,11 @@ namespace nne
 				addChip("RAM");
 			}
 			// Otherwise if it already exit and we already have placed one display and error message
+#if ENTITY_SYSTEM == NNE
 			else if (RamTemp->getComponent<TChipComponent>().isPlaced())
+#else
+			else if (RamTemp->getComponent<TChipComponent>()->isPlaced())
+#endif
 			{
 				tgui::TDialogWindow::Ptr TempWindow = std::make_shared<tgui::TDialogWindow>(mGuiManager);
 				TempWindow->setName("TEMP_DIALOG_WINDOW");
@@ -214,7 +245,9 @@ namespace nne
 		{
 			// Process the UI event
 			NewSceneID = mGuiManager.processEvents(mAppEvent, *mRenderWindow);
+#if ENTITY_SYSTEM == NNE
 			mGraphicEntity.processEvents(mAppEvent, *mRenderWindow, *mRenderCanvas);
+#endif
 
 			if (mAppEvent.type == sf::Event::Closed)
 				mRenderWindow->close();
@@ -244,8 +277,11 @@ namespace nne
 
 				if (CurrentChip && !CurrentChip->isPlaced())
 				{
+#if ENTITY_SYSTEM == NNE
 					mTempChip->getComponentAsPtr<TDrawableComponent>()->setPosition(CellPos);
-
+#else
+					mTempChip->getComponent<TDrawableComponent>()->setPosition(CellPos);
+#endif
 					/// Does the collision check
 					mLogicBoard.checkCollisions(CurrentChip);
 				}
@@ -265,7 +301,11 @@ namespace nne
 
 					for (auto Chip : ChipVector)
 					{
+#if ENTITY_SYSTEM == NNE
 						auto& PinComponent = Chip->getParent()->getComponent<TPinComponent>();
+#else
+						auto& PinComponent = (*Chip->getParent().getComponent<TPinComponent>());
+#endif
 						auto PinNumber = PinComponent.getPinList().size();
 						for (auto Index = 0u; Index < PinNumber && !Hovering; ++Index)
 						{
@@ -345,10 +385,14 @@ namespace nne
 			case TBoard::TInsertionMethod::WIRE:
 			{
 				// Get the WireComponent of the entity we are inserting
+#if ENTITY_SYSTEM == NNE
+				auto InsertingWire = mTempWire->getComponentAsPtr<TWireComponent>();
+#else
 				auto& InsertingWire = mTempWire->getComponent<TWireComponent>();
+#endif
 				
 				// Confirm the point added so far in the wire sf::VertexArray as definitive
-				InsertingWire.confirmPoints();
+				InsertingWire->confirmPoints();
 
 				// get a pointer to the selected chip
 				auto CurrentSelectedChip = mLogicBoard.getSelectedComponent<TChipComponent>();
@@ -372,29 +416,42 @@ namespace nne
 					mDrawingFromBusToChip = true;
 
 				// If we are trying to draw a wire between A wire and something else that we don't know yet
-				if (SelectedWire && (SelectedWire != &InsertingWire) && !CurrentSelectedChip && !FormerSelectedChip && !SelectedBus)
+#if ENTITY_SYSTEM == NNE
+				if (SelectedWire && (SelectedWire != InsertingWire) && !CurrentSelectedChip && !FormerSelectedChip && !SelectedBus)
+#else
+				if (SelectedWire && (SelectedWire != &(*InsertingWire)) && !CurrentSelectedChip && !FormerSelectedChip && !SelectedBus)
+#endif
 				{
 					// Place the junction
-					InsertingWire.placeJunction(CellPos, SelectedWire);
+					InsertingWire->placeJunction(CellPos, SelectedWire);
 
 					// Make sure we reset the selected wire at the one we are inserting
 					mLogicBoard.setSelectedComponent<TWireComponent>(SelectedWire);
-					mLogicBoard.setSelectedComponent<TWireComponent>(&InsertingWire);
+					
+#if ENTITY_SYSTEM == NNE
+					mLogicBoard.setSelectedComponent<TWireComponent>(InsertingWire);
+#else
+					mLogicBoard.setSelectedComponent<TWireComponent>(&(*InsertingWire));
+#endif
 				}
 				
 				// If we are trying to draw a wire between another wire and a chip
-				else if (SelectedWire && (SelectedWire == &InsertingWire) && FormerSelectedWire && CurrentSelectedChip && !FormerSelectedChip)
+#if ENTITY_SYSTEM == NNE
+				else if (SelectedWire && (SelectedWire == InsertingWire) && FormerSelectedWire && CurrentSelectedChip && !FormerSelectedChip)
+#else
+				else if (SelectedWire && (SelectedWire == &(*InsertingWire)) && FormerSelectedWire && CurrentSelectedChip && !FormerSelectedChip)
+#endif
 				{
 					// Stop the drawing mode
-					InsertingWire.toggleDraw();
+					InsertingWire->toggleDraw();
 
 					// Add the PIN connection from the chip and wire (and perform the eventual connectPins(...) function between this pin
 					// And other pins connected to the wire)
-					InsertingWire.connectPin(CurrentSelectedChip->getSelectedPin());
+					InsertingWire->connectPin(CurrentSelectedChip->getSelectedPin());
 
 					// Connect the wire (and perform the eventual connectPins(...) function between this pin
 					// And other pins connected to the wire)
-					InsertingWire.connectWire(FormerSelectedWire);
+					InsertingWire->connectWire(FormerSelectedWire);
 										
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
@@ -407,21 +464,25 @@ namespace nne
 				}
 
 				// If we have drawn a wire between a chip and another wire
-				else if (CurrentSelectedChip && SelectedWire && (SelectedWire != &InsertingWire))
+#if ENTITY_SYSTEM == NNE
+				else if (CurrentSelectedChip && SelectedWire && (SelectedWire != InsertingWire))
+#else
+				else if (CurrentSelectedChip && SelectedWire && (SelectedWire != &(*InsertingWire)))
+#endif
 				{
 					// Stop the drawing mode
-					InsertingWire.toggleDraw();
+					InsertingWire->toggleDraw();
 
 					// Add a junction
-					InsertingWire.placeJunction(CellPos, SelectedWire);
+					InsertingWire->placeJunction(CellPos, SelectedWire);
 										
 					// Add the PIN connection from the chip and wire (and perform the eventual connectPins(...) function between this pin
 					// And other pins connected to the wire)
-					InsertingWire.connectPin(CurrentSelectedChip->getSelectedPin());
+					InsertingWire->connectPin(CurrentSelectedChip->getSelectedPin());
 
 					// Connect the wire (and perform the eventual connectPins(...) function between this pin
 					// And other pins connected to the wire)
-					InsertingWire.connectWire(SelectedWire);
+					InsertingWire->connectWire(SelectedWire);
 
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
@@ -437,10 +498,10 @@ namespace nne
 				else if (CurrentSelectedChip && FormerSelectedChip)
 				{
 					// Stop the drawing mode
-					InsertingWire.toggleDraw();
+					InsertingWire->toggleDraw();
 					
 					// Add the 2 pin from the chip to the wire (who will perform the connectPins(...) function between the 2 pin)
-					InsertingWire.connectPins(CurrentSelectedChip->getSelectedPin(), FormerSelectedChip->getSelectedPin());
+					InsertingWire->connectPins(CurrentSelectedChip->getSelectedPin(), FormerSelectedChip->getSelectedPin());
 
 					// Reset the chip's pin selected status
 					CurrentSelectedChip->deselectPin();
@@ -457,7 +518,7 @@ namespace nne
 				else if (CurrentSelectedChip && SelectedBus)
 				{
 					// Stop the drawing mode
-					InsertingWire.toggleDraw();
+					InsertingWire->toggleDraw();
 
 					// Connect the pin to the bus as an entry wire
 					if (mDrawingFromBusToChip)
@@ -552,15 +613,22 @@ namespace nne
 				mLogicBoard.setInsertionMethod(TBoard::TInsertionMethod::NONE);
 
 				// Get the Z80 and the ram entity
+#if ENTITY_SYSTEM == NNE
 				auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
 				auto RamEntity = mGraphicEntity.getEntityByKey("RAM");
+#else
+				auto& Z80Entity = mGraphicEntity.getEntity("Z80");
+				auto& RamEntity = mGraphicEntity.getEntity("RAM");
+#endif
 
 				// Se if both the CPU and the RAM are placed into the logic board
 				if (Z80Entity && RamEntity)
 				{
-					auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
-					Z80.connectRam(RamEntity);
-					if (!Z80.loadProgram("resources/programs/SUB.A01"))
+#if ENTITY_SYSTEM == NNE
+					auto Z80 = Z80Entity->getComponentAsPtr<tcomponents::TZ80Component>();
+
+					Z80->connectRam(RamEntity);
+					if (!Z80->loadProgram("resources/programs/SUB.A01"))
 					{
 						std::cout << "Error! Could not open the file" << std::endl;
 					}
@@ -568,8 +636,23 @@ namespace nne
 					{
 						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
 
-						CodeEditor->attachZ80(Z80);
+						CodeEditor->attachZ80(*Z80);
 					}
+#else
+					auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
+
+					Z80->connectRam(RamEntity);
+					if (!Z80->loadProgram("resources/programs/SUB.A01"))
+					{
+						std::cout << "Error! Could not open the file" << std::endl;
+					}
+					else
+					{
+						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
+
+						CodeEditor->attachZ80(*Z80);
+					}
+#endif
 				}
 
 				// Get the number of loaded entities
@@ -628,61 +711,107 @@ namespace nne
 			case sf::Keyboard::V:
 			{
 				// Get the Z80 and the ram entity
+#if ENTITY_SYSTEM == NNE
 				auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
 				auto RamEntity = mGraphicEntity.getEntityByKey("RAM");
+#else
+				auto& Z80Entity = mGraphicEntity.getEntity("Z80");
+				auto& RamEntity = mGraphicEntity.getEntity("RAM");
+#endif
 
 				// Se if both the CPU and the RAM are placed into the logic board
 				if (Z80Entity && RamEntity)
 				{
-					auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
-					Z80.connectRam(RamEntity);
-					if (!Z80.loadProgram("resources/programs/SUB.A01"))
+#if ENTITY_SYSTEM == NNE
+					auto Z80 = Z80Entity->getComponentAsPtr<tcomponents::TZ80Component>();
+					Z80->connectRam(RamEntity);
+					if (!Z80->loadProgram("resources/programs/SUB.A01"))
 					{
 						std::cout << "Error! Could not open the file" << std::endl;
 					}
 					else
 					{
 						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
-
-						CodeEditor->attachZ80(Z80);
+						CodeEditor->attachZ80(*Z80);
 					}
+#else
+					auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
+					Z80->connectRam(RamEntity);
+					if (!Z80->loadProgram("resources/programs/SUB.A01"))
+					{
+						std::cout << "Error! Could not open the file" << std::endl;
+					}
+					else
+					{
+						auto& CodeEditor = mGuiManager.getWidget<tgui::TCodeEditor>("CODE_EDITOR");
+						CodeEditor->attachZ80(*Z80);
+					}
+#endif
 				}
 			}break;
 						
 			// Reset the CPU
 			case sf::Keyboard::M:
 			{
+#if ENTITY_SYSTEM == NNE
 				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
 
 				if (Z80)
 					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->reset();
+#else
+				auto Z80 = mGraphicEntity.getEntity("Z80");
+
+				if (Z80)
+					Z80->getComponent<tcomponents::TZ80Component>()->reset();
+#endif
 			}break;
 
 			// Pause CPU execution
 			case sf::Keyboard::K:
 			{
+#if ENTITY_SYSTEM == NNE
 				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
 
 				if (Z80)
 					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->pauseExecution();
+#else
+				auto Z80 = mGraphicEntity.getEntity("Z80");
+
+				if (Z80)
+					Z80->getComponent<tcomponents::TZ80Component>()->pauseExecution();
+#endif
 			}break;
 
 			// Resume CPU execution
 			case sf::Keyboard::J:
 			{
+#if ENTITY_SYSTEM == NNE
 				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
 
 				if (Z80)
 					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->resumeExecution();
+#else
+				auto Z80 = mGraphicEntity.getEntity("Z80");
+
+				if (Z80)
+					Z80->getComponent<tcomponents::TZ80Component>()->resumeExecution();
+#endif
 			}break;
 
 			// Restart CPU execution
 			case sf::Keyboard::L:
 			{
+#if ENTITY_SYSTEM == NNE
 				auto Z80 = mGraphicEntity.getEntityByKey("Z80");
 
 				if (Z80)
 					Z80->getComponentAsPtr<tcomponents::TZ80Component>()->restartExecution();
+#else
+				auto Z80 = mGraphicEntity.getEntity("Z80");
+
+				if (Z80)
+					Z80->getComponent<tcomponents::TZ80Component>()->restartExecution();
+#endif
 			}break;
 
 			// Zoom in
@@ -751,27 +880,47 @@ namespace nne
 		}
 	}
 
-	void TNewGameScene::refresh(sf::Time ElapsedTime)
+	void TNewGameScene::refresh(const sf::Time& ElapsedTime)
 	{
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.refresh(ElapsedTime);
+#else
+		mGraphicEntity.refresh(ElapsedTime.asSeconds());
+#endif
 	}
 
-	void TNewGameScene::update(sf::Time ElapsedTime)
+	void TNewGameScene::update(const sf::Time& ElapsedTime)
 	{
 		mGuiManager.update(ElapsedTime);
 
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.update(ElapsedTime);
+#else
+		mGraphicEntity.update(ElapsedTime.asSeconds());
+#endif
 
 		// Update the debugger value
+#if ENTITY_SYSTEM == NNE
 		auto Z80Entity = mGraphicEntity.getEntityByKey("Z80");
+#else
+		auto Z80Entity = mGraphicEntity.getEntity("Z80");
+#endif
 
 		if (Z80Entity)
 		{
+#if ENTITY_SYSTEM == NNE
 			auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
 
 			mGuiManager.getWidget<tgui::TDebugWindow>("REGISTER_DEBUGGER")->setDebugText(formatZ80Registers(Z80));
 
 			mGuiManager.getWidget<tgui::TDebugWindow>("FLAGS_DEBUGGER")->setDebugText(formatZ80Flags(Z80));
+#else
+			auto& Z80 = Z80Entity->getComponent<tcomponents::TZ80Component>();
+
+			mGuiManager.getWidget<tgui::TDebugWindow>("REGISTER_DEBUGGER")->setDebugText(formatZ80Registers(*Z80));
+
+			mGuiManager.getWidget<tgui::TDebugWindow>("FLAGS_DEBUGGER")->setDebugText(formatZ80Flags(*Z80));
+#endif
 		}
 		
 	}
@@ -783,8 +932,14 @@ namespace nne
 		mRenderCanvas->clear({ 1, 47, 83 });
 		
 		// Draw the entity on the GUI canvas as opposed of the sf::RenderWindow
+#if ENTITY_SYSTEM == NNE
 		for (auto& GraphicsEntity : mGraphicEntity)
 			mRenderCanvas->drawEntity(GraphicsEntity->getComponent<TDrawableComponent>());
+#else
+		auto& GraphicSystem = mGraphicEntity.getSystem<TDrawableComponent>();
+		for (auto& GraphicsComponent : GraphicSystem)
+			mRenderCanvas->drawEntity(GraphicsComponent);
+#endif
 
 		// Flip the mRenderCanvas black-buffer
 		mRenderCanvas->render();
@@ -809,26 +964,46 @@ namespace nne
 		std::string WireName = "Wire_" + std::to_string(mEntityCounter);
 
 		// Create a wire entity and add it to the manger
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.addEntity(TFactory::makeWire(), WireName, this);
 
 		// Retrieve the newly added entity
 		mTempWire = mGraphicEntity.getEntityByKey(WireName);
+#else
+		mTempWire = mGraphicEntity.addEntity(WireName);
+#endif		
 
 		// Init the newly added wire
 		mTempWire->init();
 
 		// Set the used board
+#if ENTITY_SYSTEM == NNE
 		mTempWire->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
+#else
+		mTempWire->getComponent<TLogicBoardComponent>()->setBoard(mLogicBoard);
+#endif
 
-		mTempWire->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData){
-
+#if ENTITY_SYSTEM == NNE
+		mTempWire->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
+#else
+		mTempWire->getComponent<TEventComponent>()->attachEvent(tcomponents::events::onMouseUp, [&](const ecs::_TEntity* Sender, const sf::Event& EventData) {
+#endif
 			if (mLogicBoard.getInsertionMethod() == TBoard::TInsertionMethod::NONE)
 			{
+#if ENTITY_SYSTEM == NNE
 				// Get the wire ID
 				auto WireID = Sender->getComponent<TWireComponent>().getComponentID();
 
 				// Get the wire connections
 				auto WireConnections = Sender->getComponent<TWireComponent>().getConnectedPins();
+#else
+				// Get the wire ID
+				auto& WireComponent = Sender->getComponent<TWireComponent>();
+				auto& WireID = WireComponent->getID();
+
+				// Get the wire connections
+				auto WireConnections = WireComponent->getConnectedPins();
+#endif
 
 				// Dialog title
 				std::string DialogTitle = "Wire ID: " + std::to_string(WireID);
@@ -851,7 +1026,11 @@ namespace nne
 		mLogicBoard.setSelectedComponent<TWireComponent>(mTempWire);
 
 		// Set wire name
+#if ENTITY_SYSTEM == NNE
 		mTempWire->getComponent<TWireComponent>().setWireName(WireName);
+#else
+		mTempWire->getComponent<TWireComponent>()->setWireName(WireName);
+#endif
 
 		// Allow to draw the wire
 		mLogicBoard.getSelectedComponent<TWireComponent>()->toggleDraw();
@@ -869,16 +1048,24 @@ namespace nne
 		++mEntityCounter;
 
 		// Create a conductive bus entity and add it to the manger
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.addEntity(TFactory::makeBus(), "Bus_" + std::to_string(mEntityCounter), this);
 
 		// Retrieve the newly added entity
 		mTempBus = mGraphicEntity.getEntityByKey("Bus_" + std::to_string(mEntityCounter));
+#else
+		mTempBus = mGraphicEntity.addEntity("Bus_" + std::to_string(mEntityCounter));
+#endif
 
 		// Init the newly added bus
 		mTempBus->init();
 
 		// Set the used board
+#if ENTITY_SYSTEM == NNE
 		mTempBus->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
+#else
+		mTempBus->getComponent<TLogicBoardComponent>()->setBoard(mLogicBoard);
+#endif
 
 		// And adds it to the logic board
 		mLogicBoard.placeComponent<TBusComponent>(mTempBus);
@@ -899,56 +1086,89 @@ namespace nne
 		// Remove temporary Entity
 		removeTemporaryEntity();
 
-		std::function<TEntity::EntityPtr()> FactoryFunction;
+#if ENTITY_SYSTEM == NNE
+		std::function<ENTITY_PTR()> FactoryFunction;
+#endif
 		std::string	NewChipID;
+		ENTITY_PTR	EntityToAdd;
 		TPackageComponent::TPackageType PackageType = TPackageComponent::TPackageType::DIP;
 
 		// If we are creating a z80 chip and we didn't do it before
 		if (ChipToAdd == "Z80")
 		{
-			FactoryFunction = TFactory::makeZ80;
 			NewChipID = "Z80";
+#if ENTITY_SYSTEM == NNE
+			FactoryFunction = TFactory::makeZ80;
+#else
+			EntityToAdd = TFactory::makeZ80(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 		}
 		// If we are creating a RAM chip
 		else if (ChipToAdd == "RAM")
 		{
-			FactoryFunction = TFactory::makeRam;
 			NewChipID = "RAM";
+#if ENTITY_SYSTEM == NNE
+			FactoryFunction = TFactory::makeRam;
+#else
+			EntityToAdd = TFactory::makeRam(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 		}
 		// If we are creating a NAND chip
 		else if (ChipToAdd == "NAND")
 		{
-			FactoryFunction = TFactory::makeNandChip;
 			NewChipID = "NAND_" + std::to_string(mChipCounter++);
+#if ENTITY_SYSTEM == NNE
+			FactoryFunction = TFactory::makeNandChip;
+#else
+			EntityToAdd = TFactory::makeNandChip(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 		}
 		// If we are creating a LED
 		else if (ChipToAdd == "LED")
 		{
-			FactoryFunction = TFactory::makeLed;
 			NewChipID = "LED_" + std::to_string(mChipCounter++);
+#if ENTITY_SYSTEM == NNE
+			FactoryFunction = TFactory::makeLed;
+#else
+			EntityToAdd = TFactory::makeLed(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID));
+#endif
 			PackageType = TPackageComponent::TPackageType::LED;
 		}
 		// If we are creating a VCC
 		else if (ChipToAdd == "VCC")
 		{
-			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
 			NewChipID = "VCC_" + std::to_string(mChipCounter++);
+#if ENTITY_SYSTEM == NNE
+			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::POWER);
+#else
+			EntityToAdd = TFactory::makePowerConnector(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID), TPowerComponent::Type::POWER);
+#endif
 			PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 		}
 		// If we are creating a GND
 		else if (ChipToAdd == "GND")
 		{
-			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
 			NewChipID = "GND_" + std::to_string(mChipCounter++);
+#if ENTITY_SYSTEM == NNE
+			FactoryFunction = std::bind(TFactory::makePowerConnector, TPowerComponent::Type::GROUND);
+#else
+			EntityToAdd = TFactory::makePowerConnector(mGraphicEntity, ecs::utility::getStringID<ecs::_TEntity::ID>(NewChipID), TPowerComponent::Type::GROUND);
+#endif
 			PackageType = TPackageComponent::TPackageType::POWER_CONNECTOR;
 		}
 
 		// Create a new graphic chip
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.addEntity(FactoryFunction(), NewChipID, this);
 
 		// Get the newly added CHIP
 		mTempChip = mGraphicEntity.getEntityByKey(NewChipID);
+#else
+		mTempChip = mGraphicEntity.addEntity(std::move(EntityToAdd));
+#endif
+		
 		mTempChip->init();
+#if ENTITY_SYSTEM == NNE
 		mTempChip->getComponent<TChipComponent>().setPlacedStatus(false);
 
 		// Set the type of the package used for the component
@@ -962,16 +1182,39 @@ namespace nne
 				
 		// Set the used board
 		mTempChip->getComponent<TLogicBoardComponent>().setBoard(mLogicBoard);
+#else
+		mTempChip->getComponent<TChipComponent>()->setPlacedStatus(false);
+
+		// Set the type of the package used for the component
+		mTempChip->getComponent<TPackageComponent>()->setPackageType(PackageType);
+
+		// Set the chip name
+		mTempChip->getComponent<TChipComponent>()->setChipName(NewChipID);
+
+		if (PackageType == TPackageComponent::TPackageType::DIP)
+			mTempChip->getComponent<TPackageComponent>()->updateChipName();
+
+		// Set the used board
+		mTempChip->getComponent<TLogicBoardComponent>()->setBoard(mLogicBoard);
+#endif
 
 		// And adds it to the logic board
 		mLogicBoard.placeComponent<TChipComponent>(mTempChip);
 
+#if ENTITY_SYSTEM == NNE
 		mTempChip->getComponent<TEventComponent>().attachEvent(tcomponents::events::onMouseUp, [&](const TEntity* Sender, const sf::Event& EventData) {
+#else
+		mTempChip->getComponent<TEventComponent>()->attachEvent(tcomponents::events::onMouseUp, [&](const ecs::_TEntity* Sender, const sf::Event& EventData) {
+#endif
 
 			if (mLogicBoard.getInsertionMethod() != TBoard::TInsertionMethod::NONE)
 				return;
 
+#if ENTITY_SYSTEM == NNE
 			auto& SelectedPin = Sender->getComponent<TPinComponent>().getSelectedPin();
+#else
+			auto& SelectedPin = Sender->getComponent<TPinComponent>()->getSelectedPin();
+#endif
 
 			if (SelectedPin != TPin::NotFound)
 			{
@@ -1048,7 +1291,11 @@ namespace nne
 		mLogicBoard.removeComponent(Wire);
 
 		// Remove the wire parent entity from the entity manager
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.removeEntity(ParentEntity->getEntityID());
+#else
+		mGraphicEntity.removeEntity(ParentEntity.getID());
+#endif
 
 		// Success message
 		::MessageBox(NULL, "The wire was successfully removed it!", "Removed!", MB_OK);
@@ -1065,17 +1312,29 @@ namespace nne
 		auto ParentEntity = Chip->getParent();
 
 		// Get a ref to the TPinComponent
+#if ENTITY_SYSTEM == NNE
 		auto& PinComponent = ParentEntity->getComponent<TPinComponent>();
 
 		// Detach all the pins
 		for (auto& Pin : PinComponent.getPinList())
 			Pin.detachPin();
+#else
+		auto& PinComponent = ParentEntity.getComponent<TPinComponent>();
+
+		// Detach all the pins
+		for (auto& Pin : PinComponent->getPinList())
+			Pin.detachPin();
+#endif
 
 		// Remove the wire from the logic board
 		mLogicBoard.removeComponent(Chip);
 
 		// Remove the wire parent entity from the entity manager
+#if ENTITY_SYSTEM == NNE
 		mGraphicEntity.removeEntity(ParentEntity->getEntityID());
+#else
+		mGraphicEntity.removeEntity(ParentEntity.getID());
+#endif
 
 		::MessageBoxA(NULL, "Chip removed!", "Bye bye!", MB_OK);
 	}
@@ -1085,7 +1344,11 @@ namespace nne
 		// Bus part
 		// If we were trying to place another wire but we haven't placed any point or only  before trying to add a new one point
 		// Remove that wire from the logic board and delete the entity associated with it
+#if ENTITY_SYSTEM == NNE
 		if (mTempBus && mTempBus->getComponent<TBusComponent>().isDrawing())
+#else
+		if (mTempBus && mTempBus->getComponent<TBusComponent>()->isDrawing())
+#endif
 		{
 			// Make sure we reset the state of the selected bus
 			mLogicBoard.deselectComponent<TBusComponent>(true);
@@ -1094,7 +1357,11 @@ namespace nne
 			mLogicBoard.removeComponent<TBusComponent>(mTempBus);
 
 			// Remove the entity
+#if ENTITY_SYSTEM == NNE
 			mGraphicEntity.removeEntity(mTempBus->getEntityID());
+#else
+			mGraphicEntity.removeEntity(mTempBus->getID());
+#endif
 
 			// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
 			mTempBus.reset();
@@ -1103,7 +1370,11 @@ namespace nne
 		// Wire part
 		// If we were trying to place another wire but we haven't placed any point or only  before trying to add a new one point
 		// Remove that wire from the logic board and delete the entity associated with it
+#if ENTITY_SYSTEM == NNE
 		if (mTempWire && mTempWire->getComponent<TWireComponent>().isDrawing())
+#else
+		if (mTempWire && mTempWire->getComponent<TWireComponent>()->isDrawing())
+#endif
 		{
 			// Make sure we reset the state of the selected wire
 			mLogicBoard.deselectComponent<TWireComponent>(true);
@@ -1112,7 +1383,11 @@ namespace nne
 			mLogicBoard.removeComponent<TWireComponent>(mTempWire);
 
 			// Remove the entity
+#if ENTITY_SYSTEM == NNE
 			mGraphicEntity.removeEntity(mTempWire->getEntityID());
+#else
+			mGraphicEntity.removeEntity(mTempWire->getID());
+#endif
 
 			// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
 			mTempWire.reset();
@@ -1126,6 +1401,7 @@ namespace nne
 			// Make sure we reset the state of the selected chip
 			mLogicBoard.deselectComponent<TChipComponent>(true);
 
+#if ENTITY_SYSTEM == NNE
 			if (!mTempChip->getComponent<TChipComponent>().isPlaced())
 			{
 				// Remove the chip from the logic board
@@ -1137,6 +1413,19 @@ namespace nne
 				// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
 				mTempChip.reset();
 			}
+#else
+			if (!mTempChip->getComponent<TChipComponent>()->isPlaced())
+			{
+				// Remove the chip from the logic board
+				mLogicBoard.removeComponent<TChipComponent>(mTempChip);
+
+				// Remove the entity
+				mGraphicEntity.removeEntity(mTempChip->getID());
+
+				// Reset the state of the temp shared_ptr to make sure we kill all the entity instances
+				mTempChip.reset();
+			}
+#endif
 		}
 	}
 	

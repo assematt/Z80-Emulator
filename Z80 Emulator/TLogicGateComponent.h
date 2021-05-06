@@ -1,15 +1,14 @@
 #pragma once
 
-#include "IComponent.h"
-#include "TPin.h"
 #include "TValues.h"
-
+#include INCLUDE_COMPONENT_CLASS
+#include "TPin.h"
 
 namespace nne
 {
 	namespace tcomponents
 	{
-		struct TLogicGateComponent : nne::IComponent
+		class TLogicGateComponent : BASE_COMPONENT_CLASS
 		{
 		public:
 
@@ -29,9 +28,9 @@ namespace nne
 
 			void init() override;
 
-			void update(const sf::Time& ElapsedTime) override;
+			void update(REFRESH_UPDATE_PARAMETER) override;
 
-			void refresh(const sf::Time& ElapsedTime) override;
+			void refresh(REFRESH_UPDATE_PARAMETER) override;
 
 			/// Perform the logic operation specified by the "Operation" value between the 2 specified PINs
 			TPin::TStatus performInstruction(const TPin::TStatus& LeftPin, const TPin::TStatus& RightPin, const TOperation& Operation);

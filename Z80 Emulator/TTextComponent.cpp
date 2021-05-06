@@ -473,12 +473,20 @@ namespace nne
 
 	sf::FloatRect TTextComponent::getGlobalBounds() const
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getLocalBounds());
+#else
+		return mParent->getComponent<TDrawableComponent>()->getTransform().transformRect(getLocalBounds());
+#endif
 	}
 
 	sf::FloatRect TTextComponent::getCharacterGlobalBounds(std::size_t Index)
 	{
+#if ENTITY_SYSTEM == NNE
 		return mParent->getComponentAsPtr<TDrawableComponent>()->getTransform().transformRect(getCharacterLocalBounds(Index));
+#else
+		return mParent->getComponent<TDrawableComponent>()->getTransform().transformRect(getCharacterLocalBounds(Index));
+#endif
 	}
 
 	const sf::VertexArray& TTextComponent::getVertexArray() const
@@ -496,11 +504,11 @@ namespace nne
 		return &mFont->getTexture(CharacterSize);
 	}
 
-	void TTextComponent::update(const sf::Time& ElapsedTime)
+	void TTextComponent::update(REFRESH_UPDATE_PARAMETER)
 	{
 	}
 
-	void TTextComponent::refresh(const sf::Time& ElapsedTime)
+	void TTextComponent::refresh(REFRESH_UPDATE_PARAMETER)
 	{
 		if (!mGeometryNeedupdate)
 			return;

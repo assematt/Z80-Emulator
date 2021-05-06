@@ -19,10 +19,14 @@ namespace nne
 		{
 			assert(mParent->hasComponent<TPinComponent>());
 
+#if ENTITY_SYSTEM == NNE
 			mPinComponent = mParent->getComponentAsPtr<TPinComponent>();
+#else
+			mPinComponent = &(*mParent->getComponent<TPinComponent>());
+#endif
 		}
 
-		void TMultiplexerComponent::update(const sf::Time& ElapsedTime)
+		void TMultiplexerComponent::update(REFRESH_UPDATE_PARAMETER)
 		{
 
 		}

@@ -15,7 +15,7 @@ namespace nne
 			
 		}
 
-		void TMemoryComponent::update(const sf::Time& ElapsedTime)
+		void TMemoryComponent::update(REFRESH_UPDATE_PARAMETER)
 		{
 
 		}
